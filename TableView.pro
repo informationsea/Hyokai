@@ -4,15 +4,19 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui sql
 
 TARGET = TableView
 TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    schemadialog.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    main.h \
+    schemadialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    schemadialog.ui
