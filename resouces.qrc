@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/rc">
+        <file>images/document-new.png</file>
+        <file>images/document-open.png</file>
+        <file>images/document-save.png</file>
+        <file>images/edit-delete.png</file>
+        <file>images/edit-undo.png</file>
+        <file>images/list-add.png</file>
+        <file>images/list-remove.png</file>
+        <file>images/window-new.png</file>
+        <file>images/go-bottom.png</file>
+    </qresource>
+</RCC>

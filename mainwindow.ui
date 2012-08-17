@@ -27,10 +27,24 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QComboBox" name="tableSelect"/>
+       <widget class="QComboBox" name="tableSelect">
+        <property name="statusTip">
+         <string>Table Select</string>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="sqlLine"/>
+       <widget class="QLineEdit" name="sqlLine">
+        <property name="toolTip">
+         <string>SQL Where Statement</string>
+        </property>
+        <property name="statusTip">
+         <string>SQL Where Statement</string>
+        </property>
+        <property name="placeholderText">
+         <string>Filter</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -92,6 +106,7 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionCreateTable"/>
+   <addaction name="actionImportTable"/>
    <addaction name="actionInsert"/>
    <addaction name="actionDelete"/>
    <addaction name="actionCommit"/>
@@ -99,6 +114,10 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/document-open.png</normaloff>:/rc/images/document-open.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
@@ -107,16 +126,28 @@
    </property>
   </action>
   <action name="actionInsert">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/list-add.png</normaloff>:/rc/images/list-add.png</iconset>
+   </property>
    <property name="text">
     <string>Insert</string>
    </property>
   </action>
   <action name="actionDelete">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/list-remove.png</normaloff>:/rc/images/list-remove.png</iconset>
+   </property>
    <property name="text">
     <string>Delete</string>
    </property>
   </action>
   <action name="actionCommit">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/document-save.png</normaloff>:/rc/images/document-save.png</iconset>
+   </property>
    <property name="text">
     <string>Commit</string>
    </property>
@@ -138,6 +169,10 @@
    </property>
   </action>
   <action name="actionNew">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/document-new.png</normaloff>:/rc/images/document-new.png</iconset>
+   </property>
    <property name="text">
     <string>New</string>
    </property>
@@ -146,6 +181,10 @@
    </property>
   </action>
   <action name="actionCreateTable">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/window-new.png</normaloff>:/rc/images/window-new.png</iconset>
+   </property>
    <property name="text">
     <string>Create Table</string>
    </property>
@@ -161,18 +200,28 @@
    </property>
   </action>
   <action name="actionImportTable">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/go-bottom.png</normaloff>:/rc/images/go-bottom.png</iconset>
+   </property>
    <property name="text">
     <string>Import Table</string>
    </property>
   </action>
   <action name="actionRevert">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/edit-undo.png</normaloff>:/rc/images/edit-undo.png</iconset>
+   </property>
    <property name="text">
     <string>Revert</string>
    </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resouces.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionClose</sender>

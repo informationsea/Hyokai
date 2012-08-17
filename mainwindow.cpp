@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "schemadialog.h"
+#include "sheetmessagebox.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -17,21 +18,24 @@
 #include <QItemSelectionModel>
 #include <QModelIndex>
 #include <QHeaderView>
+#include <QCloseEvent>
 
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow), isDuty(false)
 {
     ui->setupUi(this);
     filepath = path;
     QFileInfo fileinfo(path);
-    setWindowTitle(fileinfo.baseName());
+    setWindowTitle(QString("[*] ") + fileinfo.baseName());
 
     theDb = QSqlDatabase::cloneDatabase(sqlite, path);
     theDb.setDatabaseName(path);
     theDb.open();
+
+    ui->mainToolBar->setIconSize(QSize(22, 22));
 
     foreach(QString name, theDb.tables()) {
         ui->tableSelect->addItem(name);
@@ -46,8 +50,8 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
-    connect(ui->actionQuit, SIGNAL(triggered()), SLOT(quit()));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
+    connect(tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(updateTable()));
 }
 
 MainWindow::~MainWindow()
@@ -55,27 +59,76 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
-void MainWindow::quit()
+void MainWindow::closeEvent(QCloseEvent *event)
 {
-    foreach(MainWindow *window, ::windowList) {
-        window->close();
+    if (isDuty) {
+        QMessageBox::StandardButton selected =
+                SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
+                                          QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
+        switch(selected) {
+        case QMessageBox::Cancel:
+            event->ignore();
+            return;
+        case QMessageBox::Save:
+            if (!tableModel->submitAll()) {
+                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
+                event->ignore();
+                return;
+            }
+            break;
+        case QMessageBox::Discard:
+        default:
+            break;
+        }
     }
+    event->accept();
 }
 
 void MainWindow::filterFinished()
 {
     tableModel->setFilter(ui->sqlLine->text());
-    qDebug() << tableModel->lastError();
     tableModel->select();
+    if (tableModel->lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::warning(this, tr("Cannot apply the filter."), tableModel->lastError().text());
+    }
 }
 
 
 void MainWindow::tableChanged(const QString &name)
 {
+    if (name == tableModel->tableName())
+        return;
+    if (isDuty) {
+        QMessageBox::StandardButton selected =
+                SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
+                                          QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
+        switch(selected) {
+        case QMessageBox::Cancel:
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+            return;
+        case QMessageBox::Save:
+            if (!tableModel->submitAll()) {
+                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
+                return;
+            }
+            break;
+        case QMessageBox::Discard:
+        default:
+            break;
+        }
+    }
     tableModel->setTable(name);
     tableModel->select();
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
+    isDuty = false;
+    setWindowModified(false);
+}
+
+void MainWindow::updateTable()
+{
+    isDuty = true;
+    setWindowModified(true);
 }
 
 void MainWindow::sortIndicatorChanged(int logicalIndex, Qt::SortOrder order)
@@ -91,12 +144,19 @@ void MainWindow::on_actionGo_github_triggered()
 
 void MainWindow::on_actionCommit_triggered()
 {
-    tableModel->submitAll();
+    if (tableModel->submitAll()) {
+        isDuty = false;
+        setWindowModified(false);
+    } else {
+        SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
+    }
 }
 
 void MainWindow::on_actionRevert_triggered()
 {
     tableModel->revertAll();
+    isDuty = false;
+    setWindowModified(false);
 }
 
 void MainWindow::on_actionCreateTable_triggered()
@@ -132,6 +192,7 @@ void MainWindow::on_actionNew_triggered()
 void MainWindow::on_actionInsert_triggered()
 {
     tableModel->insertRows(0, 1);
+    updateTable();
 }
 
 void MainWindow::on_actionDelete_triggered()
@@ -145,5 +206,13 @@ void MainWindow::on_actionDelete_triggered()
     qSort(rows);
     foreach(int r, rows) {
         tableModel->removeRow(r);
+    }
+    updateTable();
+}
+
+void MainWindow::on_actionQuit_triggered()
+{
+    foreach(MainWindow *window, ::windowList) {
+        window->close();
     }
 }

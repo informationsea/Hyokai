@@ -22,15 +22,19 @@ private:
     QSqlDatabase theDb;
     QSqlTableModel *tableModel;
     QString filepath;
+    bool isDuty;
 
     void open(QString path);
+
+public slots:
+    virtual void closeEvent(QCloseEvent *event);
 
 private slots:
     void filterFinished();
     void tableChanged(const QString &name);
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
+    void updateTable();
 
-    void quit();
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
     void on_actionRevert_triggered();
@@ -39,6 +43,7 @@ private slots:
     void on_actionNew_triggered();
     void on_actionInsert_triggered();
     void on_actionDelete_triggered();
+    void on_actionQuit_triggered();
 };
 
 #endif // MAINWINDOW_H

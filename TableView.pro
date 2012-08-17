@@ -12,11 +12,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    schemadialog.cpp
+    schemadialog.cpp \
+    sheetmessagebox.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
-    schemadialog.h
+    schemadialog.h \
+    sheetmessagebox.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui
+
+RESOURCES += \
+    resouces.qrc
