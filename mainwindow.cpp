@@ -56,6 +56,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    if (filepath.compare(":memory:") == 0 && theDb.tables().size()) {
+        QMessageBox::StandardButton selected =
+                SheetMessageBox::warning(this, tr("All changes will be destoried."),
+                                         tr("All changes in memory database will NOT be saved. You have to export table to save."),
+                                         QMessageBox::Discard|QMessageBox::Cancel, QMessageBox::Cancel);
+        switch(selected) {
+        case QMessageBox::Discard:
+            event->accept();
+            return;
+        default:
+            event->ignore();
+            return;
+        }
+    }
+
     if (isDuty) {
         QMessageBox::StandardButton selected =
                 SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
