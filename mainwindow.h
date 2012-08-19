@@ -34,6 +34,7 @@ private slots:
     void tableChanged(const QString &name);
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
     void updateTable();
+    void updateDatabase();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
@@ -44,6 +45,9 @@ private slots:
     void on_actionInsert_triggered();
     void on_actionDelete_triggered();
     void on_actionQuit_triggered();
+    void on_actionImportTable_triggered();
+    void on_actionAbout_Qt_triggered();
+    void on_actionAbout_Table_View_triggered();
 };
 
 #endif // MAINWINDOW_H

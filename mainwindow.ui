@@ -90,6 +90,8 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout_Table_View"/>
+    <addaction name="actionAbout_Qt"/>
+    <addaction name="separator"/>
     <addaction name="actionGo_github"/>
    </widget>
    <addaction name="menuFile"/>
@@ -215,6 +217,11 @@
    </property>
    <property name="text">
     <string>Revert</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

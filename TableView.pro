@@ -9,16 +9,19 @@ QT       += core gui sql
 TARGET = TableView
 TEMPLATE = app
 
+ICON = images/icon.icns
 
 SOURCES += main.cpp\
         mainwindow.cpp \
     schemadialog.cpp \
-    sheetmessagebox.cpp
+    sheetmessagebox.cpp \
+    schematablemodel.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
     schemadialog.h \
-    sheetmessagebox.h
+    sheetmessagebox.h \
+    schematablemodel.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui
