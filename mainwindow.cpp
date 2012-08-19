@@ -20,6 +20,7 @@
 #include <QHeaderView>
 #include <QCloseEvent>
 #include <QFile>
+#include <QRegExp>
 
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 
@@ -273,8 +274,7 @@ static QString normstr(QString str, bool shoudStartWithAlpha = true)
         str.insert(0, 'V');
     }
     str = str.replace("\"", "");
-    str = str.replace('-', '_');
-    str = str.replace(' ', '_');
+    str = str.replace(QRegExp("[^a-zA-Z0-9_]"), "_");
     return str;
 }
 
