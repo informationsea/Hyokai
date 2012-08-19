@@ -21,6 +21,8 @@
 #include <QCloseEvent>
 #include <QFile>
 #include <QRegExp>
+#include <QDebug>
+#include <QSqlRecord>
 
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 
@@ -48,6 +50,8 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(updateTable()));
+
+    filterFinished();
 }
 
 MainWindow::~MainWindow()
@@ -97,11 +101,23 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::filterFinished()
 {
+    if (tableModel->tableName().isEmpty())
+        return;
     tableModel->setFilter(ui->sqlLine->text());
     tableModel->select();
     if (tableModel->lastError().type() != QSqlError::NoError) {
         SheetMessageBox::warning(this, tr("Cannot apply the filter."), tableModel->lastError().text());
     }
+
+    QSqlQuery count;
+    if (ui->sqlLine->text().isEmpty()) {
+        count = theDb.exec(QString("SELECT count(*) FROM %1;").arg(tableModel->tableName()));
+    } else {
+        count = theDb.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(tableModel->tableName(), ui->sqlLine->text()));
+    }
+
+    count.next();
+    ui->tableView->setStatusTip(QString("%1 rows found").arg(QString::number(count.value(0).toLongLong())));
 }
 
 
@@ -140,6 +156,7 @@ void MainWindow::updateTable()
 {
     isDuty = true;
     setWindowModified(true);
+    filterFinished();
 }
 
 void MainWindow::updateDatabase()
