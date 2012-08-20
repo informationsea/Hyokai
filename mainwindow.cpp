@@ -310,16 +310,29 @@ void MainWindow::on_actionImportTable_triggered()
     dialog.setName(normstr(fileInfo.baseName(), false));
 
     QList<SchemaField> fields;
+    QStringList fieldNames;
     char separator = '\t';
     if (import.endsWith(".csv"))
         separator = ',';
 
+    // suggets field name
     QList<QByteArray> header = file.readLine().trimmed().split(separator);
     foreach(QByteArray one, header) {
-        fields.append(SchemaField(normstr(one)));
+        QString newfieldname = normstr(one);
+        if (fieldNames.contains(newfieldname)) {
+            QString basename = newfieldname;
+            int counter = 2;
+            do {
+                newfieldname = QString("%1_%2").arg(basename, QString::number(counter));
+                counter += 1;
+            } while(fieldNames.contains(newfieldname));
+        }
+        fields.append(SchemaField(newfieldname));
+        fieldNames.append(newfieldname);
         fields.last().setFieldType(SchemaField::FIELD_INTEGER);
     }
 
+    // suggests field type
     while(!file.atEnd()) {
         QList<QByteArray> elements = file.readLine().trimmed().split(separator);
         while (elements.size() > fields.size()) {
@@ -373,6 +386,8 @@ void MainWindow::on_actionImportTable_triggered()
     file.seek(0);
     file.readLine(); // skip header
 
+    theDb.transaction();
+
     while(!file.atEnd()) {
         QList<QByteArray> elements = file.readLine().trimmed().split(separator);
         for (int i = 0; i < insertNumber; ++i) {
@@ -400,6 +415,8 @@ void MainWindow::on_actionImportTable_triggered()
             }
         }
     }
+
+    theDb.commit();
 
     updateDatabase();
 }
