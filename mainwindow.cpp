@@ -24,6 +24,9 @@
 #include <QDebug>
 #include <QSqlRecord>
 
+#define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
+#define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
+
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
@@ -232,14 +235,26 @@ void MainWindow::open(QString path)
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database", QDir::homePath(), "SQLite3 (*.sqlite3);; All (*)");
+    QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database",
+                                                tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
+                                                "SQLite3 (*.sqlite3);; All (*)");
+    if (path.isEmpty())
+        return;
     open(path);
+    QFileInfo fileInfo(path);
+    tableview_settings->setValue(LAST_SQLITE_DIRECTORY, fileInfo.dir().absolutePath());
 }
 
 void MainWindow::on_actionNew_triggered()
 {
-    QString path = QFileDialog::getSaveFileName(NULL, "New SQLite3 Database", QDir::homePath(), "SQLite3 (*.sqlite3);; All (*)");
+    QString path = QFileDialog::getSaveFileName(NULL, "New SQLite3 Database",
+                                                tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
+                                                "SQLite3 (*.sqlite3);; All (*)");
+    if (path.isEmpty())
+        return;
     open(path);
+    QFileInfo fileInfo(path);
+    tableview_settings->setValue(LAST_SQLITE_DIRECTORY, fileInfo.dir().absolutePath());
 }
 
 void MainWindow::on_actionInsert_triggered()
@@ -297,7 +312,9 @@ static QString normstr(QString str, bool shoudStartWithAlpha = true)
 
 void MainWindow::on_actionImportTable_triggered()
 {
-    QString import = QFileDialog::getOpenFileName(this, tr("Select import file"), QDir::homePath(), tr("Text (*.txt *.csv);; All (*)"));
+    QString import = QFileDialog::getOpenFileName(this, tr("Select import file"),
+                                                  tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
+                                                  tr("Text (*.txt *.csv);; All (*)"));
     if (import.isEmpty())
         return;
     QFile file(import);
@@ -306,6 +323,7 @@ void MainWindow::on_actionImportTable_triggered()
         return;
     }
     QFileInfo fileInfo(import);
+    tableview_settings->setValue(LAST_IMPORT_DIRECTORY, fileInfo.dir().absolutePath());
     SchemaDialog dialog(this);
     dialog.setName(normstr(fileInfo.baseName(), false));
 
