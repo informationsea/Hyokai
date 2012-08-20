@@ -367,6 +367,8 @@ void MainWindow::on_actionImportTable_triggered()
     if (dialog.exec() != QDialog::Accepted)
         return;
 
+
+    // creat table
     fields = dialog.fields();
     QString sql = dialog.createTableSql();
     theDb.exec(sql);
@@ -375,6 +377,7 @@ void MainWindow::on_actionImportTable_triggered()
         return;
     }
 
+    // prepare insert SQL
     int insertNumber = dialog.fields().size();
     QString insertSqlText("?");
     for (int i = 0; i < insertNumber-1; i++) {
@@ -386,6 +389,7 @@ void MainWindow::on_actionImportTable_triggered()
     file.seek(0);
     file.readLine(); // skip header
 
+    // insert data
     theDb.transaction();
 
     while(!file.atEnd()) {
