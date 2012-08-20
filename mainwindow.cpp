@@ -164,6 +164,7 @@ void MainWindow::updateTable()
 
 void MainWindow::updateDatabase()
 {
+    ui->tableSelect->clear();
     foreach(QString name, theDb.tables()) {
         ui->tableSelect->addItem(name);
     }
@@ -172,6 +173,7 @@ void MainWindow::updateDatabase()
     if (theDb.tables().size())
         tableChanged(theDb.tables()[0]);
     }
+    ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
 }
 
 void MainWindow::sortIndicatorChanged(int logicalIndex, Qt::SortOrder order)
@@ -440,7 +442,9 @@ void MainWindow::on_actionImportTable_triggered()
 
     theDb.commit();
 
+    tableModel->setTable(dialog.name());
     updateDatabase();
+    filterFinished();
 }
 
 void MainWindow::on_actionAbout_Qt_triggered()
