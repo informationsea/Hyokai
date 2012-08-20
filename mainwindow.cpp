@@ -327,7 +327,7 @@ void MainWindow::on_actionImportTable_triggered()
             fields.last().setFieldType(SchemaField::FIELD_INTEGER);
         }
 
-        for (int i = 0; i < fields.size(); i++) {
+        for (int i = 0; i < fields.size() && i < elements.size(); i++) {
             bool ok;
             QString str(elements[i]);
             switch (fields[i].fieldType()) {
@@ -359,6 +359,7 @@ void MainWindow::on_actionImportTable_triggered()
     theDb.exec(sql);
     if (theDb.lastError().type() != QSqlError::NoError) {
         SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
+        return;
     }
 
     int insertNumber = dialog.fields().size();
@@ -375,6 +376,10 @@ void MainWindow::on_actionImportTable_triggered()
     while(!file.atEnd()) {
         QList<QByteArray> elements = file.readLine().trimmed().split(separator);
         for (int i = 0; i < insertNumber; ++i) {
+            if (i >= elements.size()) {
+                insertQuery.bindValue(i, "");
+                continue;
+            }
             switch(fields[i].fieldType()) {
             case SchemaField::FIELD_INTEGER:
                 insertQuery.bindValue(i, elements[i].toLongLong());
