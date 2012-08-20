@@ -159,7 +159,6 @@ void MainWindow::updateTable()
 {
     isDuty = true;
     setWindowModified(true);
-    filterFinished();
 }
 
 void MainWindow::updateDatabase()
@@ -172,8 +171,8 @@ void MainWindow::updateDatabase()
     if (tableModel->tableName().isEmpty() || !theDb.tables().contains(tableModel->tableName())) {
     if (theDb.tables().size())
         tableChanged(theDb.tables()[0]);
+        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
     }
-    ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
 }
 
 void MainWindow::sortIndicatorChanged(int logicalIndex, Qt::SortOrder order)
@@ -196,6 +195,7 @@ void MainWindow::on_actionCommit_triggered()
     if (tableModel->submitAll()) {
         isDuty = false;
         setWindowModified(false);
+        filterFinished();
     } else {
         SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
     }
@@ -206,10 +206,36 @@ void MainWindow::on_actionRevert_triggered()
     tableModel->revertAll();
     isDuty = false;
     setWindowModified(false);
+    filterFinished();
 }
 
 void MainWindow::on_actionCreateTable_triggered()
 {
+    if (isDuty) {
+        QMessageBox::StandardButton selected =
+                SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
+                                          QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
+        switch(selected) {
+        case QMessageBox::Cancel:
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+            return;
+        case QMessageBox::Save:
+            if (!tableModel->submitAll()) {
+                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
+                return;
+            }
+            isDuty = false;
+            break;
+        case QMessageBox::Discard:
+        default:
+            tableModel->revertAll();
+            isDuty = false;
+            break;
+        }
+    }
+
+
     SchemaDialog dialog(this);
     if (dialog.exec() != QDialog::Accepted)
         return;
@@ -221,6 +247,7 @@ void MainWindow::on_actionCreateTable_triggered()
         SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
     }
     updateDatabase();
+    filterFinished();
 }
 
 void MainWindow::open(QString path)
@@ -314,6 +341,30 @@ static QString normstr(QString str, bool shoudStartWithAlpha = true)
 
 void MainWindow::on_actionImportTable_triggered()
 {
+    if (isDuty) {
+        QMessageBox::StandardButton selected =
+                SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
+                                          QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
+        switch(selected) {
+        case QMessageBox::Cancel:
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+            return;
+        case QMessageBox::Save:
+            if (!tableModel->submitAll()) {
+                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
+                return;
+            }
+            isDuty = false;
+            break;
+        case QMessageBox::Discard:
+        default:
+            tableModel->revertAll();
+            isDuty = false;
+            break;
+        }
+    }
+
     QString import = QFileDialog::getOpenFileName(this, tr("Select import file"),
                                                   tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
                                                   tr("Text (*.txt *.csv);; All (*)"));
