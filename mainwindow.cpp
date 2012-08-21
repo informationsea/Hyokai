@@ -474,7 +474,8 @@ void MainWindow::on_actionAbout_Table_View_triggered()
     about.setTextFormat(Qt::RichText);
     about.setText(tr("Table View 0.1<br /><br />"
                      "Simple SQLite Viewer<br /><br />"
-                     "Developing on <a href=\"https://github.com/informationsea/TableView\">Github</a>"));
+                     "Developing on <a href=\"https://github.com/informationsea/TableView\">Github</a><hr />"
+                     "Toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a>"));
     about.exec();
 }
 
