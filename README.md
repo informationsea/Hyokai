@@ -7,8 +7,8 @@ How to build
 ------------
 
 1. Install Qt SDK
-2. run 'qmake'
-3. run make
+2. run `qmake`
+3. run `make`
 
 License
 -------
