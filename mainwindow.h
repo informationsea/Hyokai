@@ -5,6 +5,8 @@
 #include <QSqlDatabase>
 #include <QSqlTableModel>
 
+#include "custumsql.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -23,8 +25,10 @@ private:
     QSqlTableModel *tableModel;
     QString filepath;
     bool isDuty;
+    CustumSql *custumSql;
 
     void open(QString path);
+    bool confirmDuty(); // return false if canceled
 
 public slots:
     virtual void closeEvent(QCloseEvent *event);
@@ -33,7 +37,7 @@ private slots:
     void filterFinished();
     void tableChanged(const QString &name);
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
-    void updateTable();
+    void tableUpdated();
     void updateDatabase();
 
     void on_actionGo_github_triggered();
@@ -48,6 +52,8 @@ private slots:
     void on_actionImportTable_triggered();
     void on_actionAbout_Qt_triggered();
     void on_actionAbout_Table_View_triggered();
+    void on_actionRun_Custum_SQL_triggered();
+    void on_actionRefresh_triggered();
 };
 
 #endif // MAINWINDOW_H

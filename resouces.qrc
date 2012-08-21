@@ -9,5 +9,10 @@
         <file>images/list-remove.png</file>
         <file>images/window-new.png</file>
         <file>images/go-bottom.png</file>
+        <file>images/mail-forward.png</file>
+        <file>images/view-refresh.png</file>
+        <file>images/utilities-terminal.png</file>
+        <file>images/icon512.png</file>
+        <file>images/icon128.png</file>
     </qresource>
 </RCC>

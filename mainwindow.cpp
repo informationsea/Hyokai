@@ -4,6 +4,7 @@
 #include "main.h"
 #include "schemadialog.h"
 #include "sheetmessagebox.h"
+#include "custumsql.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -23,6 +24,7 @@
 #include <QRegExp>
 #include <QDebug>
 #include <QSqlRecord>
+#include <QPixmap>
 
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
 #define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
@@ -31,7 +33,7 @@ static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), isDuty(false)
+    ui(new Ui::MainWindow), isDuty(false), custumSql(0)
 {
     ui->setupUi(this);
     filepath = path;
@@ -52,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
-    connect(tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(updateTable()));
+    connect(tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
 
     filterFinished();
 }
@@ -60,6 +62,9 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    if (custumSql) {
+        delete custumSql;
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -72,6 +77,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
         switch(selected) {
         case QMessageBox::Discard:
             event->accept();
+            if (custumSql) {
+                custumSql->close();
+            }
             return;
         default:
             event->ignore();
@@ -79,27 +87,42 @@ void MainWindow::closeEvent(QCloseEvent *event)
         }
     }
 
+    if (!confirmDuty()) {
+        event->ignore();
+    } else {
+        event->accept();
+        if (custumSql) {
+            custumSql->close();
+        }
+    }
+}
+
+bool MainWindow::confirmDuty()
+{
     if (isDuty) {
         QMessageBox::StandardButton selected =
                 SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
                                           QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
         switch(selected) {
         case QMessageBox::Cancel:
-            event->ignore();
-            return;
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+            return false;
         case QMessageBox::Save:
             if (!tableModel->submitAll()) {
+                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
                 SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
-                event->ignore();
-                return;
+                return false;
             }
+            isDuty = false;
             break;
         case QMessageBox::Discard:
         default:
+            isDuty = false;
             break;
         }
+        return true;
     }
-    event->accept();
+    return true;
 }
 
 void MainWindow::filterFinished()
@@ -128,26 +151,9 @@ void MainWindow::tableChanged(const QString &name)
 {
     if (name == tableModel->tableName())
         return;
-    if (isDuty) {
-        QMessageBox::StandardButton selected =
-                SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
-                                          QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
-        switch(selected) {
-        case QMessageBox::Cancel:
-            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
-            return;
-        case QMessageBox::Save:
-            if (!tableModel->submitAll()) {
-                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
-                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
-                return;
-            }
-            break;
-        case QMessageBox::Discard:
-        default:
-            break;
-        }
-    }
+    if (!confirmDuty())
+        return;
+
     tableModel->setTable(name);
     tableModel->select();
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
@@ -155,7 +161,7 @@ void MainWindow::tableChanged(const QString &name)
     setWindowModified(false);
 }
 
-void MainWindow::updateTable()
+void MainWindow::tableUpdated()
 {
     isDuty = true;
     setWindowModified(true);
@@ -211,30 +217,8 @@ void MainWindow::on_actionRevert_triggered()
 
 void MainWindow::on_actionCreateTable_triggered()
 {
-    if (isDuty) {
-        QMessageBox::StandardButton selected =
-                SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
-                                          QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
-        switch(selected) {
-        case QMessageBox::Cancel:
-            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
-            return;
-        case QMessageBox::Save:
-            if (!tableModel->submitAll()) {
-                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
-                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
-                return;
-            }
-            isDuty = false;
-            break;
-        case QMessageBox::Discard:
-        default:
-            tableModel->revertAll();
-            isDuty = false;
-            break;
-        }
-    }
-
+    if (!confirmDuty())
+        return;
 
     SchemaDialog dialog(this);
     if (dialog.exec() != QDialog::Accepted)
@@ -301,7 +285,7 @@ void MainWindow::on_actionInsert_triggered()
         tableModel->insertRow(0);
     else
         tableModel->insertRow(rows.last()+1);
-    updateTable();
+    tableUpdated();
 }
 
 void MainWindow::on_actionDelete_triggered()
@@ -318,7 +302,7 @@ void MainWindow::on_actionDelete_triggered()
     while(!rows.isEmpty()) {
         tableModel->removeRow(rows.takeLast());
     }
-    updateTable();
+    tableUpdated();
 }
 
 void MainWindow::on_actionQuit_triggered()
@@ -341,29 +325,8 @@ static QString normstr(QString str, bool shoudStartWithAlpha = true)
 
 void MainWindow::on_actionImportTable_triggered()
 {
-    if (isDuty) {
-        QMessageBox::StandardButton selected =
-                SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
-                                          QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
-        switch(selected) {
-        case QMessageBox::Cancel:
-            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
-            return;
-        case QMessageBox::Save:
-            if (!tableModel->submitAll()) {
-                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
-                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
-                return;
-            }
-            isDuty = false;
-            break;
-        case QMessageBox::Discard:
-        default:
-            tableModel->revertAll();
-            isDuty = false;
-            break;
-        }
-    }
+    if (!confirmDuty())
+        return;
 
     QString import = QFileDialog::getOpenFileName(this, tr("Select import file"),
                                                   tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
@@ -505,5 +468,30 @@ void MainWindow::on_actionAbout_Qt_triggered()
 
 void MainWindow::on_actionAbout_Table_View_triggered()
 {
-    QMessageBox::about(this, tr("Table View"), tr("Table View - SQLite Viewer\n\nhttps://github.com/informationsea/TableView"));
+    QMessageBox about(this);
+    about.setWindowTitle(tr("Table View"));
+    about.setIconPixmap(QPixmap(":rc/images/icon128.png"));
+    about.setTextFormat(Qt::RichText);
+    about.setText(tr("Table View 0.1<br /><br />"
+                     "Simple SQLite Viewer<br /><br />"
+                     "Developing on <a href=\"https://github.com/informationsea/TableView\">Github</a>"));
+    about.exec();
+}
+
+void MainWindow::on_actionRun_Custum_SQL_triggered()
+{
+    if (!custumSql) {
+        custumSql = new CustumSql(&theDb, this);
+        custumSql->show();
+    } else {
+        custumSql->activateWindow();
+    }
+}
+
+void MainWindow::on_actionRefresh_triggered()
+{
+    if (!confirmDuty())
+        return;
+    updateDatabase();
+    filterFinished();
 }

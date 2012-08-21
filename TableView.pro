@@ -15,16 +15,19 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     schemadialog.cpp \
     sheetmessagebox.cpp \
-    schematablemodel.cpp
+    schematablemodel.cpp \
+    custumsql.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
     schemadialog.h \
     sheetmessagebox.h \
-    schematablemodel.h
+    schematablemodel.h \
+    custumsql.h
 
 FORMS    += mainwindow.ui \
-    schemadialog.ui
+    schemadialog.ui \
+    custumsql.ui
 
 RESOURCES += \
     resouces.qrc

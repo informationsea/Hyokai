@@ -81,6 +81,8 @@
     <addaction name="separator"/>
     <addaction name="actionInsert"/>
     <addaction name="actionDelete"/>
+    <addaction name="actionRefresh"/>
+    <addaction name="actionRun_Custum_SQL"/>
     <addaction name="separator"/>
     <addaction name="actionCommit"/>
     <addaction name="actionRevert"/>
@@ -108,6 +110,8 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionCreateTable"/>
+   <addaction name="actionRefresh"/>
+   <addaction name="actionRun_Custum_SQL"/>
    <addaction name="actionImportTable"/>
    <addaction name="actionInsert"/>
    <addaction name="actionDelete"/>
@@ -222,6 +226,24 @@
   <action name="actionAbout_Qt">
    <property name="text">
     <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionRun_Custum_SQL">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/utilities-terminal.png</normaloff>:/rc/images/utilities-terminal.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run Custum SQL</string>
+   </property>
+  </action>
+  <action name="actionRefresh">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/view-refresh.png</normaloff>:/rc/images/view-refresh.png</iconset>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
    </property>
   </action>
  </widget>
