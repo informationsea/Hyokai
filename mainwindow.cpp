@@ -481,12 +481,17 @@ void MainWindow::on_actionAbout_Table_View_triggered()
 
 void MainWindow::on_actionRun_Custum_SQL_triggered()
 {
-    if (!custumSql) {
-        custumSql = new CustumSql(&theDb, this);
-        custumSql->show();
-    } else {
-        custumSql->activateWindow();
+    if (custumSql) {
+        if (custumSql->isVisible()) {
+            custumSql->activateWindow();
+            return;
+        } else {
+            delete custumSql;
+        }
     }
+
+    custumSql = new CustumSql(&theDb, this);
+    custumSql->show();
 }
 
 void MainWindow::on_actionRefresh_triggered()
