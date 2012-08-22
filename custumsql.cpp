@@ -13,6 +13,7 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
 {
     ui->setupUi(this);
     ui->tableView->setModel(&m_querymodel);
+    ui->tableView->horizontalHeader()->setMovable(true);
     setWindowTitle(QFileInfo(database->databaseName()).baseName());
 }
 

@@ -54,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     updateDatabase();
 
     ui->tableView->setModel(tableModel);
+    ui->tableView->horizontalHeader()->setMovable(true);
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
