@@ -51,6 +51,8 @@ QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation
             return tr("Data Type");
         case 2:
             return tr("Primary Key");
+        case 3:
+            return tr("Index");
         default:
             break;
         }
@@ -62,7 +64,7 @@ QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation
 
 int SchemaTableModel::columnCount ( const QModelIndex & /* parent */) const
 {
-    return 3;
+    return 4;
 }
 
 QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
@@ -86,6 +88,9 @@ QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
             }
         case 2:
             return m_fieldList[index.row()].isPrimaryKey();
+        case 3:
+            return m_fieldList[index.row()].indexedField();
+            break;
         }
     default:
         break;
@@ -156,8 +161,13 @@ bool SchemaTableModel::setData ( const QModelIndex & index, const QVariant & val
             m_fieldList[index.row()].setPrimaryKey(value.toBool());
             emit dataChanged(index, index);
             return true;
+        case 3:
+            m_fieldList[index.row()].setIndexedField(value.toBool());
+            emit dataChanged(index, index);
+            return true;
         }
-        break;
+        break;        
+
     default:
         break;
     }

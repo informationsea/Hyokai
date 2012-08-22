@@ -23,6 +23,7 @@ public:
     const QList<SchemaField> &fields();
 
     QString createTableSql();
+    QStringList createIndexSqls();
 
 private slots:
     void on_addButton_clicked();
