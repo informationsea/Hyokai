@@ -27,6 +27,7 @@
 #include <QPixmap>
 
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
+#define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
 #define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
 
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
@@ -495,4 +496,53 @@ void MainWindow::on_actionRefresh_triggered()
         return;
     updateDatabase();
     filterFinished();
+}
+
+void MainWindow::on_actionExport_Table_triggered()
+{
+    if (tableModel->tableName().isEmpty()) {
+        SheetMessageBox::information(this, tr("No table is selected"), tr("Please select a table to export"));
+        return;
+    }
+
+    if (!confirmDuty())
+        return;
+
+    QSqlQuery query;
+    if (ui->sqlLine->text().isEmpty()) {
+        query = theDb.exec(QString("SELECT * FROM %1").arg(tableModel->tableName()));
+    } else {
+        query = theDb.exec(QString("SELECT * FROM %1 WHERE %2").arg(tableModel->tableName(), ui->sqlLine->text()));
+    }
+
+    if (query.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::warning(this, tr("Cannot export"), theDb.lastError().text()+"\n\n"+query.lastQuery());
+        return;
+    }
+
+    QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"), tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(), "Tab separated (*.txt);; CSV (*.csv)");
+    if (outputpath.isEmpty())
+        return;
+    QFile outputfile(outputpath);
+    outputfile.open(QIODevice::WriteOnly);
+
+    QSqlRecord records = theDb.record(tableModel->tableName());
+    for (int i = 0; i < records.count(); ++i) {
+        if (i != 0)
+            outputfile.write("\t");
+        outputfile.write(records.fieldName(i).toUtf8());
+    }
+    outputfile.write("\n");
+
+    while(query.next()) {
+        records = query.record();
+        for (int i = 0; i < records.count(); ++i) {
+            if (i != 0)
+                outputfile.write("\t");
+            outputfile.write(records.value(i).toString().toUtf8());
+        }
+        outputfile.write("\n");
+    }
+
+    outputfile.close();
 }

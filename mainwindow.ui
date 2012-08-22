@@ -78,6 +78,7 @@
     </property>
     <addaction name="actionCreateTable"/>
     <addaction name="actionImportTable"/>
+    <addaction name="actionExport_Table"/>
     <addaction name="separator"/>
     <addaction name="actionInsert"/>
     <addaction name="actionDelete"/>
@@ -113,6 +114,7 @@
    <addaction name="actionRefresh"/>
    <addaction name="actionRun_Custum_SQL"/>
    <addaction name="actionImportTable"/>
+   <addaction name="actionExport_Table"/>
    <addaction name="actionInsert"/>
    <addaction name="actionDelete"/>
    <addaction name="actionCommit"/>
@@ -244,6 +246,15 @@
    </property>
    <property name="text">
     <string>Refresh</string>
+   </property>
+  </action>
+  <action name="actionExport_Table">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/mail-forward.png</normaloff>:/rc/images/mail-forward.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export Table</string>
    </property>
   </action>
  </widget>

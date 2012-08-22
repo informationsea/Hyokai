@@ -54,6 +54,7 @@ private slots:
     void on_actionAbout_Table_View_triggered();
     void on_actionRun_Custum_SQL_triggered();
     void on_actionRefresh_triggered();
+    void on_actionExport_Table_triggered();
 };
 
 #endif // MAINWINDOW_H
