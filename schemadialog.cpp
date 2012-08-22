@@ -143,3 +143,16 @@ QString SchemaDialog::createTableSql()
     qDebug() << sql;
     return sql;
 }
+
+QStringList SchemaDialog::createIndexSqls()
+{
+    QStringList results;
+    foreach (const SchemaField field, fields()) {
+        if (!field.indexedField()) continue;
+
+        QString sql = QString("CREATE INDEX %1_%2_index on %1(%2)").arg(name(), field.name());
+        results.append(sql);
+    }
+
+    return results;
+}
