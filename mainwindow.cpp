@@ -224,12 +224,19 @@ void MainWindow::on_actionCreateTable_triggered()
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    QString sql = dialog.createTableSql();
+    QStringList sqls;
+    sqls.append(dialog.createTableSql());
+    sqls.append(dialog.createIndexSqls());
 
-    theDb.exec(sql);
-    if (theDb.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
+    foreach (const QString sql, sqls) {
+        theDb.exec(sql);
+
+        if (theDb.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
+            break;
+        }
     }
+
     updateDatabase();
     filterFinished();
 }
@@ -404,11 +411,18 @@ void MainWindow::on_actionImportTable_triggered()
 
     // creat table
     fields = dialog.fields();
-    QString sql = dialog.createTableSql();
-    theDb.exec(sql);
-    if (theDb.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
-        return;
+
+    QStringList sqls;
+    sqls.append(dialog.createTableSql());
+    sqls.append(dialog.createIndexSqls());
+
+    foreach (const QString sql, sqls) {
+        theDb.exec(sql);
+
+        if (theDb.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
+            return;
+        }
     }
 
     // prepare insert SQL
