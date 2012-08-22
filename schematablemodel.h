@@ -52,6 +52,9 @@ public:
     virtual bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
     virtual bool setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole );
 
+    bool moveUp(int row);
+    bool moveDown(int row);
+
     void setFields(const QList<SchemaField> &fields);
     const QList<SchemaField> & fields() { return m_fieldList; }
     bool isVaild();

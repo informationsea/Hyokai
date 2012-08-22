@@ -59,12 +59,31 @@ void SchemaDialog::on_removeButton_clicked()
 
 void SchemaDialog::on_downButton_clicked()
 {
+    QItemSelectionModel *selection = ui->tableView->selectionModel();
+    QList<int> rows;
+    foreach (QModelIndex index, selection->selectedIndexes()) {
+        if (!rows.contains(index.row()))
+            rows << index.row();
+    }
+    qSort(rows);
+    if (!rows.isEmpty()) {
+        model->moveDown(rows[0]);
+    }
 
 }
 
 void SchemaDialog::on_upButton_clicked()
 {
-
+    QItemSelectionModel *selection = ui->tableView->selectionModel();
+    QList<int> rows;
+    foreach (QModelIndex index, selection->selectedIndexes()) {
+        if (!rows.contains(index.row()))
+            rows << index.row();
+    }
+    qSort(rows);
+    if (!rows.isEmpty()) {
+        model->moveUp(rows[0]);
+    }
 }
 
 void SchemaDialog::tableChanged()

@@ -195,5 +195,33 @@ bool SchemaTableModel::isVaild()
 
 void SchemaTableModel::setFields(const QList<SchemaField> &fields)
 {
+    beginResetModel();
     m_fieldList = fields;
+    endResetModel();
+}
+
+#include <QDebug>
+
+bool SchemaTableModel::moveUp(int row)
+{
+    if (row <= 0)
+        return false;
+    beginMoveRows(QModelIndex(), row, row, QModelIndex(), row-1);
+    SchemaField temp = m_fieldList[row];
+    m_fieldList.removeAt(row);
+    m_fieldList.insert(row-1, temp);
+    endMoveRows();
+    return true;
+}
+
+bool SchemaTableModel::moveDown(int row)
+{
+    if (row >= rowCount()-1)
+        return false;
+    beginMoveRows(QModelIndex(), row, row, QModelIndex(), row+2);
+    SchemaField temp = m_fieldList[row];
+    m_fieldList.removeAt(row);
+    m_fieldList.insert(row+1, temp);
+    endMoveRows();
+    return true;
 }
