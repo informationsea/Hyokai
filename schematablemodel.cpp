@@ -1,15 +1,16 @@
 #include "schematablemodel.h"
 
+#include <QColor>
 
 SchemaField::SchemaField() :
-    m_name(""), m_type(FIELD_NONE), m_primary_key(false)
+    m_name(""), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1)
 {
 
 }
 
 
 SchemaField::SchemaField(QString name) :
-    m_name(name), m_type(FIELD_NONE), m_primary_key(false)
+    m_name(name), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1)
 {
 
 }
@@ -51,6 +52,8 @@ QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation
             return tr("Data Type");
         case 2:
             return tr("Primary Key");
+        case 3:
+            return tr("Index");
         default:
             break;
         }
@@ -62,7 +65,7 @@ QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation
 
 int SchemaTableModel::columnCount ( const QModelIndex & /* parent */) const
 {
-    return 3;
+    return 4;
 }
 
 QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
@@ -86,7 +89,13 @@ QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
             }
         case 2:
             return m_fieldList[index.row()].isPrimaryKey();
+        case 3:
+            return m_fieldList[index.row()].indexedField();
+            break;
         }
+    case Qt::BackgroundRole:
+        if (index.row() % 2)
+            return QVariant(QColor("#E8EDF5"));
     default:
         break;
     }
@@ -156,8 +165,13 @@ bool SchemaTableModel::setData ( const QModelIndex & index, const QVariant & val
             m_fieldList[index.row()].setPrimaryKey(value.toBool());
             emit dataChanged(index, index);
             return true;
+        case 3:
+            m_fieldList[index.row()].setIndexedField(value.toBool());
+            emit dataChanged(index, index);
+            return true;
         }
-        break;
+        break;        
+
     default:
         break;
     }
@@ -181,5 +195,31 @@ bool SchemaTableModel::isVaild()
 
 void SchemaTableModel::setFields(const QList<SchemaField> &fields)
 {
+    beginResetModel();
     m_fieldList = fields;
+    endResetModel();
+}
+
+bool SchemaTableModel::moveUp(int row)
+{
+    if (row <= 0)
+        return false;
+    beginMoveRows(QModelIndex(), row, row, QModelIndex(), row-1);
+    SchemaField temp = m_fieldList[row];
+    m_fieldList.removeAt(row);
+    m_fieldList.insert(row-1, temp);
+    endMoveRows();
+    return true;
+}
+
+bool SchemaTableModel::moveDown(int row)
+{
+    if (row >= rowCount()-1)
+        return false;
+    beginMoveRows(QModelIndex(), row, row, QModelIndex(), row+2);
+    SchemaField temp = m_fieldList[row];
+    m_fieldList.removeAt(row);
+    m_fieldList.insert(row+1, temp);
+    endMoveRows();
+    return true;
 }

@@ -23,3 +23,13 @@ int main(int argc, char *argv[])
     delete tableview_settings;
     return value;
 }
+
+void tableviewCleanupWindows()
+{
+    foreach(MainWindow* window, windowList) {
+        if (!window->isVisible()) {
+            delete window;
+            windowList.removeOne(window);
+        }
+    }
+}

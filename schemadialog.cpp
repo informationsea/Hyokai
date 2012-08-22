@@ -14,6 +14,7 @@ SchemaDialog::SchemaDialog(QWidget *parent) :
     setWindowModality(Qt::WindowModal);
     model = new SchemaTableModel(this);
     ui->tableView->setModel(model);
+    ui->tableView->setDragEnabled(true);
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableChanged()));
     connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), SLOT(tableChanged()));
     connect(model, SIGNAL(rowsRemoved (const QModelIndex &, int, int)), SLOT(tableChanged()));
@@ -58,12 +59,31 @@ void SchemaDialog::on_removeButton_clicked()
 
 void SchemaDialog::on_downButton_clicked()
 {
+    QItemSelectionModel *selection = ui->tableView->selectionModel();
+    QList<int> rows;
+    foreach (QModelIndex index, selection->selectedIndexes()) {
+        if (!rows.contains(index.row()))
+            rows << index.row();
+    }
+    qSort(rows);
+    if (!rows.isEmpty()) {
+        model->moveDown(rows[0]);
+    }
 
 }
 
 void SchemaDialog::on_upButton_clicked()
 {
-
+    QItemSelectionModel *selection = ui->tableView->selectionModel();
+    QList<int> rows;
+    foreach (QModelIndex index, selection->selectedIndexes()) {
+        if (!rows.contains(index.row()))
+            rows << index.row();
+    }
+    qSort(rows);
+    if (!rows.isEmpty()) {
+        model->moveUp(rows[0]);
+    }
 }
 
 void SchemaDialog::tableChanged()
@@ -140,6 +160,19 @@ QString SchemaDialog::createTableSql()
     }
     sql += ");";
 
-    qDebug() << sql;
+    //qDebug() << sql;
     return sql;
+}
+
+QStringList SchemaDialog::createIndexSqls()
+{
+    QStringList results;
+    foreach (const SchemaField field, fields()) {
+        if (!field.indexedField()) continue;
+
+        QString sql = QString("CREATE INDEX %1__%2__index on %1(%2)").arg(name(), field.name());
+        results.append(sql);
+    }
+
+    return results;
 }
