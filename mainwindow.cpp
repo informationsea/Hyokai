@@ -38,15 +38,15 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     ui(new Ui::MainWindow), isDuty(false), custumSql(0)
 {
     ui->setupUi(this);
-    filepath = path;
+    m_filepath = path;
     QFileInfo fileinfo(path);
     setWindowTitle(QString("[*] ") + fileinfo.baseName());
 
-    theDb = QSqlDatabase::cloneDatabase(sqlite, path);
-    theDb.setDatabaseName(path);
-    theDb.open();
+    m_database = QSqlDatabase::cloneDatabase(sqlite, path);
+    m_database.setDatabaseName(path);
+    m_database.open();
 
-    tableModel = new SqlTableModelAlternativeBackground(this, theDb);
+    tableModel = new SqlTableModelAlternativeBackground(this, m_database);
     tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     ui->mainToolBar->setIconSize(QSize(22, 22));
 
@@ -71,7 +71,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (filepath.compare(":memory:") == 0 && theDb.tables().size()) {
+    if (m_filepath.compare(":memory:") == 0 && m_database.tables().size()) {
         QMessageBox::StandardButton selected =
                 SheetMessageBox::warning(this, tr("All changes will be destoried."),
                                          tr("All changes in memory database will NOT be saved. You have to export table to save."),
@@ -139,9 +139,9 @@ void MainWindow::filterFinished()
 
     QSqlQuery count;
     if (ui->sqlLine->text().isEmpty()) {
-        count = theDb.exec(QString("SELECT count(*) FROM %1;").arg(tableModel->tableName()));
+        count = m_database.exec(QString("SELECT count(*) FROM %1;").arg(tableModel->tableName()));
     } else {
-        count = theDb.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(tableModel->tableName(), ui->sqlLine->text()));
+        count = m_database.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(tableModel->tableName(), ui->sqlLine->text()));
     }
 
     count.next();
@@ -172,13 +172,13 @@ void MainWindow::tableUpdated()
 void MainWindow::updateDatabase()
 {
     ui->tableSelect->clear();
-    foreach(QString name, theDb.tables()) {
+    foreach(QString name, m_database.tables()) {
         ui->tableSelect->addItem(name);
     }
 
-    if (tableModel->tableName().isEmpty() || !theDb.tables().contains(tableModel->tableName())) {
-        if (theDb.tables().size())
-            tableChanged(theDb.tables()[0]);
+    if (tableModel->tableName().isEmpty() || !m_database.tables().contains(tableModel->tableName())) {
+        if (m_database.tables().size())
+            tableChanged(m_database.tables()[0]);
         ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
     }
 }
@@ -231,10 +231,10 @@ void MainWindow::on_actionCreateTable_triggered()
     sqls.append(dialog.createIndexSqls());
 
     foreach (const QString sql, sqls) {
-        theDb.exec(sql);
+        m_database.exec(sql);
 
-        if (theDb.lastError().type() != QSqlError::NoError) {
-            SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
+        if (m_database.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::warning(this, tr("Cannot make table"), m_database.lastError().text()+"\n\n"+sql);
             break;
         }
     }
@@ -247,10 +247,11 @@ void MainWindow::open(QString path)
 {
     if (path.isEmpty())
         return;
+    ::tableviewCleanupWindows();
     MainWindow *w = new MainWindow(NULL, path);
     w->show();
     ::windowList.append(w);
-    if (filepath.compare(":memory:") == 0 && theDb.tables().size() == 0) {
+    if (m_filepath.compare(":memory:") == 0 && m_database.tables().size() == 0) {
         close();
     }
 }
@@ -354,10 +355,10 @@ void MainWindow::on_actionImportTable_triggered()
     {
         // suggests table name
         QString tableName = normstr(fileInfo.baseName());
-        if (theDb.tables(QSql::AllTables).contains(tableName)) {
+        if (m_database.tables(QSql::AllTables).contains(tableName)) {
             QString baseName = tableName;
             int i = 2;
-            while(theDb.tables(QSql::AllTables).contains(QString("%1_%2").arg(baseName, QString::number(i))))
+            while(m_database.tables(QSql::AllTables).contains(QString("%1_%2").arg(baseName, QString::number(i))))
                 i++;
             tableName = QString("%1_%2").arg(baseName, QString::number(i));
         }
@@ -434,10 +435,10 @@ void MainWindow::on_actionImportTable_triggered()
     sqls.append(dialog.createIndexSqls());
 
     foreach (const QString sql, sqls) {
-        theDb.exec(sql);
+        m_database.exec(sql);
 
-        if (theDb.lastError().type() != QSqlError::NoError) {
-            SheetMessageBox::warning(this, tr("Cannot make table"), theDb.lastError().text()+"\n\n"+sql);
+        if (m_database.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::warning(this, tr("Cannot make table"), m_database.lastError().text()+"\n\n"+sql);
             return;
         }
     }
@@ -449,13 +450,13 @@ void MainWindow::on_actionImportTable_triggered()
         insertSqlText.append(",?");
     }
 
-    QSqlQuery insertQuery(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText), theDb);
+    QSqlQuery insertQuery(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText), m_database);
 
     file.seek(0);
     file.readLine(); // skip header
 
     // insert data
-    theDb.transaction();
+    m_database.transaction();
 
     while(!file.atEnd()) {
         QList<QByteArray> elements = file.readLine().trimmed().split(separator);
@@ -485,7 +486,7 @@ void MainWindow::on_actionImportTable_triggered()
         }
     }
 
-    theDb.commit();
+    m_database.commit();
 
     updateDatabase();
     filterFinished();
@@ -513,7 +514,7 @@ void MainWindow::on_actionAbout_Table_View_triggered()
 void MainWindow::on_actionRun_Custum_SQL_triggered()
 {
     if (!custumSql) {
-        custumSql = new CustumSql(&theDb, this);
+        custumSql = new CustumSql(&m_database, this);
         custumSql->show();
     } else {
         custumSql->activateWindow();
@@ -540,13 +541,13 @@ void MainWindow::on_actionExport_Table_triggered()
 
     QSqlQuery query;
     if (ui->sqlLine->text().isEmpty()) {
-        query = theDb.exec(QString("SELECT * FROM %1").arg(tableModel->tableName()));
+        query = m_database.exec(QString("SELECT * FROM %1").arg(tableModel->tableName()));
     } else {
-        query = theDb.exec(QString("SELECT * FROM %1 WHERE %2").arg(tableModel->tableName(), ui->sqlLine->text()));
+        query = m_database.exec(QString("SELECT * FROM %1 WHERE %2").arg(tableModel->tableName(), ui->sqlLine->text()));
     }
 
     if (query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::warning(this, tr("Cannot export"), theDb.lastError().text()+"\n\n"+query.lastQuery());
+        SheetMessageBox::warning(this, tr("Cannot export"), m_database.lastError().text()+"\n\n"+query.lastQuery());
         return;
     }
 
@@ -556,7 +557,7 @@ void MainWindow::on_actionExport_Table_triggered()
     QFile outputfile(outputpath);
     outputfile.open(QIODevice::WriteOnly);
 
-    QSqlRecord records = theDb.record(tableModel->tableName());
+    QSqlRecord records = m_database.record(tableModel->tableName());
     for (int i = 0; i < records.count(); ++i) {
         if (i != 0)
             outputfile.write("\t");
@@ -575,4 +576,15 @@ void MainWindow::on_actionExport_Table_triggered()
     }
 
     outputfile.close();
+}
+
+void MainWindow::on_actionOpen_In_Memory_Database_triggered()
+{
+    foreach (MainWindow *window, windowList) {
+        if (window->isVisible() && window->filePath() == ":memory:") {
+            window->activateWindow();
+            return;
+        }
+    }
+    open(":memory:");
 }

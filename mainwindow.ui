@@ -68,6 +68,7 @@
     </property>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionOpen_In_Memory_Database"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
     <addaction name="actionQuit"/>
@@ -255,6 +256,11 @@
    </property>
    <property name="text">
     <string>Export Table</string>
+   </property>
+  </action>
+  <action name="actionOpen_In_Memory_Database">
+   <property name="text">
+    <string>Open In Memory Database</string>
    </property>
   </action>
  </widget>

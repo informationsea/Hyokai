@@ -8,4 +8,6 @@
 extern QList<MainWindow *> windowList;
 extern QSettings *tableview_settings;
 
+void tableviewCleanupWindows();
+
 #endif // MAIN_H
