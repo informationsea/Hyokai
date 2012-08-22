@@ -200,8 +200,6 @@ void SchemaTableModel::setFields(const QList<SchemaField> &fields)
     endResetModel();
 }
 
-#include <QDebug>
-
 bool SchemaTableModel::moveUp(int row)
 {
     if (row <= 0)

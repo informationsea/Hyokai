@@ -41,6 +41,8 @@ private slots:
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
     void tableUpdated();
     void updateDatabase();
+    void onWindowMenuShow();
+    void activate();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();

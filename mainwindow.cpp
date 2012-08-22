@@ -26,6 +26,7 @@
 #include <QDebug>
 #include <QSqlRecord>
 #include <QPixmap>
+#include <QMenu>
 
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
@@ -57,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
+    connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
 
     filterFinished();
 }
@@ -97,6 +99,22 @@ void MainWindow::closeEvent(QCloseEvent *event)
             custumSql->close();
         }
     }
+}
+
+void MainWindow::onWindowMenuShow()
+{
+    ui->menuWindow->clear();
+    foreach(MainWindow *window, windowList) {
+        if (window->isVisible()) {
+            QAction *action = ui->menuWindow->addAction(QFileInfo(window->filePath()).baseName());
+            connect(action, SIGNAL(triggered()), window, SLOT(activate()));
+        }
+    }
+}
+
+void MainWindow::activate()
+{
+    activateWindow();
 }
 
 bool MainWindow::confirmDuty()
