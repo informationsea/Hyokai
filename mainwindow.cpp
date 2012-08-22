@@ -5,6 +5,7 @@
 #include "schemadialog.h"
 #include "sheetmessagebox.h"
 #include "custumsql.h"
+#include "sqltablemodelalternativebackground.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -45,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     theDb.setDatabaseName(path);
     theDb.open();
 
-    tableModel = new QSqlTableModel(this, theDb);
+    tableModel = new SqlTableModelAlternativeBackground(this, theDb);
     tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     ui->mainToolBar->setIconSize(QSize(22, 22));
 

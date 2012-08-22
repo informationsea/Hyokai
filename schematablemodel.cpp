@@ -1,5 +1,6 @@
 #include "schematablemodel.h"
 
+#include <QColor>
 
 SchemaField::SchemaField() :
     m_name(""), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1)
@@ -92,6 +93,9 @@ QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
             return m_fieldList[index.row()].indexedField();
             break;
         }
+    case Qt::BackgroundRole:
+        if (index.row() % 2)
+            return QVariant(QColor("#E8EDF5"));
     default:
         break;
     }

@@ -16,14 +16,18 @@ SOURCES += main.cpp\
     schemadialog.cpp \
     sheetmessagebox.cpp \
     schematablemodel.cpp \
-    custumsql.cpp
+    custumsql.cpp \
+    sqltablemodelalternativebackground.cpp \
+    sqlquerymodelalternativebackground.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
     schemadialog.h \
     sheetmessagebox.h \
     schematablemodel.h \
-    custumsql.h
+    custumsql.h \
+    sqltablemodelalternativebackground.h \
+    sqlquerymodelalternativebackground.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \

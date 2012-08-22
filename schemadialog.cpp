@@ -14,6 +14,7 @@ SchemaDialog::SchemaDialog(QWidget *parent) :
     setWindowModality(Qt::WindowModal);
     model = new SchemaTableModel(this);
     ui->tableView->setModel(model);
+    ui->tableView->setDragEnabled(true);
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableChanged()));
     connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), SLOT(tableChanged()));
     connect(model, SIGNAL(rowsRemoved (const QModelIndex &, int, int)), SLOT(tableChanged()));

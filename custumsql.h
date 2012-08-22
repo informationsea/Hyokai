@@ -6,6 +6,8 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 
+#include "sqlquerymodelalternativebackground.h"
+
 namespace Ui {
 class CustumSql;
 }
@@ -25,7 +27,7 @@ private:
     Ui::CustumSql *ui;
     QSqlDatabase *m_database;
     QSqlQuery m_query;
-    QSqlQueryModel m_querymodel;
+    SqlQueryModelAlternativeBackground m_querymodel;
 };
 
 #endif // CUSTUMSQL_H
