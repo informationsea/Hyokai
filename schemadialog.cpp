@@ -140,7 +140,7 @@ QString SchemaDialog::createTableSql()
     }
     sql += ");";
 
-    qDebug() << sql;
+    //qDebug() << sql;
     return sql;
 }
 
@@ -150,7 +150,7 @@ QStringList SchemaDialog::createIndexSqls()
     foreach (const SchemaField field, fields()) {
         if (!field.indexedField()) continue;
 
-        QString sql = QString("CREATE INDEX %1_%2_index on %1(%2)").arg(name(), field.name());
+        QString sql = QString("CREATE INDEX %1__%2__index on %1(%2)").arg(name(), field.name());
         results.append(sql);
     }
 

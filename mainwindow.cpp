@@ -176,8 +176,8 @@ void MainWindow::updateDatabase()
     }
 
     if (tableModel->tableName().isEmpty() || !theDb.tables().contains(tableModel->tableName())) {
-    if (theDb.tables().size())
-        tableChanged(theDb.tables()[0]);
+        if (theDb.tables().size())
+            tableChanged(theDb.tables()[0]);
         ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
     }
 }
@@ -349,7 +349,19 @@ void MainWindow::on_actionImportTable_triggered()
     QFileInfo fileInfo(import);
     tableview_settings->setValue(LAST_IMPORT_DIRECTORY, fileInfo.dir().absolutePath());
     SchemaDialog dialog(this);
-    dialog.setName(normstr(fileInfo.baseName(), false));
+
+    {
+        // suggests table name
+        QString tableName = normstr(fileInfo.baseName());
+        if (theDb.tables(QSql::AllTables).contains(tableName)) {
+            QString baseName = tableName;
+            int i = 2;
+            while(theDb.tables(QSql::AllTables).contains(QString("%1_%2").arg(baseName, QString::number(i))))
+                i++;
+            tableName = QString("%1_%2").arg(baseName, QString::number(i));
+        }
+        dialog.setName(tableName);
+    }
 
     QList<SchemaField> fields;
     QStringList fieldNames;
@@ -357,8 +369,9 @@ void MainWindow::on_actionImportTable_triggered()
     if (import.endsWith(".csv"))
         separator = ',';
 
-    // suggets field name
+    // suggests field name
     QList<QByteArray> header = file.readLine().trimmed().split(separator);
+    int counter = 0;
     foreach(QByteArray one, header) {
         QString newfieldname = normstr(one);
         if (fieldNames.contains(newfieldname)) {
@@ -372,6 +385,8 @@ void MainWindow::on_actionImportTable_triggered()
         fields.append(SchemaField(newfieldname));
         fieldNames.append(newfieldname);
         fields.last().setFieldType(SchemaField::FIELD_INTEGER);
+        fields.last().setLogicalIndex(counter);
+        counter += 1;
     }
 
     // suggests field type
@@ -444,19 +459,19 @@ void MainWindow::on_actionImportTable_triggered()
     while(!file.atEnd()) {
         QList<QByteArray> elements = file.readLine().trimmed().split(separator);
         for (int i = 0; i < insertNumber; ++i) {
-            if (i >= elements.size()) {
+            if (fields[i].logicalIndex() >= elements.size() || fields[i].logicalIndex() < 0) {
                 insertQuery.bindValue(i, "");
                 continue;
             }
             switch(fields[i].fieldType()) {
             case SchemaField::FIELD_INTEGER:
-                insertQuery.bindValue(i, elements[i].toLongLong());
+                insertQuery.bindValue(i, elements[fields[i].logicalIndex()].toLongLong());
                 break;
             case SchemaField::FIELD_REAL:
-                insertQuery.bindValue(i, elements[i].toDouble());
+                insertQuery.bindValue(i, elements[fields[i].logicalIndex()].toDouble());
                 break;
             default:
-                insertQuery.bindValue(i, QString(elements[i]));
+                insertQuery.bindValue(i, QString(elements[fields[i].logicalIndex()]));
                 break;
             }
         }
@@ -471,9 +486,9 @@ void MainWindow::on_actionImportTable_triggered()
 
     theDb.commit();
 
-    tableModel->setTable(dialog.name());
     updateDatabase();
     filterFinished();
+    ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(dialog.name()));
 }
 
 void MainWindow::on_actionAbout_Qt_triggered()

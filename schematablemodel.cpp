@@ -2,14 +2,14 @@
 
 
 SchemaField::SchemaField() :
-    m_name(""), m_type(FIELD_NONE), m_primary_key(false)
+    m_name(""), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1)
 {
 
 }
 
 
 SchemaField::SchemaField(QString name) :
-    m_name(name), m_type(FIELD_NONE), m_primary_key(false)
+    m_name(name), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1)
 {
 
 }
