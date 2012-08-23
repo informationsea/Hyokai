@@ -21,6 +21,8 @@ public:
     QString name();
     void setFields(const QList<SchemaField> &fields);
     const QList<SchemaField> &fields();
+    void setShowLogicalIndex(bool flag);
+    bool showLogicalIndex();
 
     QString createTableSql();
     QStringList createIndexSqls();

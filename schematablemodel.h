@@ -59,8 +59,12 @@ public:
     const QList<SchemaField> & fields() { return m_fieldList; }
     bool isVaild();
 
+    void setShowLogicalIndex(bool flag);
+    bool showLogicalIndex();
+
 private:
     QList<SchemaField> m_fieldList;
+    bool m_show_logical_index;
 
 signals:
     

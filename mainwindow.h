@@ -30,6 +30,7 @@ private:
     CustumSql *custumSql;
 
     void open(QString path);
+    QString importFile(QString path);
     bool confirmDuty(); // return false if canceled
 
 public slots:

@@ -19,21 +19,14 @@ SchemaField::SchemaField(QString name) :
 SchemaField::~SchemaField(){}
 
 SchemaTableModel::SchemaTableModel(QObject *parent) :
-    QAbstractTableModel(parent)
+    QAbstractTableModel(parent), m_show_logical_index(false)
 {
 }
 
 
-Qt::ItemFlags SchemaTableModel::flags ( const QModelIndex & index ) const
+Qt::ItemFlags SchemaTableModel::flags ( const QModelIndex & /*index*/ ) const
 {
-    switch(index.column()){
-    case 0:
-    case 1:
-    default:
-        return Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsEnabled;
-    case 2:
-        return Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsEnabled|Qt::ItemIsUserCheckable;
-    }
+    return Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsEnabled;
 }
 
 QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation, int role) const
@@ -54,6 +47,8 @@ QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation
             return tr("Primary Key");
         case 3:
             return tr("Index");
+        case 4:
+            return tr("Column index in import text");
         default:
             break;
         }
@@ -65,6 +60,8 @@ QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation
 
 int SchemaTableModel::columnCount ( const QModelIndex & /* parent */) const
 {
+    if (m_show_logical_index)
+        return 5;
     return 4;
 }
 
@@ -91,7 +88,8 @@ QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
             return m_fieldList[index.row()].isPrimaryKey();
         case 3:
             return m_fieldList[index.row()].indexedField();
-            break;
+        case 4:
+            return m_fieldList[index.row()].logicalIndex();
         }
     case Qt::BackgroundRole:
         if (index.row() % 2)
@@ -138,22 +136,22 @@ bool SchemaTableModel::setData ( const QModelIndex & index, const QVariant & val
             return true;
         case 1:{
             QString text = value.toString().toUpper();
-            if (text == "INTEGER" || text.startsWith("INT")) {
+            if (text == "INTEGER" || text.startsWith("I")) {
                 m_fieldList[index.row()].setFieldType(SchemaField::FIELD_INTEGER);
                 emit dataChanged(index, index);
                 return true;
             }
-            if (text == "TEXT") {
+            if (text == "TEXT" || text.startsWith("T") || text.startsWith("C")) {
                 m_fieldList[index.row()].setFieldType(SchemaField::FIELD_TEXT);
                 emit dataChanged(index, index);
                 return true;
             }
-            if (text == "REAL" || text.startsWith("DOUB") || text.startsWith("FL")) {
+            if (text == "REAL" || text.startsWith("D") || text.startsWith("F")) {
                 m_fieldList[index.row()].setFieldType(SchemaField::FIELD_REAL);
                 emit dataChanged(index, index);
                 return true;
             }
-            if (text == "NONE") {
+            if (text == "NONE" || text.startsWith("N") ) {
                 m_fieldList[index.row()].setFieldType(SchemaField::FIELD_NONE);
                 emit dataChanged(index, index);
                 return true;
@@ -167,6 +165,10 @@ bool SchemaTableModel::setData ( const QModelIndex & index, const QVariant & val
             return true;
         case 3:
             m_fieldList[index.row()].setIndexedField(value.toBool());
+            emit dataChanged(index, index);
+            return true;
+        case 4:
+            m_fieldList[index.row()].setLogicalIndex(value.toInt());
             emit dataChanged(index, index);
             return true;
         }
@@ -222,4 +224,16 @@ bool SchemaTableModel::moveDown(int row)
     m_fieldList.insert(row+1, temp);
     endMoveRows();
     return true;
+}
+
+void SchemaTableModel::setShowLogicalIndex(bool flag)
+{
+    beginResetModel();
+    m_show_logical_index = flag;
+    endResetModel();
+}
+
+bool SchemaTableModel::showLogicalIndex()
+{
+    return m_show_logical_index;
 }

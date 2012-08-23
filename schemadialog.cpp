@@ -28,6 +28,16 @@ SchemaDialog::~SchemaDialog()
     delete model;
 }
 
+void SchemaDialog::setShowLogicalIndex(bool flag)
+{
+    model->setShowLogicalIndex(flag);
+}
+
+bool SchemaDialog::showLogicalIndex()
+{
+    return model->showLogicalIndex();
+}
+
 void SchemaDialog::on_addButton_clicked()
 {
     QItemSelectionModel *selection = ui->tableView->selectionModel();

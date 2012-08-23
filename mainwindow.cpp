@@ -352,24 +352,19 @@ static QString normstr(QString str, bool shoudStartWithAlpha = true)
     return str;
 }
 
-void MainWindow::on_actionImportTable_triggered()
+QString MainWindow::importFile(QString import)
 {
-    if (!confirmDuty())
-        return;
-
-    QString import = QFileDialog::getOpenFileName(this, tr("Select import file"),
-                                                  tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                  tr("Text (*.txt *.csv);; All (*)"));
     if (import.isEmpty())
-        return;
+        return QString();
     QFile file(import);
     if (!file.open(QIODevice::ReadOnly|QIODevice::Text)) {
         SheetMessageBox::critical(this, tr("Cannot open file"), tr("Cannot open import file."));
-        return;
+        return QString();
     }
     QFileInfo fileInfo(import);
     tableview_settings->setValue(LAST_IMPORT_DIRECTORY, fileInfo.dir().absolutePath());
     SchemaDialog dialog(this);
+    dialog.setShowLogicalIndex(true);
 
     {
         // suggests table name
@@ -443,7 +438,7 @@ void MainWindow::on_actionImportTable_triggered()
 
     dialog.setFields(fields);
     if (dialog.exec() != QDialog::Accepted)
-        return;
+        return QString();
 
 
     // creat table
@@ -458,7 +453,7 @@ void MainWindow::on_actionImportTable_triggered()
 
         if (m_database.lastError().type() != QSqlError::NoError) {
             SheetMessageBox::warning(this, tr("Cannot make table"), m_database.lastError().text()+"\n\n"+sql);
-            return;
+            return QString();
         }
     }
 
@@ -506,10 +501,32 @@ void MainWindow::on_actionImportTable_triggered()
     }
 
     m_database.commit();
+    return dialog.name();
+}
+
+void MainWindow::on_actionImportTable_triggered()
+{
+    if (!confirmDuty())
+        return;
+
+    QStringList import = QFileDialog::getOpenFileNames(this, tr("Select import file"),
+                                                  tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
+                                                  tr("Text (*.txt *.csv);; All (*)"));
+
+    if (import.isEmpty())
+        return;
+
+    QString importedTable;
+    foreach(QString path, import) {
+        importedTable = importFile(path);
+        if (importedTable.isEmpty())
+            break;
+    }
 
     updateDatabase();
     filterFinished();
-    ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(dialog.name()));
+    if (!importedTable.isEmpty())
+        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(importedTable));
 }
 
 void MainWindow::on_actionAbout_Qt_triggered()
@@ -579,6 +596,8 @@ void MainWindow::on_actionExport_Table_triggered()
     if (outputpath.isEmpty())
         return;
     QFile outputfile(outputpath);
+    QFileInfo outputfileinfo(outputpath);
+    tableview_settings->setValue(LAST_EXPORT_DIRECTORY, outputfileinfo.dir().absolutePath());
     outputfile.open(QIODevice::WriteOnly);
 
     QSqlRecord records = m_database.record(tableModel->tableName());
