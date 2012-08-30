@@ -411,6 +411,7 @@ QString MainWindow::importFile(QString import)
         while (elements.size() > fields.size()) {
             fields.append(SchemaField(QString("V%1").arg(QString::number(fields.size()))));
             fields.last().setFieldType(SchemaField::FIELD_INTEGER);
+            fields.last().setLogicalIndex(fields.size()-1);
         }
 
         for (int i = 0; i < fields.size() && i < elements.size(); i++) {
