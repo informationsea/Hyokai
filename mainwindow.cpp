@@ -28,11 +28,13 @@
 #include <QPixmap>
 #include <QMenu>
 
+
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
 #define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
 
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
+static int open_count = 0;
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
@@ -43,9 +45,19 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     QFileInfo fileinfo(path);
     setWindowTitle(QString("[*] ") + fileinfo.baseName());
 
-    m_database = QSqlDatabase::cloneDatabase(sqlite, path);
+    open_count++;
+    m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
     m_database.setDatabaseName(path);
     m_database.open();
+
+    // register extension functions
+    QVariant v = m_database.driver()->handle();
+    if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*")==0) {
+        sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
+        if (handle != 0) {
+            RegisterExtensionFunctions(handle);
+        }
+    }
 
     tableModel = new SqlTableModelAlternativeBackground(this, m_database);
     tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -67,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    sqlite3_close(m_sqlite3);
+    delete m_sqldriver;
     if (custumSql) {
         delete custumSql;
     }

@@ -6,6 +6,7 @@
 #include <QSqlTableModel>
 
 #include "custumsql.h"
+#include "sqlite3.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +24,8 @@ public:
     
 private:
     Ui::MainWindow *ui;
+    sqlite3 *m_sqlite3;
+    QSqlDriver *m_sqldriver;
     QSqlDatabase m_database;
     QSqlTableModel *tableModel;
     QString m_filepath;

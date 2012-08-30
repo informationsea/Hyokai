@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 
 #include "main.h"
+#include "sqlite3.h"
 
 QList<MainWindow *> windowList;
 QSettings *tableview_settings;

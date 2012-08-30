@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     schematablemodel.cpp \
     custumsql.cpp \
     sqltablemodelalternativebackground.cpp \
-    sqlquerymodelalternativebackground.cpp
+    sqlquerymodelalternativebackground.cpp \
+    sqlite3-extension-functions.c
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -27,7 +28,8 @@ HEADERS  += mainwindow.h \
     schematablemodel.h \
     custumsql.h \
     sqltablemodelalternativebackground.h \
-    sqlquerymodelalternativebackground.h
+    sqlquerymodelalternativebackground.h \
+    sqlite3.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
