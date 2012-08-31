@@ -79,8 +79,6 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    sqlite3_close(m_sqlite3);
-    delete m_sqldriver;
     if (custumSql) {
         delete custumSql;
     }
@@ -366,7 +364,7 @@ static QString normstr(QString str, bool shoudStartWithAlpha = true)
     return str;
 }
 
-QString MainWindow::importFile(QString import)
+QString MainWindow::importFile(QString import, bool autoimport)
 {
     if (import.isEmpty())
         return QString();
@@ -382,7 +380,7 @@ QString MainWindow::importFile(QString import)
 
     {
         // suggests table name
-        QString tableName = normstr(fileInfo.baseName());
+        QString tableName = normstr(fileInfo.completeBaseName());
         if (m_database.tables(QSql::AllTables).contains(tableName)) {
             QString baseName = tableName;
             int i = 2;
@@ -451,9 +449,16 @@ QString MainWindow::importFile(QString import)
         }
     }
 
+    for(int i = 0; i < fields.size(); ++i) {
+        if (fields[i].fieldType() == SchemaField::FIELD_INTEGER)
+            fields[i].setIndexedField(true);
+    }
+
     dialog.setFields(fields);
-    if (dialog.exec() != QDialog::Accepted)
-        return QString();
+    if (!autoimport) {
+        if (dialog.exec() != QDialog::Accepted)
+            return QString();
+    }
 
 
     // creat table
@@ -531,9 +536,12 @@ void MainWindow::on_actionImportTable_triggered()
     if (import.isEmpty())
         return;
 
+    QMessageBox::StandardButton button = SheetMessageBox::question(this, tr("Multiple files are selected"), tr("Do you want to import with default options?"),
+                                                                   QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+
     QString importedTable;
     foreach(QString path, import) {
-        importedTable = importFile(path);
+        importedTable = importFile(path, button == QMessageBox::Yes);
         if (importedTable.isEmpty())
             break;
     }

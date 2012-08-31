@@ -24,8 +24,6 @@ public:
     
 private:
     Ui::MainWindow *ui;
-    sqlite3 *m_sqlite3;
-    QSqlDriver *m_sqldriver;
     QSqlDatabase m_database;
     QSqlTableModel *tableModel;
     QString m_filepath;
@@ -33,7 +31,7 @@ private:
     CustumSql *custumSql;
 
     void open(QString path);
-    QString importFile(QString path);
+    QString importFile(QString path, bool autoimport);
     bool confirmDuty(); // return false if canceled
 
 public slots:
