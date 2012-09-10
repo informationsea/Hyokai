@@ -26,11 +26,11 @@ public:
 private:
     Ui::MainWindow *ui;
     QSqlDatabase m_database;
-    QSqlTableModel *tableModel;
-    QLabel *sqlLineCount;
+    QSqlTableModel *m_tableModel;
+    QLabel *m_rowcountlabel;
     QString m_filepath;
-    bool isDuty;
-    CustumSql *custumSql;
+    bool m_isDuty;
+    CustumSql *m_custumSql;
 
     void open(QString path);
     QString importFile(QString path, bool autoimport);

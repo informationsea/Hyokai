@@ -38,12 +38,12 @@ static int open_count = 0;
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), isDuty(false), custumSql(0)
+    ui(new Ui::MainWindow), m_isDuty(false), m_custumSql(0)
 {
     ui->setupUi(this);
-    sqlLineCount = new QLabel(ui->statusBar);
+    m_rowcountlabel = new QLabel(ui->statusBar);
     //ui->statusBar->addWidget(sqlLineCount);
-    ui->statusBar->addPermanentWidget(sqlLineCount);
+    ui->statusBar->addPermanentWidget(m_rowcountlabel);
 
     m_filepath = path;
     QFileInfo fileinfo(path);
@@ -63,18 +63,18 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
         }
     }
 
-    tableModel = new SqlTableModelAlternativeBackground(this, m_database);
-    tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    m_tableModel = new SqlTableModelAlternativeBackground(this, m_database);
+    m_tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     ui->mainToolBar->setIconSize(QSize(22, 22));
 
     updateDatabase();
 
-    ui->tableView->setModel(tableModel);
+    ui->tableView->setModel(m_tableModel);
     ui->tableView->horizontalHeader()->setMovable(true);
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
-    connect(tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
+    connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
 
     filterFinished();
@@ -83,8 +83,8 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    if (custumSql) {
-        delete custumSql;
+    if (m_custumSql) {
+        delete m_custumSql;
     }
 }
 
@@ -98,8 +98,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         switch(selected) {
         case QMessageBox::Discard:
             event->accept();
-            if (custumSql) {
-                custumSql->close();
+            if (m_custumSql) {
+                m_custumSql->close();
             }
             return;
         default:
@@ -112,8 +112,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     } else {
         event->accept();
-        if (custumSql) {
-            custumSql->close();
+        if (m_custumSql) {
+            m_custumSql->close();
         }
     }
 }
@@ -136,25 +136,25 @@ void MainWindow::activate()
 
 bool MainWindow::confirmDuty()
 {
-    if (isDuty) {
+    if (m_isDuty) {
         QMessageBox::StandardButton selected =
                 SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
                                           QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
         switch(selected) {
         case QMessageBox::Cancel:
-            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->tableName()));
             return false;
         case QMessageBox::Save:
-            if (!tableModel->submitAll()) {
-                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
-                SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
+            if (!m_tableModel->submitAll()) {
+                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->tableName()));
+                SheetMessageBox::critical(this, tr("Cannot save table"), m_tableModel->lastError().text());
                 return false;
             }
-            isDuty = false;
+            m_isDuty = false;
             break;
         case QMessageBox::Discard:
         default:
-            isDuty = false;
+            m_isDuty = false;
             break;
         }
         return true;
@@ -164,43 +164,43 @@ bool MainWindow::confirmDuty()
 
 void MainWindow::filterFinished()
 {
-    if (tableModel->tableName().isEmpty())
+    if (m_tableModel->tableName().isEmpty())
         return;
-    tableModel->setFilter(ui->sqlLine->text());
-    tableModel->select();
-    if (tableModel->lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::warning(this, tr("Cannot apply the filter."), tableModel->lastError().text());
+    m_tableModel->setFilter(ui->sqlLine->text());
+    m_tableModel->select();
+    if (m_tableModel->lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::warning(this, tr("Cannot apply the filter."), m_tableModel->lastError().text());
     }
 
     QSqlQuery count;
     if (ui->sqlLine->text().isEmpty()) {
-        count = m_database.exec(QString("SELECT count(*) FROM %1;").arg(tableModel->tableName()));
+        count = m_database.exec(QString("SELECT count(*) FROM %1;").arg(m_tableModel->tableName()));
     } else {
-        count = m_database.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(tableModel->tableName(), ui->sqlLine->text()));
+        count = m_database.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(m_tableModel->tableName(), ui->sqlLine->text()));
     }
 
     count.next();
-    sqlLineCount->setText(QString("%1 rows").arg(QString::number(count.value(0).toLongLong())));
+    m_rowcountlabel->setText(QString("%1 rows").arg(QString::number(count.value(0).toLongLong())));
 }
 
 
 void MainWindow::tableChanged(const QString &name)
 {
-    if (name == tableModel->tableName())
+    if (name == m_tableModel->tableName())
         return;
     if (!confirmDuty())
         return;
 
-    tableModel->setTable(name);
-    tableModel->select();
+    m_tableModel->setTable(name);
+    m_tableModel->select();
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
-    isDuty = false;
+    m_isDuty = false;
     setWindowModified(false);
 }
 
 void MainWindow::tableUpdated()
 {
-    isDuty = true;
+    m_isDuty = true;
     setWindowModified(true);
 }
 
@@ -211,21 +211,21 @@ void MainWindow::updateDatabase()
         ui->tableSelect->addItem(name);
     }
 
-    if (tableModel->tableName().isEmpty() || !m_database.tables().contains(tableModel->tableName())) {
+    if (m_tableModel->tableName().isEmpty() || !m_database.tables().contains(m_tableModel->tableName())) {
         if (m_database.tables().size())
             tableChanged(m_database.tables()[0]);
-        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(tableModel->tableName()));
+        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->tableName()));
     }
 }
 
 void MainWindow::sortIndicatorChanged(int logicalIndex, Qt::SortOrder order)
 {
-    if (isDuty) {
+    if (m_isDuty) {
         SheetMessageBox::warning(this, tr("Data is not commited"), tr("You have to commit changes before sorting."));
         return;
     }
     ui->tableView->horizontalHeader()->setSortIndicatorShown(true);
-    tableModel->sort(logicalIndex, order);
+    m_tableModel->sort(logicalIndex, order);
 }
 
 void MainWindow::on_actionGo_github_triggered()
@@ -235,19 +235,19 @@ void MainWindow::on_actionGo_github_triggered()
 
 void MainWindow::on_actionCommit_triggered()
 {
-    if (tableModel->submitAll()) {
-        isDuty = false;
+    if (m_tableModel->submitAll()) {
+        m_isDuty = false;
         setWindowModified(false);
         filterFinished();
     } else {
-        SheetMessageBox::critical(this, tr("Cannot save table"), tableModel->lastError().text());
+        SheetMessageBox::critical(this, tr("Cannot save table"), m_tableModel->lastError().text());
     }
 }
 
 void MainWindow::on_actionRevert_triggered()
 {
-    tableModel->revertAll();
-    isDuty = false;
+    m_tableModel->revertAll();
+    m_isDuty = false;
     setWindowModified(false);
     filterFinished();
 }
@@ -317,7 +317,7 @@ void MainWindow::on_actionNew_triggered()
 
 void MainWindow::on_actionInsert_triggered()
 {
-    if (tableModel->tableName().isEmpty())
+    if (m_tableModel->tableName().isEmpty())
         return;
     QItemSelectionModel *selection = ui->tableView->selectionModel();
     QList<int> rows;
@@ -327,15 +327,15 @@ void MainWindow::on_actionInsert_triggered()
     }
     qSort(rows);
     if (rows.isEmpty())
-        tableModel->insertRow(0);
+        m_tableModel->insertRow(0);
     else
-        tableModel->insertRow(rows.last()+1);
+        m_tableModel->insertRow(rows.last()+1);
     tableUpdated();
 }
 
 void MainWindow::on_actionDelete_triggered()
 {
-    if (tableModel->tableName().isEmpty())
+    if (m_tableModel->tableName().isEmpty())
         return;
     QItemSelectionModel *selection = ui->tableView->selectionModel();
     QList<int> rows;
@@ -345,7 +345,7 @@ void MainWindow::on_actionDelete_triggered()
     }
     qSort(rows);
     while(!rows.isEmpty()) {
-        tableModel->removeRow(rows.takeLast());
+        m_tableModel->removeRow(rows.takeLast());
     }
     tableUpdated();
 }
@@ -581,17 +581,17 @@ void MainWindow::on_actionAbout_Table_View_triggered()
 
 void MainWindow::on_actionRun_Custum_SQL_triggered()
 {
-    if (custumSql) {
-        if (custumSql->isVisible()) {
-            custumSql->activateWindow();
+    if (m_custumSql) {
+        if (m_custumSql->isVisible()) {
+            m_custumSql->activateWindow();
             return;
         } else {
-            delete custumSql;
+            delete m_custumSql;
         }
     }
 
-    custumSql = new CustumSql(&m_database, this);
-    custumSql->show();
+    m_custumSql = new CustumSql(&m_database, this);
+    m_custumSql->show();
 }
 
 void MainWindow::on_actionRefresh_triggered()
@@ -604,7 +604,7 @@ void MainWindow::on_actionRefresh_triggered()
 
 void MainWindow::on_actionExport_Table_triggered()
 {
-    if (tableModel->tableName().isEmpty()) {
+    if (m_tableModel->tableName().isEmpty()) {
         SheetMessageBox::information(this, tr("No table is selected"), tr("Please select a table to export"));
         return;
     }
@@ -614,9 +614,9 @@ void MainWindow::on_actionExport_Table_triggered()
 
     QSqlQuery query;
     if (ui->sqlLine->text().isEmpty()) {
-        query = m_database.exec(QString("SELECT * FROM %1").arg(tableModel->tableName()));
+        query = m_database.exec(QString("SELECT * FROM %1").arg(m_tableModel->tableName()));
     } else {
-        query = m_database.exec(QString("SELECT * FROM %1 WHERE %2").arg(tableModel->tableName(), ui->sqlLine->text()));
+        query = m_database.exec(QString("SELECT * FROM %1 WHERE %2").arg(m_tableModel->tableName(), ui->sqlLine->text()));
     }
 
     if (query.lastError().type() != QSqlError::NoError) {
@@ -632,7 +632,7 @@ void MainWindow::on_actionExport_Table_triggered()
     tableview_settings->setValue(LAST_EXPORT_DIRECTORY, outputfileinfo.dir().absolutePath());
     outputfile.open(QIODevice::WriteOnly);
 
-    QSqlRecord records = m_database.record(tableModel->tableName());
+    QSqlRecord records = m_database.record(m_tableModel->tableName());
     for (int i = 0; i < records.count(); ++i) {
         if (i != 0)
             outputfile.write("\t");
