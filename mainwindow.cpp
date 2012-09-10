@@ -41,6 +41,10 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     ui(new Ui::MainWindow), isDuty(false), custumSql(0)
 {
     ui->setupUi(this);
+    sqlLineCount = new QLabel(ui->statusBar);
+    //ui->statusBar->addWidget(sqlLineCount);
+    ui->statusBar->addPermanentWidget(sqlLineCount);
+
     m_filepath = path;
     QFileInfo fileinfo(path);
     setWindowTitle(QString("[*] ") + fileinfo.baseName());
@@ -176,7 +180,7 @@ void MainWindow::filterFinished()
     }
 
     count.next();
-    ui->tableView->setStatusTip(QString("%1 rows found").arg(QString::number(count.value(0).toLongLong())));
+    sqlLineCount->setText(QString("%1 rows").arg(QString::number(count.value(0).toLongLong())));
 }
 
 
@@ -536,8 +540,13 @@ void MainWindow::on_actionImportTable_triggered()
     if (import.isEmpty())
         return;
 
-    QMessageBox::StandardButton button = SheetMessageBox::question(this, tr("Multiple files are selected"), tr("Do you want to import with default options?"),
-                                                                   QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+    QMessageBox::StandardButton button;
+    if (import.size() > 1) {
+        button = SheetMessageBox::question(this, tr("Multiple files are selected"), tr("Do you want to import with default options?"),
+                                           QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+    } else {
+        button = QMessageBox::No;
+    }
 
     QString importedTable;
     foreach(QString path, import) {
@@ -653,4 +662,9 @@ void MainWindow::on_actionOpen_In_Memory_Database_triggered()
         }
     }
     open(":memory:");
+}
+
+void MainWindow::on_buttonClear_clicked()
+{
+    ui->sqlLine->setText("");
 }

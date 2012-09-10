@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSqlDatabase>
 #include <QSqlTableModel>
+#include <QLabel>
 
 #include "custumsql.h"
 #include "sqlite3.h"
@@ -26,6 +27,7 @@ private:
     Ui::MainWindow *ui;
     QSqlDatabase m_database;
     QSqlTableModel *tableModel;
+    QLabel *sqlLineCount;
     QString m_filepath;
     bool isDuty;
     CustumSql *custumSql;
@@ -62,6 +64,7 @@ private slots:
     void on_actionRefresh_triggered();
     void on_actionExport_Table_triggered();
     void on_actionOpen_In_Memory_Database_triggered();
+    void on_buttonClear_clicked();
 };
 
 #endif // MAINWINDOW_H
