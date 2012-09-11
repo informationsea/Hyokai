@@ -197,6 +197,7 @@ void MainWindow::tableChanged(const QString &name)
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
     isDuty = false;
     setWindowModified(false);
+    filterFinished();
 }
 
 void MainWindow::tableUpdated()

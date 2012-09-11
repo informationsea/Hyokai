@@ -2,11 +2,17 @@
 #include "ui_custumsql.h"
 
 #include "sheetmessagebox.h"
+#include "main.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFileInfo>
 #include <QPoint>
 #include <QSqlRecord>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QStringList>
+
+#define CUSTUM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
 
 CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
@@ -97,6 +103,10 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
         }
     }
 
+    QStringList list = tableview_settings->value(CUSTUM_SQL_HISTORY).toStringList();
+    foreach(QString i, list) {
+        ui->sql->addItem(i);
+    }
 }
 
 CustumSql::~CustumSql()
@@ -107,13 +117,26 @@ CustumSql::~CustumSql()
 
 void CustumSql::on_pushButton_clicked()
 {
-    if(ui->lineEdit->text().isEmpty())
+    if(ui->sql->lineEdit()->text().isEmpty())
         return;
-    m_query.exec(ui->lineEdit->text());
+    m_query.exec(ui->sql->lineEdit()->text());
     if (m_query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+ui->lineEdit->text());
+        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+m_query.lastQuery());
         return;
     }
+
+
+    QStringList list = tableview_settings->value(CUSTUM_SQL_HISTORY).toStringList();
+    if (list.isEmpty() || list.first() != m_query.lastQuery()) {
+        list.insert(0, m_query.lastQuery());
+        list.removeDuplicates();
+        tableview_settings->setValue(CUSTUM_SQL_HISTORY, list);
+    }
+    ui->sql->clear();
+    foreach(QString i, list) {
+        ui->sql->addItem(i);
+    }
+
     if (m_query.isSelect()) {
         m_querymodel.setQuery(m_query);
     } else {
@@ -132,12 +155,12 @@ void CustumSql::on_assistButton_clicked()
 void CustumSql::setSqlTemplate()
 {
     QAction *sender = (QAction *)QObject::sender();
-    ui->lineEdit->setText(sender->data().toString());
+    ui->sql->lineEdit()->setText(sender->data().toString());
 }
 
 
 void CustumSql::insertSql()
 {
     QAction *sender = (QAction *)QObject::sender();
-    ui->lineEdit->insert(sender->data().toString());
+    ui->sql->lineEdit()->insert(sender->data().toString());
 }
