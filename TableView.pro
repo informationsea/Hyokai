@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     sqltablemodelalternativebackground.cpp \
     sqlquerymodelalternativebackground.cpp \
     sqlite3-extension-functions.c \
-    attachdatabasedialog.cpp
+    attachdatabasedialog.cpp \
+    jointabledialog.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -31,12 +32,14 @@ HEADERS  += mainwindow.h \
     sqltablemodelalternativebackground.h \
     sqlquerymodelalternativebackground.h \
     sqlite3.h \
-    attachdatabasedialog.h
+    attachdatabasedialog.h \
+    jointabledialog.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
     custumsql.ui \
-    attachdatabasedialog.ui
+    attachdatabasedialog.ui \
+    jointabledialog.ui
 
 RESOURCES += \
     resouces.qrc

@@ -2,6 +2,7 @@
 #include "ui_custumsql.h"
 
 #include "sheetmessagebox.h"
+#include "jointabledialog.h"
 #include "main.h"
 #include <QSqlQuery>
 #include <QSqlError>
@@ -33,6 +34,9 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     templateList << "SELECT * FROM table1 NATUAL INNTER JOIN table2";
     templateList << "SELECT * FROM table1 NATUAL LEFT OUTER JOIN table2";
     templateList << "VACUUM";
+
+    QAction *joinwizard = assistMenu->addAction(tr("SQL Join Wizard"));
+    connect(joinwizard, SIGNAL(triggered()), SLOT(joinSqlWizard()));
 
     QMenu *sqltemplates = assistMenu->addMenu(tr("Replace with SQL Templates"));
     foreach(QString i, templateList) {
@@ -163,4 +167,13 @@ void CustumSql::insertSql()
 {
     QAction *sender = (QAction *)QObject::sender();
     ui->sql->lineEdit()->insert(sender->data().toString());
+}
+
+void CustumSql::joinSqlWizard()
+{
+    JoinTableDialog dialog(m_database, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    ui->sql->lineEdit()->setText(dialog.sql());
+    on_pushButton_clicked();
 }

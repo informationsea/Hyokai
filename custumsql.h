@@ -27,6 +27,7 @@ private slots:
 
     void setSqlTemplate();
     void insertSql();
+    void joinSqlWizard();
 
 private:
     Ui::CustumSql *ui;
