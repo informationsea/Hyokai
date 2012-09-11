@@ -6,6 +6,7 @@
 #include "sheetmessagebox.h"
 #include "custumsql.h"
 #include "sqltablemodelalternativebackground.h"
+#include "attachdatabasedialog.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -196,6 +197,7 @@ void MainWindow::tableChanged(const QString &name)
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
     m_isDuty = false;
     setWindowModified(false);
+    filterFinished();
 }
 
 void MainWindow::tableUpdated()
@@ -456,6 +458,8 @@ QString MainWindow::importFile(QString import, bool autoimport)
     for(int i = 0; i < fields.size(); ++i) {
         if (fields[i].fieldType() == SchemaField::FIELD_INTEGER)
             fields[i].setIndexedField(true);
+        if (fields[i].fieldType() == SchemaField::FIELD_REAL)
+            fields[i].setIndexedField(true);
     }
 
     dialog.setFields(fields);
@@ -667,4 +671,19 @@ void MainWindow::on_actionOpen_In_Memory_Database_triggered()
 void MainWindow::on_buttonClear_clicked()
 {
     ui->sqlLine->setText("");
+}
+
+void MainWindow::on_actionAttach_Database_triggered()
+{
+    AttachDatabaseDialog dialog(this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    QSqlQuery query = m_database.exec(dialog.sql());
+
+    if (query.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::warning(this, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+query.lastQuery());
+        return;
+    }
+    SheetMessageBox::information(this, tr("Database is attached."), tr("Database is attached successfully."));
 }

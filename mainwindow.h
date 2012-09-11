@@ -65,6 +65,7 @@ private slots:
     void on_actionExport_Table_triggered();
     void on_actionOpen_In_Memory_Database_triggered();
     void on_buttonClear_clicked();
+    void on_actionAttach_Database_triggered();
 };
 
 #endif // MAINWINDOW_H
