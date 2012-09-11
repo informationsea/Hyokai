@@ -5,6 +5,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
+#include <QMenu>
 
 #include "sqlquerymodelalternativebackground.h"
 
@@ -22,12 +23,17 @@ public:
     
 private slots:
     void on_pushButton_clicked();
+    void on_assistButton_clicked();
+
+    void setSqlTemplate();
+    void insertSql();
 
 private:
     Ui::CustumSql *ui;
     QSqlDatabase *m_database;
     QSqlQuery m_query;
     SqlQueryModelAlternativeBackground m_querymodel;
+    QMenu *assistMenu;
 };
 
 #endif // CUSTUMSQL_H
