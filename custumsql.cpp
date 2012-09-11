@@ -119,6 +119,11 @@ CustumSql::~CustumSql()
     delete assistMenu;
 }
 
+QTableView *CustumSql::tableView()
+{
+    return ui->tableView;
+}
+
 void CustumSql::on_pushButton_clicked()
 {
     if(ui->sql->lineEdit()->text().isEmpty())

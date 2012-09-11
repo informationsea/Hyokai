@@ -66,6 +66,8 @@ private slots:
     void on_actionOpen_In_Memory_Database_triggered();
     void on_buttonClear_clicked();
     void on_actionAttach_Database_triggered();
+    void on_actionCopy_triggered();
+    void on_actionView_in_File_Manager_triggered();
 };
 
 #endif // MAINWINDOW_H

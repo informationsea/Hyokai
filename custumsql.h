@@ -6,6 +6,7 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QMenu>
+#include <QTableView>
 
 #include "sqlquerymodelalternativebackground.h"
 
@@ -20,6 +21,8 @@ class CustumSql : public QDialog
 public:
     explicit CustumSql(QSqlDatabase *database, QWidget *parent = 0);
     ~CustumSql();
+
+    QTableView *tableView();
     
 private slots:
     void on_pushButton_clicked();

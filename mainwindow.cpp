@@ -28,7 +28,11 @@
 #include <QSqlRecord>
 #include <QPixmap>
 #include <QMenu>
-
+#include <QList>
+#include <QVariant>
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QUrl>
 
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
@@ -671,6 +675,76 @@ void MainWindow::on_actionOpen_In_Memory_Database_triggered()
 void MainWindow::on_buttonClear_clicked()
 {
     ui->sqlLine->setText("");
+    filterFinished();
+}
+
+#define MIN(x, y) ((x) > (y) ? (y) : (x))
+#define MAX(x, y) ((x) < (y) ? (y) : (x))
+
+void MainWindow::on_actionCopy_triggered()
+{
+    QModelIndexList selectedIndex;
+    if (m_custumSql && m_custumSql->isActiveWindow()) {
+        selectedIndex = m_custumSql->tableView()->selectionModel()->selectedIndexes();
+    } else {
+        selectedIndex = ui->tableView->selectionModel()->selectedIndexes();
+    }
+    struct select_points {
+        int x;
+        int y;
+    } left_top, right_bottom;
+
+    if (selectedIndex.size() <= 0) return;
+
+    // first data
+    left_top.x = selectedIndex[0].column();
+    left_top.y = selectedIndex[0].row();
+    right_bottom.x = selectedIndex[0].column();
+    right_bottom.y = selectedIndex[0].row();
+
+    foreach(QModelIndex index, selectedIndex) {
+        left_top.x = MIN(index.column(), left_top.x);
+        left_top.y = MIN(index.row(), left_top.y);
+        right_bottom.x = MAX(index.column(), right_bottom.x);
+        right_bottom.y = MAX(index.row(), right_bottom.y);
+    }
+
+    int width = right_bottom.x - left_top.x + 1;
+    int height = right_bottom.y - left_top.y + 1;
+
+    QList<QList<QVariant> >  matrix;
+    for (int i = 0; i < height; ++i) {
+        QList<QVariant> line;
+        for (int j = 0; j < width; ++j) {
+            line.append(QVariant());
+        }
+        matrix.append(line);
+    }
+
+    QTableView *tableView;
+    if (m_custumSql && m_custumSql->isActiveWindow()) {
+        tableView = m_custumSql->tableView();
+    } else {
+        tableView = ui->tableView;
+    }
+
+    foreach(QModelIndex index, selectedIndex) {
+        matrix[index.row() - left_top.y][index.column() - left_top.x] = tableView->model()->data(index);
+    }
+
+    QString clipboard;
+
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            if (j != 0)
+                clipboard += "\t";
+            clipboard += matrix[i][j].toString();
+        }
+        if (i != height-1)
+            clipboard += "\n";
+    }
+    QClipboard *clip = QApplication::clipboard();
+    clip->setText(clipboard);
 }
 
 void MainWindow::on_actionAttach_Database_triggered()
@@ -686,4 +760,11 @@ void MainWindow::on_actionAttach_Database_triggered()
         return;
     }
     SheetMessageBox::information(this, tr("Database is attached."), tr("Database is attached successfully."));
+}
+
+void MainWindow::on_actionView_in_File_Manager_triggered()
+{
+    if (m_filepath == ":memory:")
+        return;
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(m_filepath).dir().absolutePath()));
 }
