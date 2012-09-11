@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     custumsql.cpp \
     sqltablemodelalternativebackground.cpp \
     sqlquerymodelalternativebackground.cpp \
-    sqlite3-extension-functions.c
+    sqlite3-extension-functions.c \
+    attachdatabasedialog.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -29,11 +30,13 @@ HEADERS  += mainwindow.h \
     custumsql.h \
     sqltablemodelalternativebackground.h \
     sqlquerymodelalternativebackground.h \
-    sqlite3.h
+    sqlite3.h \
+    attachdatabasedialog.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
-    custumsql.ui
+    custumsql.ui \
+    attachdatabasedialog.ui
 
 RESOURCES += \
     resouces.qrc

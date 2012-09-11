@@ -87,6 +87,7 @@
     <addaction name="actionCreateTable"/>
     <addaction name="actionImportTable"/>
     <addaction name="actionExport_Table"/>
+    <addaction name="actionAttach_Database"/>
     <addaction name="separator"/>
     <addaction name="actionInsert"/>
     <addaction name="actionDelete"/>
@@ -274,6 +275,11 @@
   <action name="actionOpen_In_Memory_Database">
    <property name="text">
     <string>Open In Memory Database</string>
+   </property>
+  </action>
+  <action name="actionAttach_Database">
+   <property name="text">
+    <string>Attach Database</string>
    </property>
   </action>
  </widget>
