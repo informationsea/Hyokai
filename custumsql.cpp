@@ -13,8 +13,6 @@
 #include <QComboBox>
 #include <QStringList>
 
-#define CUSTUM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
-
 CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CustumSql), m_database(database),
@@ -23,7 +21,7 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     ui->setupUi(this);
     ui->tableView->setModel(&m_querymodel);
     ui->tableView->horizontalHeader()->setMovable(true);
-    setWindowTitle(QFileInfo(database->databaseName()).baseName());
+    setWindowTitle("Custum SQL "+QFileInfo(database->databaseName()).baseName());
 
     assistMenu = new QMenu(this);
 
@@ -43,6 +41,16 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
         QAction *action = sqltemplates->addAction(i);
         action->setData(i);
         connect(action, SIGNAL(triggered()), SLOT(setSqlTemplate()));
+    }
+
+    QStringList userTemplates = tableview_settings->value(SQL_TEMPLATES).toStringList();
+    if (!userTemplates.isEmpty()) {
+        QMenu *usertemplatemenu = assistMenu->addMenu(tr("User Templates"));
+        foreach (QString i, userTemplates) {
+            QAction *action = usertemplatemenu->addAction(i);
+            action->setData(i);
+            connect(action, SIGNAL(triggered()), SLOT(insertSql()));
+        }
     }
 
     QStringList templateList2;
@@ -71,12 +79,14 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     functions << "min(";
     functions << "count(";
     functions << "total(";
+#if 0
     functions << "--";
     functions << "stdev(";
     functions << "variance(";
     functions << "median(";
     functions << "lower_quartile(";
     functions << "upper_quartile(";
+#endif
 
     QMenu *functioninsert = assistMenu->addMenu(tr("SQL Functions"));
     foreach(QString i, functions) {

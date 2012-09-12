@@ -1,0 +1,2 @@
+qmake -config release ..
+nmake

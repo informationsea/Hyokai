@@ -36,6 +36,8 @@ private:
     QString importFile(QString path, bool autoimport);
     bool confirmDuty(); // return false if canceled
 
+    QWidgetList m_windowList;
+
 public slots:
     virtual void closeEvent(QCloseEvent *event);
 
@@ -68,6 +70,7 @@ private slots:
     void on_actionAttach_Database_triggered();
     void on_actionCopy_triggered();
     void on_actionView_in_File_Manager_triggered();
+    void on_actionPreference_triggered();
 };
 
 #endif // MAINWINDOW_H

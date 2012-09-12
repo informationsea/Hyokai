@@ -14,5 +14,8 @@
         <file>images/utilities-terminal.png</file>
         <file>images/icon512.png</file>
         <file>images/icon128.png</file>
+        <file>images/preferences-system.png</file>
+        <file>images/icon16.png</file>
+        <file>images/icon32.png</file>
     </qresource>
 </RCC>

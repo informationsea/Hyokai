@@ -50,7 +50,11 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     //ui->statusBar->addWidget(sqlLineCount);
     ui->statusBar->addPermanentWidget(m_rowcountlabel);
 
+    move(nextWindowPosition());
+
     m_filepath = path;
+    if (m_filepath.compare(":memory:") != 0)
+        setWindowFilePath(m_filepath);
     QFileInfo fileinfo(path);
     setWindowTitle(QString("[*] ") + fileinfo.baseName());
 
@@ -58,15 +62,6 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
     m_database.setDatabaseName(path);
     m_database.open();
-
-    // register extension functions
-    QVariant v = m_database.driver()->handle();
-    if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*")==0) {
-        sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
-        if (handle != 0) {
-            RegisterExtensionFunctions(handle);
-        }
-    }
 
     m_tableModel = new SqlTableModelAlternativeBackground(this, m_database);
     m_tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -81,6 +76,21 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
+
+    if (m_filepath.compare(":memory:") == 0) {
+        ui->actionView_in_File_Manager->setEnabled(false);
+    }
+
+    QList<QVariant> attachdb = tableview_settings->value(ATTACHED_DATABASES).toList();
+    foreach(QVariant l, attachdb) {
+        QStringList list = l.toStringList();
+        QString as = list[0].replace("\"", "");
+        QString db = list[1].replace("\"", "");
+        QSqlQuery q = m_database.exec(QString("ATTACH DATABASE \"%1\" AS \"%2\"").arg(db, as));
+        if (q.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::critical(NULL, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+q.lastQuery());
+        }
+    }
 
     filterFinished();
 }
@@ -126,17 +136,25 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::onWindowMenuShow()
 {
     ui->menuWindow->clear();
-    foreach(MainWindow *window, windowList) {
-        if (window->isVisible()) {
-            QAction *action = ui->menuWindow->addAction(QFileInfo(window->filePath()).baseName());
-            connect(action, SIGNAL(triggered()), window, SLOT(activate()));
+    m_windowList.clear();
+    m_windowList = QApplication::topLevelWidgets();
+    for (int i = 0; i < m_windowList.size(); ++i) {
+        if (m_windowList[i]->isVisible()) {
+            QAction *action = ui->menuWindow->addAction(m_windowList[i]->windowTitle().replace("[*] ", ""));
+            action->setCheckable(true);
+            if (m_windowList[i]->isActiveWindow())
+                action->setChecked(true);
+            action->setData(i);
+            connect(action, SIGNAL(triggered()), SLOT(activate()));
         }
     }
 }
 
 void MainWindow::activate()
 {
-    activateWindow();
+    QAction *action = (QAction *)sender();
+    m_windowList[action->data().toInt()]->raise();
+    m_windowList[action->data().toInt()]->activateWindow();
 }
 
 bool MainWindow::confirmDuty()
@@ -358,8 +376,8 @@ void MainWindow::on_actionDelete_triggered()
 
 void MainWindow::on_actionQuit_triggered()
 {
-    foreach(MainWindow *window, ::windowList) {
-        window->close();
+    foreach (QWidget *widget, QApplication::topLevelWidgets()) {
+        widget->close();
     }
 }
 
@@ -756,10 +774,10 @@ void MainWindow::on_actionAttach_Database_triggered()
     QSqlQuery query = m_database.exec(dialog.sql());
 
     if (query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::warning(this, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+query.lastQuery());
+        SheetMessageBox::critical(this, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+query.lastQuery());
         return;
     }
-    SheetMessageBox::information(this, tr("Database is attached."), tr("Database is attached successfully."));
+    //SheetMessageBox::information(this, tr("Database is attached."), tr("Database is attached successfully."));
 }
 
 void MainWindow::on_actionView_in_File_Manager_triggered()
@@ -767,4 +785,14 @@ void MainWindow::on_actionView_in_File_Manager_triggered()
     if (m_filepath == ":memory:")
         return;
     QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(m_filepath).dir().absolutePath()));
+}
+
+void MainWindow::on_actionPreference_triggered()
+{
+    if (preferenceDialog && preferenceDialog->isVisible()) {
+        preferenceDialog->activateWindow();
+    } else {
+        preferenceDialog = new PreferenceWindow();
+        preferenceDialog->show();
+    }
 }

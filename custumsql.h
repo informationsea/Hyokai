@@ -10,6 +10,8 @@
 
 #include "sqlquerymodelalternativebackground.h"
 
+#define CUSTUM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
+
 namespace Ui {
 class CustumSql;
 }

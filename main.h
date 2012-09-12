@@ -3,16 +3,19 @@
 
 #include <QList>
 #include <QSettings>
+#include <QObject>
 #include "mainwindow.h"
+#include "preferencewindow.h"
+
+#include <QItemSelectionModel>
+#include <QPoint>
 
 extern QList<MainWindow *> windowList;
 extern QSettings *tableview_settings;
+extern PreferenceWindow *preferenceDialog;
 
 void tableviewCleanupWindows();
-
-// sqlite3-extension-functions.c
-extern "C" {
-    int RegisterExtensionFunctions(sqlite3 *db);
-}
+QList<int> selectedRowsFromSelection(QItemSelectionModel *selection);
+QPoint nextWindowPosition();
 
 #endif // MAIN_H

@@ -10,6 +10,7 @@ TARGET = TableView
 TEMPLATE = app
 
 ICON = images/icon.icns
+RC_FILE = windowsicon.rc
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -19,9 +20,9 @@ SOURCES += main.cpp\
     custumsql.cpp \
     sqltablemodelalternativebackground.cpp \
     sqlquerymodelalternativebackground.cpp \
-    sqlite3-extension-functions.c \
     attachdatabasedialog.cpp \
-    jointabledialog.cpp
+    jointabledialog.cpp \
+    preferencewindow.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -31,15 +32,19 @@ HEADERS  += mainwindow.h \
     custumsql.h \
     sqltablemodelalternativebackground.h \
     sqlquerymodelalternativebackground.h \
-    sqlite3.h \
     attachdatabasedialog.h \
-    jointabledialog.h
+    jointabledialog.h \
+    preferencewindow.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
     custumsql.ui \
     attachdatabasedialog.ui \
-    jointabledialog.ui
+    jointabledialog.ui \
+    preferencewindow.ui
 
 RESOURCES += \
     resouces.qrc
+
+OTHER_FILES += \
+    windowsicon.rc

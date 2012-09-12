@@ -8,3 +8,4 @@ script-for-mac/*.app
 script-for-mac/*.cpp
 script-for-mac/*.h
 script-for-mac/Makefile
+extensions.sqlext

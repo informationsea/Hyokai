@@ -117,6 +117,8 @@
      <string>Edit</string>
     </property>
     <addaction name="actionCopy"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreference"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -301,6 +303,11 @@
   <action name="actionView_in_File_Manager">
    <property name="text">
     <string>Open File Location</string>
+   </property>
+  </action>
+  <action name="actionPreference">
+   <property name="text">
+    <string>Preference...</string>
    </property>
   </action>
  </widget>
