@@ -31,6 +31,12 @@
        <property name="insertPolicy">
         <enum>QComboBox::NoInsert</enum>
        </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+       </property>
+       <property name="minimumContentsLength">
+        <number>40</number>
+       </property>
       </widget>
      </item>
      <item row="1" column="0">
@@ -41,7 +47,14 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QComboBox" name="leftColumn"/>
+      <widget class="QComboBox" name="leftColumn">
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+       </property>
+       <property name="minimumContentsLength">
+        <number>40</number>
+       </property>
+      </widget>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_3">
@@ -58,6 +71,12 @@
        <property name="insertPolicy">
         <enum>QComboBox::NoInsert</enum>
        </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+       </property>
+       <property name="minimumContentsLength">
+        <number>40</number>
+       </property>
       </widget>
      </item>
      <item row="3" column="0">
@@ -68,7 +87,14 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QComboBox" name="rightColumn"/>
+      <widget class="QComboBox" name="rightColumn">
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+       </property>
+       <property name="minimumContentsLength">
+        <number>40</number>
+       </property>
+      </widget>
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label_5">

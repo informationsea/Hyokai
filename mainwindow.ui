@@ -31,6 +31,12 @@
         <property name="statusTip">
          <string>Table Select</string>
         </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+        </property>
+        <property name="minimumContentsLength">
+         <number>12</number>
+        </property>
        </widget>
       </item>
       <item>
