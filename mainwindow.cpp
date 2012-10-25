@@ -53,10 +53,6 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     move(nextWindowPosition());
 
     m_filepath = path;
-    if (m_filepath.compare(":memory:") != 0)
-        setWindowFilePath(m_filepath);
-    QFileInfo fileinfo(path);
-    setWindowTitle(QString("[*] ") + fileinfo.baseName());
 
     open_count++;
     m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
@@ -93,6 +89,11 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     }
 
     filterFinished();
+
+    if (m_filepath.compare(":memory:") != 0)
+        setWindowFilePath(m_filepath);
+    QFileInfo fileinfo(path);
+    setWindowTitle(QString("[*] ") + fileinfo.baseName());
 }
 
 MainWindow::~MainWindow()
@@ -384,6 +385,8 @@ void MainWindow::on_actionQuit_triggered()
 static QString normstr(QString str, bool shoudStartWithAlpha = true)
 {
     str = str.trimmed();
+    if (str.size() == 0)
+        str = "V";
     if (str.at(0).isDigit() && shoudStartWithAlpha) {
         str.insert(0, 'V');
     }

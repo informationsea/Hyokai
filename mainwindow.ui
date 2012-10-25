@@ -35,7 +35,7 @@
          <enum>QComboBox::AdjustToMinimumContentsLength</enum>
         </property>
         <property name="minimumContentsLength">
-         <number>12</number>
+         <number>20</number>
         </property>
        </widget>
       </item>
