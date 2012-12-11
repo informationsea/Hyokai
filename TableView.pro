@@ -23,7 +23,9 @@ SOURCES += main.cpp\
     attachdatabasedialog.cpp \
     jointabledialog.cpp \
     preferencewindow.cpp \
-    fileeventhandler.cpp
+    fileeventhandler.cpp \
+    summarydialog.cpp \
+    imageview.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -36,14 +38,17 @@ HEADERS  += mainwindow.h \
     attachdatabasedialog.h \
     jointabledialog.h \
     preferencewindow.h \
-    fileeventhandler.h
+    fileeventhandler.h \
+    summarydialog.h \
+    imageview.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
     custumsql.ui \
     attachdatabasedialog.ui \
     jointabledialog.ui \
-    preferencewindow.ui
+    preferencewindow.ui \
+    summarydialog.ui
 
 RESOURCES += \
     resouces.qrc

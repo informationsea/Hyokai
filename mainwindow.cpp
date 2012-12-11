@@ -9,6 +9,7 @@
 #include "custumsql.h"
 #include "sqltablemodelalternativebackground.h"
 #include "attachdatabasedialog.h"
+#include "summarydialog.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -154,7 +155,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
         QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
         int logical_index = ui->tableView->horizontalHeader()->logicalIndexAt(cev->pos());
         if (logical_index >= 0) {
-            qDebug() << obj << cev << cev->pos() << logical_index;
+            //qDebug() << obj << cev << cev->pos() << logical_index;
             cev->accept();
             QMenu popup(this);
             popup.move(cev->globalPos());
@@ -194,36 +195,9 @@ void MainWindow::activate()
     m_windowList[action->data().toInt()]->activateWindow();
 }
 
-template<class T> QList<QVariant> convertToVariant(QList<T> s) {
-    QList<QVariant> l;
-    foreach (T v, s) {
-        l.append(QVariant(v));
-    }
-    return l;
-}
-
-/* values should be sorted */
-QList<double> quantile(const QList<double> &values, const QList<double> &q)
-{
-    QList<double> result;
-    foreach (double v, q) {
-        if (v >= 1 || values.length() == 1) {
-            result.append(values.last());
-        } else {
-            double pos = v*(values.length()-1);
-            int integer = (int)pos;
-            double decimal = pos - integer;
-            qDebug() << values << v << pos << integer << decimal;
-            result.append(values[integer]*(1-decimal) + values[integer+1]*decimal);
-        }
-    }
-    return result;
-}
-
 void MainWindow::showColumnSummary()
 {
     QAction *sigsender = static_cast<QAction *>(sender());
-    qDebug() << sigsender->data();
     int logical_index = sigsender->data().toInt();
     QString column_name = m_tableModel->headerData(logical_index, Qt::Horizontal).toString();
 
@@ -253,54 +227,8 @@ void MainWindow::showColumnSummary()
         sumValue += value;
     }
 
-    double meanValue = sumValue/doubleList.size();
-    double sumDouble = 0;
-
-    foreach(double v, doubleList) {
-        sumDouble += (v - meanValue)*(v - meanValue);
-    }
-
-    double sdValue;
-    if (doubleList.length() > 1) {
-        sdValue = std::sqrt(sumDouble/(doubleList.length()-1));
-    } else {
-        sdValue = -1;
-    }
-
-    qSort(doubleList);
-
-    QString quantile_text;
-    if (doubleList.size()) {
-        QList<double> q;
-        q << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6 << 0.7 << 0.8 << 0.9;
-
-        QList<double> quantile_result = quantile(doubleList, q);
-
-        for (int i = 0; i < q.size(); ++i) {
-            quantile_text.append(QString("%1%: %2\n").arg(QString::number((int)(q[i]*100)), QString::number(quantile_result[i])));
-        }
-    }
-
-    QMessageBox* summary = SheetMessageBox::makeMessageBox(this, tr("Summary"),
-                                                           tr("Summary of %1\n\nMean: %2\nSD: %3\n%4").arg(column_name,
-                                                                                                           QString::number(meanValue),
-                                                                                                           QString::number(sdValue),
-                                                                                                           quantile_text));
-
-    QString rscript("library(lattice)\n\ndata.tableview <- c(");
-    bool first = true;
-    foreach(double v, doubleList) {
-        if (first)
-            rscript.append(QString::number(v));
-        else
-            rscript.append(QString(",%1").arg(QString::number(v)));
-        first = false;
-    }
-    rscript.append(")\nhistogram(data.tableview)\n");
-
-    summary->setIcon(QMessageBox::Information);
-    summary->setDetailedText(rscript);
-    summary->exec();
+    SummaryDialog *summary = new SummaryDialog(doubleList, column_name, this);
+    summary->show();
 }
 
 bool MainWindow::confirmDuty()

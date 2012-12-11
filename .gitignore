@@ -1,6 +1,25 @@
-.DS_Store
+# C++ objects and libs
+
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
+*.so
+*.dll
+*.dylib
+
+# Qt-es
+
 *.pro.user
-*.2.5pre1
+*.pro.user.*
+moc_*.cpp
+qrc_*.cpp
+Makefile
+*-build-*
+
+.DS_Store
 *.swp
 *~
 script-for-mac/*.o
@@ -8,4 +27,5 @@ script-for-mac/*.app
 script-for-mac/*.cpp
 script-for-mac/*.h
 script-for-mac/Makefile
+script-for-mac/*.zip
 extensions.sqlext
