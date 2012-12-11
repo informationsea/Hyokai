@@ -5,7 +5,7 @@
 
 class SheetMessageBox
 {
-private:
+public:
     SheetMessageBox() {}
     static QMessageBox* makeMessageBox
     ( QWidget * parent, const QString & title, const QString & text,

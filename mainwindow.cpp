@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <cmath>
+
 #include "main.h"
 #include "schemadialog.h"
 #include "sheetmessagebox.h"
@@ -33,6 +35,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QAction>
 
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
@@ -72,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
+    ui->tableView->horizontalHeader()->installEventFilter(this);
 
     if (m_filepath.compare(":memory:") == 0) {
         ui->actionView_in_File_Manager->setEnabled(false);
@@ -134,6 +138,38 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
+void MainWindow::importOneFile(const QString &path)
+{
+    QString importedTable = importFile(path, false);
+
+    updateDatabase();
+    filterFinished();
+    if (!importedTable.isEmpty())
+        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(importedTable));
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
+{
+    if (obj == ui->tableView->horizontalHeader() && ev->type() == QEvent::ContextMenu) {
+        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
+        int logical_index = ui->tableView->horizontalHeader()->logicalIndexAt(cev->pos());
+        if (logical_index >= 0) {
+            qDebug() << obj << cev << cev->pos() << logical_index;
+            cev->accept();
+            QMenu popup(this);
+            popup.move(cev->globalPos());
+            QAction *name = popup.addAction(m_tableModel->headerData(logical_index, Qt::Horizontal).toString());
+            name->setEnabled(false);
+            popup.addSeparator();
+            QAction *summary = popup.addAction("Summary");
+            summary->setData(logical_index);
+            connect(summary, SIGNAL(triggered()), SLOT(showColumnSummary()));
+            popup.exec();
+        }
+    }
+    return false;
+}
+
 void MainWindow::onWindowMenuShow()
 {
     ui->menuWindow->clear();
@@ -156,6 +192,115 @@ void MainWindow::activate()
     QAction *action = (QAction *)sender();
     m_windowList[action->data().toInt()]->raise();
     m_windowList[action->data().toInt()]->activateWindow();
+}
+
+template<class T> QList<QVariant> convertToVariant(QList<T> s) {
+    QList<QVariant> l;
+    foreach (T v, s) {
+        l.append(QVariant(v));
+    }
+    return l;
+}
+
+/* values should be sorted */
+QList<double> quantile(const QList<double> &values, const QList<double> &q)
+{
+    QList<double> result;
+    foreach (double v, q) {
+        if (v >= 1 || values.length() == 1) {
+            result.append(values.last());
+        } else {
+            double pos = v*(values.length()-1);
+            int integer = (int)pos;
+            double decimal = pos - integer;
+            qDebug() << values << v << pos << integer << decimal;
+            result.append(values[integer]*(1-decimal) + values[integer+1]*decimal);
+        }
+    }
+    return result;
+}
+
+void MainWindow::showColumnSummary()
+{
+    QAction *sigsender = static_cast<QAction *>(sender());
+    qDebug() << sigsender->data();
+    int logical_index = sigsender->data().toInt();
+    QString column_name = m_tableModel->headerData(logical_index, Qt::Horizontal).toString();
+
+    QSqlQuery query;
+    if (ui->sqlLine->text().isEmpty()) {
+        query = m_database.exec(QString("SELECT %1 FROM %2").arg(column_name, m_tableModel->tableName()));
+    } else {
+        query = m_database.exec(QString("SELECT %1 FROM %2 WHERE %3").arg(column_name, m_tableModel->tableName(), ui->sqlLine->text()));
+    }
+
+    if (query.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::warning(this, tr("Cannot export"), m_database.lastError().text()+"\n\n"+query.lastQuery());
+        return;
+    }
+
+    QList<double> doubleList;
+    double sumValue = 0;
+    bool ok = true;
+
+    while(query.next()) {
+        double value = query.record().value(0).toDouble(&ok);
+        if (!ok) {
+            SheetMessageBox::critical(this, tr("Column summary error"), tr("This column contains non-number data"));
+            return;
+        }
+        doubleList.append(value);
+        sumValue += value;
+    }
+
+    double meanValue = sumValue/doubleList.size();
+    double sumDouble = 0;
+
+    foreach(double v, doubleList) {
+        sumDouble += (v - meanValue)*(v - meanValue);
+    }
+
+    double sdValue;
+    if (doubleList.length() > 1) {
+        sdValue = std::sqrt(sumDouble/(doubleList.length()-1));
+    } else {
+        sdValue = -1;
+    }
+
+    qSort(doubleList);
+
+    QString quantile_text;
+    if (doubleList.size()) {
+        QList<double> q;
+        q << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6 << 0.7 << 0.8 << 0.9;
+
+        QList<double> quantile_result = quantile(doubleList, q);
+
+        for (int i = 0; i < q.size(); ++i) {
+            quantile_text.append(QString("%1%: %2\n").arg(QString::number((int)(q[i]*100)), QString::number(quantile_result[i])));
+        }
+    }
+
+    QMessageBox* summary = SheetMessageBox::makeMessageBox(this, tr("Summary"),
+                                                           tr("Summary of %1\n\nMean: %2\nSD: %3\n%4").arg(column_name,
+                                                                                                           QString::number(meanValue),
+                                                                                                           QString::number(sdValue),
+                                                                                                           quantile_text));
+
+    QString rscript("library(lattice)\n\ndata.tableview <- c(");
+    bool first = true;
+    foreach(double v, doubleList) {
+        if (first)
+            rscript.append(QString::number(v));
+        else
+            rscript.append(QString(",%1").arg(QString::number(v)));
+        first = false;
+    }
+    rscript.append(")\nhistogram(data.tableview)\n");
+
+    summary->setIcon(QMessageBox::Information);
+    summary->setDetailedText(rscript);
+    summary->exec();
 }
 
 bool MainWindow::confirmDuty()
@@ -326,18 +471,15 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "SQLite3 (*.sqlite3);; Text (*.txt);; CSV (*.csv);; All (*)");
+                                                "All (*.sqlite3; *.txt; *.csv);;SQLite3 (*.sqlite3);; Text (*.txt);; CSV (*.csv);; All (*)");
     if (path.isEmpty())
         return;
     if (path.endsWith(".sqlite3")) {
         open(path);
     } else if (path.endsWith(".txt") || path.endsWith(".csv")) {
-        QString importedTable = importFile(path, false);
-
-        updateDatabase();
-        filterFinished();
-        if (!importedTable.isEmpty())
-            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(importedTable));
+        importOneFile(path);
+    } else {
+        SheetMessageBox::critical(this, tr("Cannot open"), tr("This file type is not supported."));
     }
     QFileInfo fileInfo(path);
     tableview_settings->setValue(LAST_SQLITE_DIRECTORY, fileInfo.dir().absolutePath());

@@ -45,7 +45,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
 
             opened:
 
-            w->importFile(openevent->file(), false);
+            w->importOneFile(openevent->file());
             w->refresh();
 
             return true;

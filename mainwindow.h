@@ -22,8 +22,11 @@ public:
     ~MainWindow();
 
     QString filePath() { return m_filepath; }
-    QString importFile(QString path, bool autoimport);
     void refresh();
+    void importOneFile(const QString &path);
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *ev);
     
 private:
     Ui::MainWindow *ui;
@@ -36,6 +39,7 @@ private:
 
     void open(QString path);
     bool confirmDuty(); // return false if canceled
+    QString importFile(QString path, bool autoimport);
 
     QWidgetList m_windowList;
 
@@ -50,6 +54,7 @@ private slots:
     void updateDatabase();
     void onWindowMenuShow();
     void activate();
+    void showColumnSummary();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
