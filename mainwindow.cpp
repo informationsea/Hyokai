@@ -318,12 +318,21 @@ void MainWindow::open(QString path)
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database",
+    QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "SQLite3 (*.sqlite3);; All (*)");
+                                                "SQLite3 (*.sqlite3);; Text (*.txt);; CSV (*.csv);; All (*)");
     if (path.isEmpty())
         return;
-    open(path);
+    if (path.endsWith(".sqlite3")) {
+        open(path);
+    } else if (path.endsWith(".txt") || path.endsWith(".csv")) {
+        QString importedTable = importFile(path, false);
+
+        updateDatabase();
+        filterFinished();
+        if (!importedTable.isEmpty())
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(importedTable));
+    }
     QFileInfo fileInfo(path);
     tableview_settings->setValue(LAST_SQLITE_DIRECTORY, fileInfo.dir().absolutePath());
 }

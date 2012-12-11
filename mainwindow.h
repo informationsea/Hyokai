@@ -22,6 +22,7 @@ public:
     ~MainWindow();
 
     QString filePath() { return m_filepath; }
+    QString importFile(QString path, bool autoimport);
     
 private:
     Ui::MainWindow *ui;
@@ -33,7 +34,6 @@ private:
     CustumSql *m_custumSql;
 
     void open(QString path);
-    QString importFile(QString path, bool autoimport);
     bool confirmDuty(); // return false if canceled
 
     QWidgetList m_windowList;

@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     sqlquerymodelalternativebackground.cpp \
     attachdatabasedialog.cpp \
     jointabledialog.cpp \
-    preferencewindow.cpp
+    preferencewindow.cpp \
+    fileeventhandler.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     sqlquerymodelalternativebackground.h \
     attachdatabasedialog.h \
     jointabledialog.h \
-    preferencewindow.h
+    preferencewindow.h \
+    fileeventhandler.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \

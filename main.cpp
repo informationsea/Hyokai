@@ -8,9 +8,12 @@
 #include <QDebug>
 #include <QIcon>
 
+#include "fileeventhandler.h"
+
 QList<MainWindow *> windowList;
 QSettings *tableview_settings;
 PreferenceWindow *preferenceDialog;
+static FileEventHandler *handler;
 
 int main(int argc, char *argv[])
 {
@@ -22,6 +25,9 @@ int main(int argc, char *argv[])
 #ifndef Q_WS_MAC
     a.setWindowIcon(QIcon(":/rc/images/icon16.png"));
 #endif
+
+    handler = new FileEventHandler(&a);
+    a.installEventFilter(handler);
 
     tableview_settings = new QSettings(&a);
     MainWindow *w = new MainWindow;
