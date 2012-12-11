@@ -23,6 +23,7 @@ public:
 
     QString filePath() { return m_filepath; }
     QString importFile(QString path, bool autoimport);
+    void refresh();
     
 private:
     Ui::MainWindow *ui;

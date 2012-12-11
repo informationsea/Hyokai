@@ -316,6 +316,12 @@ void MainWindow::open(QString path)
     }
 }
 
+void MainWindow::refresh()
+{
+    updateDatabase();
+    filterFinished();
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
