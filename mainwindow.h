@@ -77,6 +77,7 @@ private slots:
     void on_actionCopy_triggered();
     void on_actionView_in_File_Manager_triggered();
     void on_actionPreference_triggered();
+    void on_actionR_code_to_import_triggered();
 };
 
 #endif // MAINWINDOW_H

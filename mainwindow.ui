@@ -103,6 +103,8 @@
     <addaction name="separator"/>
     <addaction name="actionCommit"/>
     <addaction name="actionRevert"/>
+    <addaction name="separator"/>
+    <addaction name="actionR_code_to_import"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -314,6 +316,11 @@
   <action name="actionPreference">
    <property name="text">
     <string>Preference...</string>
+   </property>
+  </action>
+  <action name="actionR_code_to_import">
+   <property name="text">
+    <string>Copy R code to import</string>
    </property>
   </action>
  </widget>

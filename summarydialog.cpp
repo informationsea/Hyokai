@@ -38,6 +38,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
     QDialog(parent),
     ui(new Ui::SummaryDialog),
     m_values(values),
+    m_columnName(columnName),
     m_rdata_file(new QTemporaryFile()),
     m_rdraw_file(new QTemporaryFile()),
     m_rdraw_png(new QTemporaryFile()), m_histogram(0), m_histogram_brush(0)
@@ -149,5 +150,5 @@ void SummaryDialog::on_buttonCopyFull_clicked()
 void SummaryDialog::on_buttonCopyImport_clicked()
 {
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(QString("source(\"%1\")\n").arg(m_rdata_file->fileName()));
+    clipboard->setText(QString("source(\"%1\")\n\n# Loaded to data.%2\n").arg(m_rdata_file->fileName(), m_columnName));
 }

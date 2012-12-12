@@ -95,8 +95,11 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 
     filterFinished();
 
-    if (m_filepath.compare(":memory:") != 0)
+    if (m_filepath.compare(":memory:") != 0) {
         setWindowFilePath(m_filepath);
+    } else {
+        ui->actionR_code_to_import->setEnabled(false);
+    }
     QFileInfo fileinfo(path);
     setWindowTitle(QString("[*] ") + fileinfo.baseName());
 }
@@ -883,4 +886,22 @@ void MainWindow::on_actionPreference_triggered()
         preferenceDialog = new PreferenceWindow();
         preferenceDialog->show();
     }
+}
+
+void MainWindow::on_actionR_code_to_import_triggered()
+{
+    if (m_filepath == ":memory:")
+        return;
+    QString tableName = m_tableModel->tableName();
+    if (tableName.isEmpty())
+        return;
+    QFileInfo fileInfo(m_filepath);
+    QString basename = fileInfo.baseName();
+    QString str = QString("# install.packages(c(\"DBI\", \"RSQLite\")) to install SQLite library\n"
+                          "library(RSQLite)\n"
+                          "connection.%1 <- dbConnect(dbDriver(\"SQLite\"), dbname=\"%2\")\n"
+                          "table.%3 <- dbGetQuery(connection.%1, \"select * from %3;\")\n"
+                          "# dbDisconnect(connection.%1)\n").arg(basename, m_filepath, tableName);
+    QClipboard *clip = QApplication::clipboard();
+    clip->setText(str);
 }

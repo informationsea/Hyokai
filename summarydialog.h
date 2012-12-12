@@ -31,6 +31,8 @@ private:
     Ui::SummaryDialog *ui;
 
     QList<double> m_values;
+    QString m_columnName;
+
     QString m_fullRScript;
     QString m_importRScript;
 
