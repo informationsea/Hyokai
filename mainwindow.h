@@ -6,6 +6,7 @@
 #include <QSqlTableModel>
 #include <QLabel>
 
+#include "sqltablemodelalternativebackground.h"
 #include "custumsql.h"
 #include "sqlite3.h"
 
@@ -31,7 +32,7 @@ protected:
 private:
     Ui::MainWindow *ui;
     QSqlDatabase m_database;
-    QSqlTableModel *m_tableModel;
+    SqlTableModelAlternativeBackground *m_tableModel;
     QLabel *m_rowcountlabel;
     QString m_filepath;
     bool m_isDuty;

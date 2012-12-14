@@ -73,3 +73,14 @@ QPoint nextWindowPosition()
         p = 100;
     return point;
 }
+
+QString addQuote(QString name) {
+    return QString("\"%1\"").arg(name);
+}
+
+QString removeQuote(QString name) {
+    if (name.startsWith("\"") && name.endsWith("\"")) {
+        return name.mid(1, name.size()-2);
+    }
+    return name;
+}

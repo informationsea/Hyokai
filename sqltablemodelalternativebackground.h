@@ -10,6 +10,10 @@ public:
     explicit SqlTableModelAlternativeBackground(QObject *parent = 0, QSqlDatabase db = QSqlDatabase() );
     
     virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+
+    virtual void setTable(const QString &tableName);
+    QString plainTableName() const;
+
 signals:
     
 public slots:

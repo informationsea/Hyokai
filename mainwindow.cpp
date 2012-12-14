@@ -242,11 +242,11 @@ bool MainWindow::confirmDuty()
                                           QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
         switch(selected) {
         case QMessageBox::Cancel:
-            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->tableName()));
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->plainTableName()));
             return false;
         case QMessageBox::Save:
             if (!m_tableModel->submitAll()) {
-                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->tableName()));
+                ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->plainTableName()));
                 SheetMessageBox::critical(this, tr("Cannot save table"), m_tableModel->lastError().text());
                 return false;
             }
@@ -264,7 +264,7 @@ bool MainWindow::confirmDuty()
 
 void MainWindow::filterFinished()
 {
-    if (m_tableModel->tableName().isEmpty())
+    if (m_tableModel->plainTableName().isEmpty())
         return;
     m_tableModel->setFilter(ui->sqlLine->text());
     m_tableModel->select();
@@ -286,7 +286,7 @@ void MainWindow::filterFinished()
 
 void MainWindow::tableChanged(const QString &name)
 {
-    if (name == m_tableModel->tableName())
+    if (name == m_tableModel->plainTableName())
         return;
     if (!confirmDuty())
         return;
@@ -315,7 +315,7 @@ void MainWindow::updateDatabase()
     if (m_tableModel->tableName().isEmpty() || !m_database.tables().contains(m_tableModel->tableName())) {
         if (m_database.tables().size())
             tableChanged(m_database.tables()[0]);
-        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->tableName()));
+        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->plainTableName()));
     }
 }
 
@@ -407,10 +407,8 @@ void MainWindow::on_actionOpen_triggered()
         return;
     if (path.endsWith(".sqlite3")) {
         open(path);
-    } else if (path.endsWith(".txt") || path.endsWith(".csv")) {
-        importOneFile(path);
     } else {
-        SheetMessageBox::critical(this, tr("Cannot open"), tr("This file type is not supported."));
+        importOneFile(path);
     }
     QFileInfo fileInfo(path);
     tableview_settings->setValue(LAST_SQLITE_DIRECTORY, fileInfo.dir().absolutePath());
@@ -430,7 +428,7 @@ void MainWindow::on_actionNew_triggered()
 
 void MainWindow::on_actionInsert_triggered()
 {
-    if (m_tableModel->tableName().isEmpty())
+    if (m_tableModel->plainTableName().isEmpty())
         return;
     QItemSelectionModel *selection = ui->tableView->selectionModel();
     QList<int> rows;
@@ -448,7 +446,7 @@ void MainWindow::on_actionInsert_triggered()
 
 void MainWindow::on_actionDelete_triggered()
 {
-    if (m_tableModel->tableName().isEmpty())
+    if (m_tableModel->plainTableName().isEmpty())
         return;
     QItemSelectionModel *selection = ui->tableView->selectionModel();
     QList<int> rows;
@@ -721,7 +719,7 @@ void MainWindow::on_actionRefresh_triggered()
 
 void MainWindow::on_actionExport_Table_triggered()
 {
-    if (m_tableModel->tableName().isEmpty()) {
+    if (m_tableModel->plainTableName().isEmpty()) {
         SheetMessageBox::information(this, tr("No table is selected"), tr("Please select a table to export"));
         return;
     }
@@ -749,10 +747,14 @@ void MainWindow::on_actionExport_Table_triggered()
     tableview_settings->setValue(LAST_EXPORT_DIRECTORY, outputfileinfo.dir().absolutePath());
     outputfile.open(QIODevice::WriteOnly);
 
+    QString separator = "\t";
+    if (outputpath.endsWith(".csv"))
+        separator = ",";
+
     QSqlRecord records = m_database.record(m_tableModel->tableName());
     for (int i = 0; i < records.count(); ++i) {
         if (i != 0)
-            outputfile.write("\t");
+            outputfile.write(separator.toUtf8());
         outputfile.write(records.fieldName(i).toUtf8());
     }
     outputfile.write("\n");
@@ -761,7 +763,7 @@ void MainWindow::on_actionExport_Table_triggered()
         records = query.record();
         for (int i = 0; i < records.count(); ++i) {
             if (i != 0)
-                outputfile.write("\t");
+                outputfile.write(separator.toUtf8());
             outputfile.write(records.value(i).toString().toUtf8());
         }
         outputfile.write("\n");
@@ -893,7 +895,7 @@ void MainWindow::on_actionR_code_to_import_triggered()
     if (m_filepath == ":memory:")
         return;
     QString tableName = m_tableModel->tableName();
-    if (tableName.isEmpty())
+    if (m_tableModel->plainTableName().isEmpty())
         return;
     QFileInfo fileInfo(m_filepath);
     QString basename = fileInfo.baseName();

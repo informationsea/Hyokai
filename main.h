@@ -17,5 +17,7 @@ extern PreferenceWindow *preferenceDialog;
 void tableviewCleanupWindows();
 QList<int> selectedRowsFromSelection(QItemSelectionModel *selection);
 QPoint nextWindowPosition();
+QString addQuote(QString name);
+QString removeQuote(QString name);
 
 #endif // MAIN_H
