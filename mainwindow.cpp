@@ -37,6 +37,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QAction>
+#include <QProgressDialog>
 
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
@@ -514,6 +515,9 @@ QString MainWindow::importFile(QString import, bool autoimport)
     if (import.endsWith(".csv"))
         separator = ',';
 
+    QProgressDialog progress1(tr("Suggesting fields"), tr("Skip"), 0, fileInfo.size(), this);
+    progress1.setWindowModality(Qt::WindowModal);
+
     // suggests field name
     QList<QByteArray> header = file.readLine().trimmed().split(separator);
     int counter = 0;
@@ -543,6 +547,11 @@ QString MainWindow::importFile(QString import, bool autoimport)
             fields.last().setLogicalIndex(fields.size()-1);
         }
 
+        progress1.setValue(file.pos());
+        if (progress1.wasCanceled()) {
+            goto skipSuggest;
+        }
+
         for (int i = 0; i < fields.size() && i < elements.size(); i++) {
             bool ok;
             QString str(elements[i]);
@@ -566,6 +575,8 @@ QString MainWindow::importFile(QString import, bool autoimport)
         }
     }
 
+    skipSuggest:
+
     for(int i = 0; i < fields.size(); ++i) {
         if (fields[i].fieldType() == SchemaField::FIELD_INTEGER)
             fields[i].setIndexedField(true);
@@ -573,15 +584,21 @@ QString MainWindow::importFile(QString import, bool autoimport)
             fields[i].setIndexedField(true);
     }
 
+    progress1.close();
+
     dialog.setFields(fields);
     if (!autoimport) {
         if (dialog.exec() != QDialog::Accepted)
             return QString();
     }
 
+    QProgressDialog progress2(tr("Importing file"), tr("Cancel"), 0, fileInfo.size(), this);
+    progress2.setWindowModality(Qt::WindowModal);
 
     // creat table
     fields = dialog.fields();
+
+    m_database.transaction();
 
     QStringList sqls;
     sqls.append(dialog.createTableSql());
@@ -609,8 +626,6 @@ QString MainWindow::importFile(QString import, bool autoimport)
     file.readLine(); // skip header
 
     // insert data
-    m_database.transaction();
-
     while(!file.atEnd()) {
         QList<QByteArray> elements = file.readLine().trimmed().split(separator);
         for (int i = 0; i < insertNumber; ++i) {
@@ -637,7 +652,15 @@ QString MainWindow::importFile(QString import, bool autoimport)
                 break;
             }
         }
+
+        progress2.setValue(file.pos());
+        if (progress2.wasCanceled()) {
+            m_database.rollback();
+            return QString();
+        }
     }
+
+    progress2.close();
 
     m_database.commit();
     return dialog.name();
