@@ -54,4 +54,7 @@ RESOURCES += \
     resouces.qrc
 
 OTHER_FILES += \
-    windowsicon.rc
+    windowsicon.rc \
+    images/fileicon/table.icns \
+    images/fileicon/sqlite.ico \
+    images/fileicon/sqlite.icns

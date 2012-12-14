@@ -8,7 +8,6 @@
 
 #include "sqltablemodelalternativebackground.h"
 #include "custumsql.h"
-#include "sqlite3.h"
 
 namespace Ui {
 class MainWindow;

@@ -17,5 +17,7 @@
         <file>images/preferences-system.png</file>
         <file>images/icon16.png</file>
         <file>images/icon32.png</file>
+        <file>images/toolbar/export.png</file>
+        <file>images/toolbar/import.png</file>
     </qresource>
 </RCC>

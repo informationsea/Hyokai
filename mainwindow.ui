@@ -243,7 +243,7 @@
   <action name="actionImportTable">
    <property name="icon">
     <iconset resource="resouces.qrc">
-     <normaloff>:/rc/images/go-bottom.png</normaloff>:/rc/images/go-bottom.png</iconset>
+     <normaloff>:/rc/images/toolbar/import.png</normaloff>:/rc/images/toolbar/import.png</iconset>
    </property>
    <property name="text">
     <string>Import Table</string>
@@ -284,7 +284,7 @@
   <action name="actionExport_Table">
    <property name="icon">
     <iconset resource="resouces.qrc">
-     <normaloff>:/rc/images/mail-forward.png</normaloff>:/rc/images/mail-forward.png</iconset>
+     <normaloff>:/rc/images/toolbar/export.png</normaloff>:/rc/images/toolbar/export.png</iconset>
    </property>
    <property name="text">
     <string>Export Table</string>
@@ -314,6 +314,10 @@
    </property>
   </action>
   <action name="actionPreference">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/preferences-system.png</normaloff>:/rc/images/preferences-system.png</iconset>
+   </property>
    <property name="text">
     <string>Preference...</string>
    </property>
