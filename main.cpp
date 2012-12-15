@@ -7,6 +7,7 @@
 #include <QDesktopWidget>
 #include <QDebug>
 #include <QIcon>
+#include <QFileInfo>
 
 #include "fileeventhandler.h"
 
@@ -23,7 +24,7 @@ int main(int argc, char *argv[])
     a.setOrganizationName("informationsea");
     a.setApplicationVersion("0.1");
 #ifndef Q_WS_MAC
-    a.setWindowIcon(QIcon(":/rc/images/icon16.png"));
+    a.setWindowIcon(QIcon(":/rc/images/icon128.png"));
 #endif
 
     handler = new FileEventHandler(&a);
@@ -83,4 +84,17 @@ QString removeQuote(QString name) {
         return name.mid(1, name.size()-2);
     }
     return name;
+}
+
+QString suggestRPath()
+{
+#define R_CHECK_AND_RETURN(path) \
+    if (QFileInfo(path).isExecutable())\
+        return path;
+
+    R_CHECK_AND_RETURN("/usr/bin/Rscript");
+    R_CHECK_AND_RETURN("/usr/local/bin/Rscript");
+    R_CHECK_AND_RETURN("/opt/local/bin/Rscript");
+
+    return "Rscript";
 }

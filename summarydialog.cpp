@@ -9,6 +9,9 @@
 #include <QDebug>
 #include <QStringList>
 
+#include "main.h"
+#include "preferencewindow.h"
+
 template<class T> QList<QVariant> convertToVariant(QList<T> s) {
     QList<QVariant> l;
     foreach (T v, s) {
@@ -116,7 +119,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
 
     QStringList args;
     args << m_rdraw_file->fileName();
-    int rt = QProcess::execute("/opt/local/bin/Rscript", args);
+    int rt = QProcess::execute(tableview_settings->value(PATH_R, suggestRPath()).toString(), args);
 
     if (rt == 0) {
         QImage histogram(m_rdraw_png->fileName());

@@ -9,6 +9,7 @@
 
 #define ATTACHED_DATABASES "ATTACHED_DATABASES"
 #define SQL_TEMPLATES "SQL_TEMPLATES"
+#define PATH_R "PATH_R"
 
 // ---- Attach DB Table Model ------
 class AttachDBTableModel : public QAbstractTableModel
@@ -86,6 +87,10 @@ private slots:
     void on_addSqlTemplate_clicked();
 
     void on_removeSqlTemplate_clicked();
+
+    void on_lineRPath_textChanged(const QString &arg1);
+
+    void on_buttonRPath_clicked();
 
 private:
     Ui::PreferenceWindow *ui;

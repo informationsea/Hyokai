@@ -19,5 +19,6 @@ QList<int> selectedRowsFromSelection(QItemSelectionModel *selection);
 QPoint nextWindowPosition();
 QString addQuote(QString name);
 QString removeQuote(QString name);
+QString suggestRPath();
 
 #endif // MAIN_H

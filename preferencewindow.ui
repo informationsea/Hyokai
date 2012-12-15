@@ -66,20 +66,14 @@
           <item row="0" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
-             <widget class="QLineEdit" name="lineEdit">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
+             <widget class="QLineEdit" name="lineRPath">
               <property name="text">
-               <string>/opt/local/bin/Rscript</string>
+               <string/>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
+             <widget class="QPushButton" name="buttonRPath">
               <property name="text">
                <string>Browse</string>
               </property>

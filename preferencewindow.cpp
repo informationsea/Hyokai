@@ -2,6 +2,8 @@
 #include "ui_preferencewindow.h"
 
 #include <QVariant>
+#include <QFileDialog>
+#include <QDebug>
 
 #include "attachdatabasedialog.h"
 #include "custumsql.h"
@@ -21,6 +23,8 @@ PreferenceWindow::PreferenceWindow(QWidget *parent) :
 
     ui->tableAttachDB->setModel(m_attachmodel);
     ui->tableSqlTemplate->setModel(m_sqlmodel);
+
+    ui->lineRPath->setText(tableview_settings->value(PATH_R, suggestRPath()).toString());
 
     move(nextWindowPosition());
 }
@@ -252,4 +256,20 @@ void PreferenceWindow::on_removeSqlTemplate_clicked()
     while(!rows.isEmpty()) {
         m_sqlmodel->removeRow(rows.takeLast());
     }
+}
+
+void PreferenceWindow::on_lineRPath_textChanged(const QString &arg1)
+{
+    if (arg1.endsWith("Rscript")) {
+        tableview_settings->setValue(PATH_R, arg1);
+    }
+}
+
+void PreferenceWindow::on_buttonRPath_clicked()
+{
+    QString path = QFileDialog::getOpenFileName(this, tr("Select Rscript"), ui->lineRPath->text(), "Rscript (Rscript)");
+    if (path.isEmpty())
+        return;
+    tableview_settings->setValue(PATH_R, path);
+    ui->lineRPath->setText(path);
 }
