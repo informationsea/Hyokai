@@ -53,6 +53,9 @@ private slots:
     void tableUpdated();
     void updateDatabase();
     void onWindowMenuShow();
+    void onRecentFileShow();
+    void onRecentFileOpen();
+    void onClearRecentFiles();
     void activate();
     void showColumnSummary();
 

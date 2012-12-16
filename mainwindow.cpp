@@ -43,6 +43,9 @@
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
 #define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
 
+#define RECENT_FILES "RECENT_FILES"
+#define RECENT_FILES_MAX 10
+
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 static int open_count = 0;
 
@@ -77,6 +80,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
+    connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     ui->tableView->horizontalHeader()->installEventFilter(this);
 
     if (m_filepath.compare(":memory:") == 0) {
@@ -98,11 +102,21 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 
     if (m_filepath.compare(":memory:") != 0) {
         setWindowFilePath(m_filepath);
+
+        // update recent files
+        QStringList recent = tableview_settings->value(RECENT_FILES).toStringList();
+        if (recent.contains(m_filepath))
+            recent.removeOne(m_filepath);
+        while (recent.size() >= RECENT_FILES_MAX)
+            recent.removeLast();
+        recent.insert(0, m_filepath);
+        tableview_settings->setValue(RECENT_FILES, recent);
+        tableview_settings->sync();
     } else {
         ui->actionR_code_to_import->setEnabled(false);
     }
     QFileInfo fileinfo(path);
-    setWindowTitle(QString("[*] ") + fileinfo.baseName());
+    setWindowTitle(QString("[*] ") + fileinfo.completeBaseName());
 }
 
 MainWindow::~MainWindow()
@@ -190,6 +204,39 @@ void MainWindow::onWindowMenuShow()
             connect(action, SIGNAL(triggered()), SLOT(activate()));
         }
     }
+}
+
+void MainWindow::onRecentFileShow()
+{
+    QStringList recent = tableview_settings->value(RECENT_FILES).toStringList();
+
+    ui->menuRecent_Files->clear();
+
+    foreach(QString file, recent) {
+        QFileInfo info(file);
+        QAction *action = ui->menuRecent_Files->addAction(info.completeBaseName());
+        action->setData(file);
+        connect(action, SIGNAL(triggered()), SLOT(onRecentFileOpen()));
+    }
+
+    if (recent.size()) {
+        ui->menuRecent_Files->addSeparator();
+    }
+
+    QAction *clear = ui->menuRecent_Files->addAction(tr("Clear"));
+    connect(clear, SIGNAL(triggered()), SLOT(onClearRecentFiles()));
+}
+
+void MainWindow::onRecentFileOpen()
+{
+    QAction *action = static_cast<QAction *>(sender());
+    open(action->data().toString());
+}
+
+void MainWindow::onClearRecentFiles()
+{
+    tableview_settings->setValue(RECENT_FILES, QVariant());
+    tableview_settings->clear();
 }
 
 void MainWindow::activate()
