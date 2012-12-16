@@ -710,10 +710,11 @@ void MainWindow::on_actionAbout_Table_View_triggered()
     about.setWindowTitle(tr("Table View"));
     about.setIconPixmap(QPixmap(":rc/images/icon128.png"));
     about.setTextFormat(Qt::RichText);
-    about.setText(tr("Table View 0.1<br /><br />"
+    about.setText(tr("Table View 0.2<br /><br />"
                      "Simple SQLite Viewer<br /><br />"
+                     "Copyright (C) 2012 Y.Okamura<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/TableView\">Github</a><hr />"
-                     "Toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a>"));
+                     "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a>"));
     about.exec();
 }
 
@@ -918,15 +919,20 @@ void MainWindow::on_actionR_code_to_import_triggered()
     if (m_filepath == ":memory:")
         return;
     QString tableName = m_tableModel->tableName();
+    QString tableName2 = m_tableModel->plainTableName();
     if (m_tableModel->plainTableName().isEmpty())
         return;
     QFileInfo fileInfo(m_filepath);
     QString basename = fileInfo.baseName();
+    QString where;
+    if (!ui->sqlLine->text().isEmpty())
+        where = QString("WHERE %1").arg(ui->sqlLine->text());
     QString str = QString("# install.packages(c(\"DBI\", \"RSQLite\")) to install SQLite library\n"
                           "library(RSQLite)\n"
                           "connection.%1 <- dbConnect(dbDriver(\"SQLite\"), dbname=\"%2\")\n"
-                          "table.%3 <- dbGetQuery(connection.%1, \"select * from %3;\")\n"
-                          "# dbDisconnect(connection.%1)\n").arg(basename, m_filepath, tableName);
+                          "table.%3 <- dbGetQuery(connection.%1, \"select * from %4 %5;\")\n"
+                          "dbDisconnect(connection.%1)\n").arg(basename, m_filepath, tableName2,
+                                                               tableName.replace("\"", "\\\""), where.replace("\"", "\\\""));
     QClipboard *clip = QApplication::clipboard();
     clip->setText(str);
 }

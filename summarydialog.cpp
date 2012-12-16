@@ -81,7 +81,9 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
         QList<double> quantile_result = quantile(m_values, q);
 
         for (int i = 0; i < q.size(); ++i) {
-            quantile_text.append(QString("%1%:  %2\n").arg(QString::number((int)(q[i]*100)), QString::number(quantile_result[i])));
+            QString t;
+            t.sprintf("%3d%%: %f\n", (int)(q[i]*100), quantile_result[i]);
+            quantile_text.append(t);
         }
     }
 
