@@ -57,6 +57,8 @@ void CustumSql::on_pushButton_clicked()
         return;
     }
 
+    ui->sql->setStyleSheet("SQLTextEdit{ background: white; }");
+
     if (m_history.isEmpty() || m_history.first() != m_query.lastQuery()) {
         m_history.insert(0, m_query.lastQuery());
         m_history.removeDuplicates();
@@ -307,4 +309,13 @@ void CustumSql::createMenus()
     QAction* createView = menu->addAction(tr("Create View for this table"));
     connect(createView, SIGNAL(triggered()), SLOT(onCreateView()));
     m_menu_for_select.append(createView);
+}
+
+void CustumSql::on_sql_textChanged()
+{
+    if (ui->sql->toPlainText().trimmed() == m_query.lastQuery()) {
+        ui->sql->setStyleSheet("SQLTextEdit{ background: white; }");
+    } else {
+        ui->sql->setStyleSheet("SQLTextEdit{ background: #FAFFC5;}");
+    }
 }

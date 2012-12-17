@@ -43,6 +43,8 @@ private slots:
     void onExportTable();
     void onCreateView();
 
+    void on_sql_textChanged();
+
 private:
     void createMenus();
 
