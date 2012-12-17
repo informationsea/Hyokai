@@ -24,6 +24,7 @@ public:
     QString filePath() { return m_filepath; }
     void refresh();
     void importOneFile(const QString &path);
+    bool isDirty() { return m_isDirty; }
 
 protected:
     bool eventFilter(QObject *obj, QEvent *ev);

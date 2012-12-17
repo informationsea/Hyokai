@@ -20,8 +20,20 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
         if (openevent->file().endsWith(".sqlite3") ||
                 openevent->file().endsWith(".sqlite")) {
             ::tableviewCleanupWindows();
+
             MainWindow *w = new MainWindow(NULL, openevent->file());
             w->show();
+
+            // close in memory database
+            if (::windowList.length() == 1) {
+                MainWindow *onlyWindow = ::windowList.at(0);
+                if (onlyWindow->isVisible() &&
+                        onlyWindow->filePath() == ":memory:" &&
+                        !onlyWindow->isDirty()) {
+                    onlyWindow->close();
+                }
+            }
+
             ::windowList.append(w);
             event->accept();
             return true;
