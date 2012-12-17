@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QBrush>
 #include <QColor>
+#include <QSqlRecord>
+#include "main.h"
 
 SQLTextEdit::SQLTextEdit(QWidget *parent) :
     QPlainTextEdit(parent)
@@ -13,6 +15,12 @@ SQLTextEdit::SQLTextEdit(QWidget *parent) :
 
 SQLTextEdit::~SQLTextEdit()
 {
+    delete m_syntaxHilighter;
+}
+
+void SQLTextEdit::setDatabase(QSqlDatabase *database)
+{
+    m_syntaxHilighter->setDatabase(database);
 }
 
 void SQLTextEdit::keyPressEvent(QKeyEvent *event)
@@ -28,7 +36,7 @@ void SQLTextEdit::keyPressEvent(QKeyEvent *event)
 
 
 SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
-    QSyntaxHighlighter(parent)
+    QSyntaxHighlighter(parent), m_database(0)
 {
     m_commant_list << "ALTER TABLE"
                    << "ANALYZE"
@@ -65,20 +73,56 @@ SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
     m_sql_command_format.setFontWeight(QFont::Bold);
     m_sql_keyword_format.setForeground(QBrush(QColor("#48129B")));
     m_sql_keyword_format.setFontWeight(QFont::Bold);
+    m_sql_table_format.setForeground(QBrush(QColor("#C27B1F")));
+    m_sql_column_format.setForeground(QBrush(QColor("#78810E")));
 }
+
+
 
 void SQLSyntaxHighligter::highlightBlock(const QString &text)
 {
-    foreach(QString keyword, m_keyword_list) {
-        int pos = -1;
-        while ((pos = text.indexOf(keyword, pos+1, Qt::CaseInsensitive)) >= 0) {
-            if ((pos == 0 || text.at(pos-1).isSpace()) && (pos+keyword.length() >= text.length()-1 || text.at(pos+keyword.length()).isSpace()))
-                setFormat(pos, keyword.length(), m_sql_keyword_format);
-        }
-    }
+    highlightBlockHelper(text, m_keyword_list, m_sql_keyword_format);
 
     foreach(QString command, m_commant_list) {
         if(text.startsWith(command, Qt::CaseInsensitive))
             setFormat(0, command.length(), m_sql_command_format);
     }
+
+    if (m_database) {
+        QStringList tables = m_database->tables(QSql::AllTables);
+        QStringList foundTables = highlightBlockHelper(text, tables, m_sql_table_format);
+
+        QStringList columns;
+        foreach(QString oneTable, foundTables) {
+            QSqlRecord record = m_database->record(addQuote(oneTable));
+            for (int i = 0; i < record.count(); ++i) {
+                columns << record.fieldName(i);
+            }
+        }
+
+        highlightBlockHelper(text, columns, m_sql_column_format);
+    }
+}
+
+void SQLSyntaxHighligter::setDatabase(QSqlDatabase *database)
+{
+    m_database = database;
+}
+
+QStringList SQLSyntaxHighligter::highlightBlockHelper(const QString & text, const QStringList &keys, const QTextCharFormat &format)
+{
+    QStringList found;
+    foreach(QString one, keys) {
+        int pos = -1;
+        while ((pos = text.indexOf(one, pos+1, Qt::CaseInsensitive)) >= 0) {
+            if ((pos == 0 || !text.at(pos-1).isLetterOrNumber()) &&
+                    (pos+one.length() >= text.length()-1 || !text.at(pos+one.length()).isLetterOrNumber())) {
+                setFormat(pos, one.length(), format);
+
+                if (!found.contains(one))
+                    found << one;
+            }
+        }
+    }
+    return found;
 }

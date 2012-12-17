@@ -27,6 +27,8 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     ui->splitter->setStretchFactor(0, 0);
     ui->splitter->setStretchFactor(1, 1);
 
+    ui->sql->setDatabase(m_database);
+
     createMenus();
 
     m_history = tableview_settings->value(CUSTUM_SQL_HISTORY).toStringList();
