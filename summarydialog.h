@@ -32,6 +32,7 @@ private:
 
     QList<double> m_values;
     QString m_columnName;
+    QString m_rName;
 
     QString m_fullRScript;
     QString m_importRScript;

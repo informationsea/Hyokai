@@ -34,7 +34,7 @@ private:
     SqlTableModelAlternativeBackground *m_tableModel;
     QLabel *m_rowcountlabel;
     QString m_filepath;
-    bool m_isDuty;
+    bool m_isDirty;
     CustumSql *m_custumSql;
 
     void open(QString path);

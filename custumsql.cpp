@@ -12,6 +12,7 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QStringList>
+#include <QFileDialog>
 
 CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
@@ -23,6 +24,175 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
     ui->tableView->horizontalHeader()->setMovable(true);
     setWindowTitle("Custum SQL "+QFileInfo(database->databaseName()).baseName());
 
+    ui->splitter->setStretchFactor(0, 0);
+    ui->splitter->setStretchFactor(1, 1);
+
+    createMenus();
+
+    m_history = tableview_settings->value(CUSTUM_SQL_HISTORY).toStringList();
+}
+
+CustumSql::~CustumSql()
+{
+    delete ui;
+    delete assistMenu;
+    delete historyMenu;
+    delete menu;
+}
+
+QTableView *CustumSql::tableView()
+{
+    return ui->tableView;
+}
+
+void CustumSql::on_pushButton_clicked()
+{
+    if(ui->sql->toPlainText().isEmpty())
+        return;
+    m_query.exec(ui->sql->toPlainText());
+    if (m_query.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+m_query.lastQuery());
+        return;
+    }
+
+    if (m_history.isEmpty() || m_history.first() != m_query.lastQuery()) {
+        m_history.insert(0, m_query.lastQuery());
+        m_history.removeDuplicates();
+        tableview_settings->setValue(CUSTUM_SQL_HISTORY, m_history);
+    }
+
+    if (m_query.isSelect()) {
+        m_querymodel.setQuery(m_query);
+    } else {
+        SheetMessageBox::information(this, tr("SQL Report"), tr("The query SQL was finished successfully.") + "\n\n" + m_query.lastQuery());
+    }
+}
+
+
+void CustumSql::on_assistButton_clicked()
+{
+    QPoint point = ui->assistButton->pos();
+    point.setY(point.y() + ui->assistButton->size().height());
+    assistMenu->popup(mapToGlobal(point));
+}
+
+void CustumSql::setSqlTemplate()
+{
+    QAction *sender = (QAction *)QObject::sender();
+    ui->sql->setPlainText(sender->data().toString());
+}
+
+
+void CustumSql::insertSql()
+{
+    QAction *sender = (QAction *)QObject::sender();
+    ui->sql->insertPlainText(sender->data().toString());
+}
+
+void CustumSql::joinSqlWizard()
+{
+    JoinTableDialog dialog(m_database, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    ui->sql->setPlainText(dialog.sql());
+    on_pushButton_clicked();
+}
+
+#define CLEAR_TEXT "**CLEAR**"
+
+void CustumSql::on_historyButton_clicked()
+{
+    historyMenu->clear();
+    foreach(QString query, m_history) {
+        QAction *action = historyMenu->addAction(query);
+        action->setData(query);
+        connect(action, SIGNAL(triggered()), SLOT(onHistorySelected()));
+    }
+    historyMenu->addSeparator();
+    QAction *clear = historyMenu->addAction(tr("Clear"));
+    clear->setData(CLEAR_TEXT);
+    connect(clear, SIGNAL(triggered()), SLOT(onHistorySelected()));
+
+    QPoint point = ui->historyButton->pos();
+    point.setY(point.y() + ui->historyButton->size().height());
+    historyMenu->popup(mapToGlobal(point));
+}
+
+void CustumSql::onHistorySelected()
+{
+    QAction *senderAction = (QAction *)sender();
+    if (senderAction->data().toString().compare(CLEAR_TEXT) == 0) {
+        m_history.clear();
+        tableview_settings->setValue(CUSTUM_SQL_HISTORY, m_history);
+    } else {
+        ui->sql->setPlainText(senderAction->data().toString());
+    }
+}
+
+void CustumSql::on_menuButton_clicked()
+{
+    foreach(QAction* action, m_menu_for_select) {
+        action->setEnabled(m_query.isSelect());
+    }
+
+    QPoint point = ui->menuButton->pos();
+    point.setY(point.y() + ui->menuButton->size().height());
+    menu->popup(mapToGlobal(point));
+}
+
+void CustumSql::onExportTable()
+{
+    QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
+                                                      tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(),
+                                                      "Tab separated (*.txt);; CSV (*.csv)");
+    if (outputpath.isEmpty())
+        return;
+    QFile outputfile(outputpath);
+    QFileInfo outputfileinfo(outputpath);
+    tableview_settings->setValue(LAST_EXPORT_DIRECTORY, outputfileinfo.dir().absolutePath());
+    outputfile.open(QIODevice::WriteOnly);
+
+    QString separator = "\t";
+    if (outputpath.endsWith(".csv"))
+        separator = ",";
+
+    if (!m_query.first()) {
+        SheetMessageBox::critical(this, tr("Something wrong"), tr("Something wrong with export"));
+        return;
+    }
+
+    QSqlRecord records = m_query.record();
+    for (int i = 0; i < records.count(); ++i) {
+        if (i != 0)
+            outputfile.write(separator.toUtf8());
+        outputfile.write(records.fieldName(i).toUtf8());
+    }
+    outputfile.write("\n");
+
+    do {
+        records = m_query.record();
+        for (int i = 0; i < records.count(); ++i) {
+            if (i != 0)
+                outputfile.write(separator.toUtf8());
+            outputfile.write(records.value(i).toString().toUtf8());
+        }
+        outputfile.write("\n");
+    } while (m_query.next());
+
+    outputfile.close();
+}
+
+void CustumSql::onCreateView()
+{
+    ui->sql->setPlainText(QString("CREATE VIEW newview AS %1").arg(m_query.lastQuery()));
+    ui->sql->textCursor().setPosition(QString("CREATE VIEW ").length());
+    ui->sql->textCursor().setPosition(QString("CREATE VIEW newview").length(), QTextCursor::KeepAnchor);
+}
+
+
+void CustumSql::createMenus()
+{
+    // Assist Menu
     assistMenu = new QMenu(this);
 
     QStringList templateList;
@@ -117,78 +287,17 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
         }
     }
 
-    QStringList list = tableview_settings->value(CUSTUM_SQL_HISTORY).toStringList();
-    foreach(QString i, list) {
-        ui->sql->addItem(i);
-    }
-}
+    // History Menu
+    historyMenu = new QMenu(this);
 
-CustumSql::~CustumSql()
-{
-    delete ui;
-    delete assistMenu;
-}
+    // Other Menu
+    menu = new QMenu(this);
 
-QTableView *CustumSql::tableView()
-{
-    return ui->tableView;
-}
+    QAction* exportTable = menu->addAction(tr("Export Table"));
+    connect(exportTable, SIGNAL(triggered()), SLOT(onExportTable()));
+    m_menu_for_select.append(exportTable);
 
-void CustumSql::on_pushButton_clicked()
-{
-    if(ui->sql->lineEdit()->text().isEmpty())
-        return;
-    m_query.exec(ui->sql->lineEdit()->text());
-    if (m_query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+m_query.lastQuery());
-        return;
-    }
-
-
-    QStringList list = tableview_settings->value(CUSTUM_SQL_HISTORY).toStringList();
-    if (list.isEmpty() || list.first() != m_query.lastQuery()) {
-        list.insert(0, m_query.lastQuery());
-        list.removeDuplicates();
-        tableview_settings->setValue(CUSTUM_SQL_HISTORY, list);
-    }
-    ui->sql->clear();
-    foreach(QString i, list) {
-        ui->sql->addItem(i);
-    }
-
-    if (m_query.isSelect()) {
-        m_querymodel.setQuery(m_query);
-    } else {
-        SheetMessageBox::information(this, tr("SQL Report"), tr("The query SQL was finished successfully.") + "\n\n" + m_query.lastQuery());
-    }
-}
-
-
-void CustumSql::on_assistButton_clicked()
-{
-    QPoint point = ui->assistButton->pos();
-    point.setY(point.y() + ui->assistButton->size().height());
-    assistMenu->popup(mapToGlobal(point));
-}
-
-void CustumSql::setSqlTemplate()
-{
-    QAction *sender = (QAction *)QObject::sender();
-    ui->sql->lineEdit()->setText(sender->data().toString());
-}
-
-
-void CustumSql::insertSql()
-{
-    QAction *sender = (QAction *)QObject::sender();
-    ui->sql->lineEdit()->insert(sender->data().toString());
-}
-
-void CustumSql::joinSqlWizard()
-{
-    JoinTableDialog dialog(m_database, this);
-    if (dialog.exec() != QDialog::Accepted)
-        return;
-    ui->sql->lineEdit()->setText(dialog.sql());
-    on_pushButton_clicked();
+    QAction* createView = menu->addAction(tr("Create View for this table"));
+    connect(createView, SIGNAL(triggered()), SLOT(onCreateView()));
+    m_menu_for_select.append(createView);
 }

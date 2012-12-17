@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     preferencewindow.cpp \
     fileeventhandler.cpp \
     summarydialog.cpp \
-    imageview.cpp
+    imageview.cpp \
+    sqltextedit.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -40,7 +41,8 @@ HEADERS  += mainwindow.h \
     preferencewindow.h \
     fileeventhandler.h \
     summarydialog.h \
-    imageview.h
+    imageview.h \
+    sqltextedit.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
@@ -57,4 +59,5 @@ OTHER_FILES += \
     windowsicon.rc \
     images/fileicon/table.icns \
     images/fileicon/sqlite.ico \
-    images/fileicon/sqlite.icns
+    images/fileicon/sqlite.icns \
+    sqlkeywords.txt

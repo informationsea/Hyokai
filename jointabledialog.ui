@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>252</width>
+    <width>488</width>
     <height>251</height>
    </rect>
   </property>
@@ -118,7 +118,7 @@
        <item>
         <widget class="QRadioButton" name="innerJoin">
          <property name="text">
-          <string>INNTER JOIN</string>
+          <string>INNER JOIN</string>
          </property>
         </widget>
        </item>

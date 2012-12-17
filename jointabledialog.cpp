@@ -34,7 +34,7 @@ QString JoinTableDialog::sql()
 {
     QString type;
     if (ui->innerJoin->isChecked()) {
-        type = "INNTER JOIN";
+        type = "INNER JOIN";
     } else if (ui->leftOuterJoin->isChecked()) {
         type = "LEFT OUTER JOIN";
     }

@@ -8,6 +8,7 @@
 #include <QProcess>
 #include <QDebug>
 #include <QStringList>
+#include <QRegExp>
 
 #include "main.h"
 #include "preferencewindow.h"
@@ -42,6 +43,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
     ui(new Ui::SummaryDialog),
     m_values(values),
     m_columnName(columnName),
+    m_rName(columnName),
     m_rdata_file(new QTemporaryFile()),
     m_rdraw_file(new QTemporaryFile()),
     m_rdraw_png(new QTemporaryFile()), m_histogram(0), m_histogram_brush(0)
@@ -50,6 +52,8 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
 
     setWindowModality(Qt::NonModal);
     setWindowTitle(QString(tr("Summary of %1")).arg(columnName));
+
+    m_rName.replace(QRegExp("[^a-zA-Z0-9\\._]"), "_");
 
     double sumValue = 0;
 
@@ -94,7 +98,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
 
     ui->summaryText->setPlainText(summaryText);
 
-    m_fullRScript = QString("data.%1 <- c(").arg(columnName);
+    m_fullRScript = QString("data.%1 <- c(").arg(m_rName);
     bool first = true;
     int count = 0;
     foreach(double v, m_values) {
@@ -116,7 +120,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
     m_rdraw_png->open();
     m_rdraw_file->write(QString("library(lattice)\nsource(\"%1\")\npng(\"%2\", width=400, height=400)\n"
                                 "densityplot(data.%3, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\ndev.off()").
-                        arg(m_rdata_file->fileName(), m_rdraw_png->fileName(),columnName).toUtf8());
+                        arg(m_rdata_file->fileName(), m_rdraw_png->fileName(), m_rName).toUtf8());
     m_rdraw_file->flush();
 
     QStringList args;
@@ -155,5 +159,5 @@ void SummaryDialog::on_buttonCopyFull_clicked()
 void SummaryDialog::on_buttonCopyImport_clicked()
 {
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(QString("source(\"%1\")\n\n# Loaded to data.%2\n").arg(m_rdata_file->fileName(), m_columnName));
+    clipboard->setText(QString("source(\"%1\")\n\n# Loaded to data.%2\n").arg(m_rdata_file->fileName(), m_rName));
 }

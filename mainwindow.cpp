@@ -39,10 +39,6 @@
 #include <QAction>
 #include <QProgressDialog>
 
-#define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
-#define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
-#define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
-
 #define RECENT_FILES "RECENT_FILES"
 #define RECENT_FILES_MAX 10
 
@@ -51,7 +47,7 @@ static int open_count = 0;
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDuty(false), m_custumSql(0)
+    ui(new Ui::MainWindow), m_isDirty(false), m_custumSql(0)
 {
     ui->setupUi(this);
     m_rowcountlabel = new QLabel(ui->statusBar);
@@ -254,13 +250,13 @@ void MainWindow::showColumnSummary()
 
     QSqlQuery query;
     if (ui->sqlLine->text().isEmpty()) {
-        query = m_database.exec(QString("SELECT %1 FROM %2").arg(column_name, m_tableModel->tableName()));
+        query = m_database.exec(QString("SELECT \"%1\" FROM %2").arg(column_name, m_tableModel->tableName()));
     } else {
-        query = m_database.exec(QString("SELECT %1 FROM %2 WHERE %3").arg(column_name, m_tableModel->tableName(), ui->sqlLine->text()));
+        query = m_database.exec(QString("SELECT \"%1\" FROM %2 WHERE %3").arg(column_name, m_tableModel->tableName(), ui->sqlLine->text()));
     }
 
     if (query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::warning(this, tr("Cannot export"), m_database.lastError().text()+"\n\n"+query.lastQuery());
+        SheetMessageBox::warning(this, tr("Cannot make summary"), m_database.lastError().text()+"\n\n"+query.lastQuery());
         return;
     }
 
@@ -284,7 +280,7 @@ void MainWindow::showColumnSummary()
 
 bool MainWindow::confirmDuty()
 {
-    if (m_isDuty) {
+    if (m_isDirty) {
         QMessageBox::StandardButton selected =
                 SheetMessageBox::question(this, tr("The table is changed."), tr("Do you want to save or discard changes?"),
                                           QMessageBox::Save|QMessageBox::Cancel|QMessageBox::Discard, QMessageBox::Save);
@@ -298,11 +294,11 @@ bool MainWindow::confirmDuty()
                 SheetMessageBox::critical(this, tr("Cannot save table"), m_tableModel->lastError().text());
                 return false;
             }
-            m_isDuty = false;
+            m_isDirty = false;
             break;
         case QMessageBox::Discard:
         default:
-            m_isDuty = false;
+            m_isDirty = false;
             break;
         }
         return true;
@@ -342,14 +338,14 @@ void MainWindow::tableChanged(const QString &name)
     m_tableModel->setTable(name);
     m_tableModel->select();
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
-    m_isDuty = false;
+    m_isDirty = false;
     setWindowModified(false);
     filterFinished();
 }
 
 void MainWindow::tableUpdated()
 {
-    m_isDuty = true;
+    m_isDirty = true;
     setWindowModified(true);
 }
 
@@ -357,6 +353,10 @@ void MainWindow::updateDatabase()
 {
     ui->tableSelect->clear();
     foreach(QString name, m_database.tables()) {
+        ui->tableSelect->addItem(name);
+    }
+
+    foreach(QString name, m_database.tables(QSql::Views)) {
         ui->tableSelect->addItem(name);
     }
 
@@ -369,7 +369,7 @@ void MainWindow::updateDatabase()
 
 void MainWindow::sortIndicatorChanged(int logicalIndex, Qt::SortOrder order)
 {
-    if (m_isDuty) {
+    if (m_isDirty) {
         SheetMessageBox::warning(this, tr("Data is not commited"), tr("You have to commit changes before sorting."));
         return;
     }
@@ -385,7 +385,7 @@ void MainWindow::on_actionGo_github_triggered()
 void MainWindow::on_actionCommit_triggered()
 {
     if (m_tableModel->submitAll()) {
-        m_isDuty = false;
+        m_isDirty = false;
         setWindowModified(false);
         filterFinished();
     } else {
@@ -396,7 +396,7 @@ void MainWindow::on_actionCommit_triggered()
 void MainWindow::on_actionRevert_triggered()
 {
     m_tableModel->revertAll();
-    m_isDuty = false;
+    m_isDirty = false;
     setWindowModified(false);
     filterFinished();
 }

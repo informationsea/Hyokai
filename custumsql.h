@@ -7,6 +7,8 @@
 #include <QSqlQueryModel>
 #include <QMenu>
 #include <QTableView>
+#include <QStringList>
+#include <QList>
 
 #include "sqlquerymodelalternativebackground.h"
 
@@ -34,12 +36,26 @@ private slots:
     void insertSql();
     void joinSqlWizard();
 
+    void on_historyButton_clicked();
+    void onHistorySelected();
+
+    void on_menuButton_clicked();
+    void onExportTable();
+    void onCreateView();
+
 private:
+    void createMenus();
+
     Ui::CustumSql *ui;
     QSqlDatabase *m_database;
     QSqlQuery m_query;
     SqlQueryModelAlternativeBackground m_querymodel;
+    QStringList m_history;
+
     QMenu *assistMenu;
+    QMenu *menu;
+    QMenu *historyMenu;
+    QList<QAction *> m_menu_for_select;
 };
 
 #endif // CUSTUMSQL_H

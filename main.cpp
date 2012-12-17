@@ -76,6 +76,8 @@ QPoint nextWindowPosition()
 }
 
 QString addQuote(QString name) {
+    if (name.startsWith("\"") && name.endsWith("\""))
+        return name;
     return QString("\"%1\"").arg(name);
 }
 
