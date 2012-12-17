@@ -196,12 +196,17 @@ void CustumSql::createMenus()
     assistMenu = new QMenu(this);
 
     QStringList templateList;
-    templateList << "SELECT * FROM table";
-    templateList << "SELECT * FROM table1 INNTER JOIN table2 ON table1.column1 = table2.column2";
-    templateList << "SELECT * FROM table1 LEFT OUTER JOIN table2 ON table1.column1 = table2.column2";
-    templateList << "SELECT * FROM table1 NATUAL INNTER JOIN table2";
-    templateList << "SELECT * FROM table1 NATUAL LEFT OUTER JOIN table2";
-    templateList << "VACUUM";
+    templateList << "SELECT * FROM table"
+                 << "SELECT * FROM table1 INNTER JOIN table2 ON table1.column1 = table2.column2"
+                 << "SELECT * FROM table1 LEFT OUTER JOIN table2 ON table1.column1 = table2.column2"
+                 << "SELECT * FROM table1 NATUAL INNTER JOIN table2"
+                 << "SELECT * FROM table1 NATUAL LEFT OUTER JOIN table2"
+                 << "DROP TABLE table1"
+                 << "DROP VIEW view1"
+                 << "DROP INDEX index1"
+                 << "CREATE VIEW view1 AS SELECT *"
+                 << "CREATE INDEX index1 ON table1(column1)"
+                 << "VACUUM";
 
     QAction *joinwizard = assistMenu->addAction(tr("SQL Join Wizard"));
     connect(joinwizard, SIGNAL(triggered()), SLOT(joinSqlWizard()));
@@ -224,16 +229,16 @@ void CustumSql::createMenus()
     }
 
     QStringList templateList2;
-    templateList2 << " ORDER BY column ASC";
-    templateList2 << " ORDER BY column DESC";
-    templateList2 << " WHERE column == 0";
-    templateList2 << " WHERE column < 0";
-    templateList2 << " WHERE column > 0";
-    templateList2 << " WHERE column LIKE pattern";
-    templateList2 << " WHERE column GLOB pattern";
-    templateList2 << " LIMIT limit";
-    templateList2 << " OFFSET offset";
-    templateList2 << " GROUP BY column";
+    templateList2 << " ORDER BY column ASC"
+                  << " ORDER BY column DESC"
+                  << " WHERE column == 0"
+                  << " WHERE column < 0"
+                  << " WHERE column > 0"
+                  << " WHERE column LIKE pattern"
+                  << " WHERE column GLOB pattern"
+                  << " LIMIT limit"
+                  << " OFFSET offset"
+                  << " GROUP BY column";
 
     QMenu *sqltemplateinsert = assistMenu->addMenu(tr("Insert SQL Templates"));
     foreach(QString i, templateList2) {
