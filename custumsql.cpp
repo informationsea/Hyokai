@@ -103,14 +103,34 @@ void CustumSql::joinSqlWizard()
 }
 
 #define CLEAR_TEXT "**CLEAR**"
+#define MAX_HISTORY_SHOW_LENGTH 130
+#define MAX_HISTORY_SHOW_ITEMS 10
+#define MAX_HISTORY_SHOW_MORE_ITEMS 60
 
 void CustumSql::on_historyButton_clicked()
 {
+    int count = 0;
     historyMenu->clear();
+    QMenu *additionalHistoy;
     foreach(QString query, m_history) {
-        QAction *action = historyMenu->addAction(query);
+        if (count == MAX_HISTORY_SHOW_ITEMS+1) {
+            historyMenu->addSeparator();
+            additionalHistoy = historyMenu->addMenu(tr("More"));
+        }
+        QAction *action;
+
+        QString showName = query;
+        if (showName.length() > MAX_HISTORY_SHOW_LENGTH) {
+            showName = query.left(MAX_HISTORY_SHOW_LENGTH/2-2) + QString(" ... ") + query.right(MAX_HISTORY_SHOW_LENGTH/2-2);
+        }
+
+        if (count <= MAX_HISTORY_SHOW_ITEMS)
+            action = historyMenu->addAction(showName);
+        else if (count < MAX_HISTORY_SHOW_MORE_ITEMS)
+            action = additionalHistoy->addAction(showName);
         action->setData(query);
         connect(action, SIGNAL(triggered()), SLOT(onHistorySelected()));
+        count += 1;
     }
     historyMenu->addSeparator();
     QAction *clear = historyMenu->addAction(tr("Clear"));
