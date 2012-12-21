@@ -70,7 +70,13 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     updateDatabase();
 
     ui->tableView->setModel(m_tableModel);
+#if QT_VERSION >= 0x050000
+    ui->tableView->horizontalHeader()->setSectionsMovable(true);
+    ui->mainToolBar->setFloatable(false);
+    ui->mainToolBar->setMovable(false);
+#else
     ui->tableView->horizontalHeader()->setMovable(true);
+#endif
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));

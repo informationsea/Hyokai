@@ -21,7 +21,11 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
 {
     ui->setupUi(this);
     ui->tableView->setModel(&m_querymodel);
+#if QT_VERSION >= 0x050000
+    ui->tableView->horizontalHeader()->setSectionsMovable(true);
+#else
     ui->tableView->horizontalHeader()->setMovable(true);
+#endif
     setWindowTitle("Custum SQL "+QFileInfo(database->databaseName()).baseName());
 
     ui->splitter->setStretchFactor(0, 0);
