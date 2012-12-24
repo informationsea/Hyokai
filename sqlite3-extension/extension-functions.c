@@ -108,7 +108,7 @@ Original code 2006 June 05 by relicoder.
 
 //#include "config.h"
 
-#define COMPILE_SQLITE_EXTENSIONS_AS_LOADABLE_MODULE 1
+//#define COMPILE_SQLITE_EXTENSIONS_AS_LOADABLE_MODULE 1
 #ifndef WIN32
 #define HAVE_ACOSH 1
 #define HAVE_ASINH 1
@@ -126,7 +126,7 @@ Original code 2006 June 05 by relicoder.
 #include "sqlite3ext.h"
 SQLITE_EXTENSION_INIT1
 #else
-#include "sqlite3.h"
+#include "sqlite3-extension/sqlite3.h"
 #endif
 
 #include <ctype.h>

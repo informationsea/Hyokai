@@ -22,9 +22,11 @@ private:
     QTextCharFormat m_sql_quoted_format;
     QTextCharFormat m_sql_table_format;
     QTextCharFormat m_sql_column_format;
+    QTextCharFormat m_sql_function_format;
 
     QStringList m_commant_list;
     QStringList m_keyword_list;
+    QStringList m_function_list;
 
     QSqlDatabase *m_database;
     QString m_table;

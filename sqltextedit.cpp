@@ -78,6 +78,20 @@ SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
         m_keyword_list.append(line.trimmed());
     }
 
+    QFile functions(":/txt/functionlist.txt");
+    functions.open(QIODevice::ReadOnly);
+    QByteArray functionLine;
+    while (!(functionLine = functions.readLine()).isEmpty()) {
+        QString func(functionLine);
+        if (!func.startsWith(">")) {
+            int pos = func.indexOf('(');
+            if (pos > 0)
+                m_function_list << func.left(pos).trimmed();
+            else
+                m_function_list << func.trimmed();
+        }
+    }
+
     m_sql_command_format.setForeground(QBrush(QColor("#1F36E0")));
     m_sql_command_format.setFontWeight(QFont::Bold);
     m_sql_keyword_format.setForeground(QBrush(QColor("#48129B")));
@@ -85,6 +99,7 @@ SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
     m_sql_table_format.setForeground(QBrush(QColor("#C27B1F")));
     m_sql_column_format.setForeground(QBrush(QColor("#78810E")));
     m_sql_quoted_format.setForeground(QBrush(QColor("#0D6629")));
+    m_sql_function_format.setForeground(QBrush(QColor("#10547A")));
 }
 
 
@@ -92,6 +107,7 @@ SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
 void SQLSyntaxHighligter::highlightBlock(const QString &text)
 {
     highlightBlockHelper(text, m_keyword_list, m_sql_keyword_format);
+    highlightBlockHelper(text, m_function_list, m_sql_function_format);
 
     foreach(QString command, m_commant_list) {
         if(text.startsWith(command, Qt::CaseInsensitive))

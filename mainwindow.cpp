@@ -47,6 +47,10 @@
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 static int open_count = 0;
 
+extern "C" {
+int RegisterExtensionFunctions(sqlite3 *db);
+}
+
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_isDirty(false), m_custumSql(0)
@@ -71,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
          sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
          if (handle != 0) { // check that it is not NULL
             sqlite3_enable_load_extension(handle, 1); // Enable extension
+            RegisterExtensionFunctions(handle);
          }
      }
 

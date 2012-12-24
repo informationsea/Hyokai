@@ -277,31 +277,48 @@ void CustumSql::createMenus()
         connect(action, SIGNAL(triggered()), SLOT(insertSql()));
     }
 
-    QStringList functions;
-    functions << "avg(";
-    functions << "distinct(";
-    functions << "max(";
-    functions << "min(";
-    functions << "count(";
-    functions << "total(";
-#if 0
-    functions << "--";
-    functions << "stdev(";
-    functions << "variance(";
-    functions << "median(";
-    functions << "lower_quartile(";
-    functions << "upper_quartile(";
-#endif
+    QStringList commonFunctions;
+    commonFunctions << "avg(";
+    commonFunctions << "distinct(";
+    commonFunctions << "max(";
+    commonFunctions << "min(";
+    commonFunctions << "count(";
+    commonFunctions << "total(";
+    commonFunctions << "--";
+    commonFunctions << "stdev(";
+    commonFunctions << "variance(";
+    commonFunctions << "median(";
+    commonFunctions << "lower_quartile(";
+    commonFunctions << "upper_quartile(";
 
-    QMenu *functioninsert = assistMenu->addMenu(tr("SQL Functions"));
-    foreach(QString i, functions) {
+    QMenu *commonFunctionMenu = assistMenu->addMenu(tr("Common SQL Functions"));
+    foreach(QString i, commonFunctions) {
         if (i == "--") {
-            functioninsert->addSeparator();
-            continue;
+            commonFunctionMenu->addSeparator();
+        } else {
+            QAction *action = commonFunctionMenu->addAction(i);
+            action->setData(i);
+            connect(action, SIGNAL(triggered()), SLOT(insertSql()));
         }
-        QAction *action = functioninsert->addAction(i);
-        action->setData(i);
-        connect(action, SIGNAL(triggered()), SLOT(insertSql()));
+    }
+
+
+    QFile functions(":/txt/functionlist.txt");
+    functions.open(QIODevice::ReadOnly);
+
+    QMenu *functioninsert = assistMenu->addMenu(tr("All SQL Functions"));
+    QByteArray functionLine;
+    while (!(functionLine = functions.readLine()).isEmpty()) {
+        QString func(functionLine);
+        if (functionLine.startsWith(">")) {
+            functioninsert->addSeparator();
+            QAction *action = functioninsert->addAction(func.right(func.size()-1));
+            action->setEnabled(false);
+        } else {
+            QAction *action = functioninsert->addAction(QString(functionLine).trimmed());
+            action->setData(QString(functionLine).trimmed());
+            connect(action, SIGNAL(triggered()), SLOT(insertSql()));
+        }
     }
 
     QMenu *tables = assistMenu->addMenu(tr("Insert table name"));

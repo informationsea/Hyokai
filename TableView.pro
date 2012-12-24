@@ -10,8 +10,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = TableView
 TEMPLATE = app
 
-LIBS = -lsqlite3
-
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc
 
@@ -29,7 +27,8 @@ SOURCES += main.cpp\
     fileeventhandler.cpp \
     summarydialog.cpp \
     imageview.cpp \
-    sqltextedit.cpp
+    sqltextedit.cpp \
+    sqlite3-extension/extension-functions.c
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -45,7 +44,9 @@ HEADERS  += mainwindow.h \
     fileeventhandler.h \
     summarydialog.h \
     imageview.h \
-    sqltextedit.h
+    sqltextedit.h \
+    sqlite3-extension/sqlite3ext.h \
+    sqlite3-extension/sqlite3.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
@@ -63,4 +64,5 @@ OTHER_FILES += \
     images/fileicon/table.icns \
     images/fileicon/sqlite.ico \
     images/fileicon/sqlite.icns \
-    sqlkeywords.txt
+    sqlkeywords.txt \
+    functionlist.txt
