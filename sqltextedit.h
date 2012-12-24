@@ -49,6 +49,7 @@ private:
     SQLSyntaxHighligter *m_syntaxHilighter;
     
 signals:
+    void returnPressed();
     
 public slots:
     

@@ -72,8 +72,6 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     ui->tableView->setModel(m_tableModel);
 #if QT_VERSION >= 0x050000
     ui->tableView->horizontalHeader()->setSectionsMovable(true);
-    ui->mainToolBar->setFloatable(false);
-    ui->mainToolBar->setMovable(false);
 #else
     ui->tableView->horizontalHeader()->setMovable(true);
 #endif
@@ -84,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     ui->tableView->horizontalHeader()->installEventFilter(this);
+    ui->sqlLine->setDatabase(&m_database);
 
     if (m_filepath.compare(":memory:") == 0) {
         ui->actionView_in_File_Manager->setEnabled(false);
@@ -255,10 +254,10 @@ void MainWindow::showColumnSummary()
     QString column_name = m_tableModel->headerData(logical_index, Qt::Horizontal).toString();
 
     QSqlQuery query;
-    if (ui->sqlLine->text().isEmpty()) {
+    if (ui->sqlLine->toPlainText().isEmpty()) {
         query = m_database.exec(QString("SELECT \"%1\" FROM %2").arg(column_name, m_tableModel->tableName()));
     } else {
-        query = m_database.exec(QString("SELECT \"%1\" FROM %2 WHERE %3").arg(column_name, m_tableModel->tableName(), ui->sqlLine->text()));
+        query = m_database.exec(QString("SELECT \"%1\" FROM %2 WHERE %3").arg(column_name, m_tableModel->tableName(), ui->sqlLine->toPlainText()));
     }
 
     if (query.lastError().type() != QSqlError::NoError) {
@@ -316,17 +315,17 @@ void MainWindow::filterFinished()
 {
     if (m_tableModel->plainTableName().isEmpty())
         return;
-    m_tableModel->setFilter(ui->sqlLine->text());
+    m_tableModel->setFilter(ui->sqlLine->toPlainText());
     m_tableModel->select();
     if (m_tableModel->lastError().type() != QSqlError::NoError) {
         SheetMessageBox::warning(this, tr("Cannot apply the filter."), m_tableModel->lastError().text());
     }
 
     QSqlQuery count;
-    if (ui->sqlLine->text().isEmpty()) {
+    if (ui->sqlLine->toPlainText().isEmpty()) {
         count = m_database.exec(QString("SELECT count(*) FROM %1;").arg(m_tableModel->tableName()));
     } else {
-        count = m_database.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(m_tableModel->tableName(), ui->sqlLine->text()));
+        count = m_database.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(m_tableModel->tableName(), ui->sqlLine->toPlainText()));
     }
 
     count.next();
@@ -342,6 +341,7 @@ void MainWindow::tableChanged(const QString &name)
         return;
 
     m_tableModel->setTable(name);
+    ui->sqlLine->setTable(name);
     m_tableModel->select();
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
     m_isDirty = false;
@@ -806,10 +806,10 @@ void MainWindow::on_actionExport_Table_triggered()
         return;
 
     QSqlQuery query;
-    if (ui->sqlLine->text().isEmpty()) {
+    if (ui->sqlLine->toPlainText().isEmpty()) {
         query = m_database.exec(QString("SELECT * FROM %1").arg(m_tableModel->tableName()));
     } else {
-        query = m_database.exec(QString("SELECT * FROM %1 WHERE %2").arg(m_tableModel->tableName(), ui->sqlLine->text()));
+        query = m_database.exec(QString("SELECT * FROM %1 WHERE %2").arg(m_tableModel->tableName(), ui->sqlLine->toPlainText()));
     }
 
     if (query.lastError().type() != QSqlError::NoError) {
@@ -863,7 +863,7 @@ void MainWindow::on_actionOpen_In_Memory_Database_triggered()
 
 void MainWindow::on_buttonClear_clicked()
 {
-    ui->sqlLine->setText("");
+    ui->sqlLine->setPlainText("");
     filterFinished();
 }
 
@@ -979,8 +979,8 @@ void MainWindow::on_actionR_code_to_import_triggered()
     QFileInfo fileInfo(m_filepath);
     QString basename = fileInfo.baseName();
     QString where;
-    if (!ui->sqlLine->text().isEmpty())
-        where = QString("WHERE %1").arg(ui->sqlLine->text());
+    if (!ui->sqlLine->toPlainText().isEmpty())
+        where = QString("WHERE %1").arg(ui->sqlLine->toPlainText());
     QString str = QString("# install.packages(c(\"DBI\", \"RSQLite\")) to install SQLite library\n"
                           "library(RSQLite)\n"
                           "connection.%1 <- dbConnect(dbDriver(\"SQLite\"), dbname=\"%2\")\n"

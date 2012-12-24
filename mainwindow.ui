@@ -26,6 +26,9 @@
     </property>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>10</number>
+      </property>
       <item>
        <widget class="QComboBox" name="tableSelect">
         <property name="statusTip">
@@ -40,15 +43,33 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="sqlLine">
+       <widget class="SQLTextEdit" name="sqlLine">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
         <property name="toolTip">
          <string>SQL Where Statement</string>
         </property>
         <property name="statusTip">
          <string>SQL Where Statement</string>
         </property>
-        <property name="placeholderText">
-         <string>Filter</string>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="lineWrapMode">
+         <enum>QPlainTextEdit::NoWrap</enum>
         </property>
        </widget>
       </item>
@@ -410,6 +431,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>SQLTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>sqltextedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resouces.qrc"/>
  </resources>

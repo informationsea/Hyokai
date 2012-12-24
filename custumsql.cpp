@@ -33,6 +33,8 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
 
     ui->sql->setDatabase(m_database);
 
+    connect(ui->sql, SIGNAL(returnPressed()), SLOT(on_pushButton_clicked()));
+
     createMenus();
 
     m_history = tableview_settings->value(CUSTUM_SQL_HISTORY).toStringList();
