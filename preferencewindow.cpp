@@ -273,3 +273,8 @@ void PreferenceWindow::on_buttonRPath_clicked()
     tableview_settings->setValue(PATH_R, path);
     ui->lineRPath->setText(path);
 }
+
+void PreferenceWindow::on_pushButtonClearFilterHistory_clicked()
+{
+    tableview_settings->setValue(SQL_FILTER_HISTORY, QVariant());
+}

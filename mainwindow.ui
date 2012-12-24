@@ -74,6 +74,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="buttonAssist">
+        <property name="text">
+         <string>Assist</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="buttonClear">
         <property name="text">
          <string>Clear</string>

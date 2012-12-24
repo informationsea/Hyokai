@@ -37,6 +37,7 @@ private:
     QString m_filepath;
     bool m_isDirty;
     CustumSql *m_custumSql;
+    QMenu m_assistPopup;
 
     void open(QString path);
     bool confirmDuty(); // return false if canceled
@@ -49,6 +50,7 @@ public slots:
 
 private slots:
     void filterFinished();
+    void filterChainging();
     void tableChanged(const QString &name);
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
     void tableUpdated();
@@ -59,6 +61,7 @@ private slots:
     void onClearRecentFiles();
     void activate();
     void showColumnSummary();
+    void insertSqlFilter();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
@@ -82,6 +85,7 @@ private slots:
     void on_actionView_in_File_Manager_triggered();
     void on_actionPreference_triggered();
     void on_actionR_code_to_import_triggered();
+    void on_buttonAssist_clicked();
 };
 
 #endif // MAINWINDOW_H

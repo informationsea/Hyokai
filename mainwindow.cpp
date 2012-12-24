@@ -76,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     ui->tableView->horizontalHeader()->setMovable(true);
 #endif
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
+    connect(ui->sqlLine, SIGNAL(textChanged()), SLOT(filterChainging()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
@@ -321,6 +322,17 @@ void MainWindow::filterFinished()
         SheetMessageBox::warning(this, tr("Cannot apply the filter."), m_tableModel->lastError().text());
     }
 
+    ui->sqlLine->setStyleSheet("");
+    QStringList history = tableview_settings->value(SQL_FILTER_HISTORY).toStringList();
+    if (history.contains(ui->sqlLine->toPlainText()))
+        history.removeOne(ui->sqlLine->toPlainText());
+    if (!ui->sqlLine->toPlainText().isEmpty())
+        history.insert(0, ui->sqlLine->toPlainText());
+    while (history.size() > SQL_FILTER_HISTORY_MAX) {
+        history.removeLast();
+    }
+    tableview_settings->setValue(SQL_FILTER_HISTORY, history);
+
     QSqlQuery count;
     if (ui->sqlLine->toPlainText().isEmpty()) {
         count = m_database.exec(QString("SELECT count(*) FROM %1;").arg(m_tableModel->tableName()));
@@ -330,6 +342,15 @@ void MainWindow::filterFinished()
 
     count.next();
     m_rowcountlabel->setText(QString("%1 rows").arg(QString::number(count.value(0).toLongLong())));
+}
+
+void MainWindow::filterChainging()
+{
+    if (m_tableModel->filter().trimmed() == ui->sqlLine->toPlainText().trimmed()) {
+        ui->sqlLine->setStyleSheet("");
+    } else {
+        ui->sqlLine->setStyleSheet("SQLTextEdit{ background: #FAFFC5;}");
+    }
 }
 
 
@@ -989,4 +1010,52 @@ void MainWindow::on_actionR_code_to_import_triggered()
                                                                tableName.replace("\"", "\\\""), where.replace("\"", "\\\""));
     QClipboard *clip = QApplication::clipboard();
     clip->setText(str);
+}
+
+void MainWindow::on_buttonAssist_clicked()
+{
+    m_assistPopup.clear();
+
+    QMenu *historyMenu = m_assistPopup.addMenu(tr("History"));
+    QStringList history = tableview_settings->value(SQL_FILTER_HISTORY).toStringList();
+    foreach (QString oneHistory, history) {
+        QAction *action = historyMenu->addAction(oneHistory);
+        action->setData(oneHistory);
+        connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
+    }
+    if (history.isEmpty()) {
+        historyMenu->setEnabled(false);
+    }
+
+    m_assistPopup.addSeparator();
+    QMenu *columnMenu = m_assistPopup.addMenu(tr("Columns"));
+    QSqlRecord records = m_database.record(m_tableModel->tableName());
+    for (int i = 0; i < records.count(); ++i) {
+        QAction *action = columnMenu->addAction(records.fieldName(i));
+        action->setData(records.fieldName(i));
+        connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
+    }
+    if (records.count() == 0) {
+        columnMenu->setEnabled(false);
+    }
+
+    m_assistPopup.addSeparator();
+    QStringList operators;
+    operators << "==" << ">=" << "<=" << ">" << "<" << "AND" << "OR" << "LIKE \"%\"";
+    foreach (QString s, operators){
+        QAction* action = m_assistPopup.addAction(s);
+        action->setData(s);
+        connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
+    }
+
+    QPoint point = ui->buttonAssist->pos();
+    point.setY(point.y() + ui->buttonAssist->height());
+    m_assistPopup.popup(mapToGlobal(point));
+}
+
+void MainWindow::insertSqlFilter()
+{
+    QAction *senderAction = (QAction *)sender();
+    QString add = senderAction->data().toString();
+    ui->sqlLine->insertPlainText(add);
 }

@@ -92,6 +92,8 @@ private slots:
 
     void on_buttonRPath_clicked();
 
+    void on_pushButtonClearFilterHistory_clicked();
+
 private:
     Ui::PreferenceWindow *ui;
     AttachDBTableModel *m_attachmodel;

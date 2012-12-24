@@ -14,6 +14,9 @@
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
 #define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
 
+#define SQL_FILTER_HISTORY "SQL_FILTER_HISTORY"
+#define SQL_FILTER_HISTORY_MAX 20
+
 extern QList<MainWindow *> windowList;
 extern QSettings *tableview_settings;
 extern PreferenceWindow *preferenceDialog;
