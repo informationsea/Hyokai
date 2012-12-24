@@ -767,7 +767,8 @@ void MainWindow::on_actionAbout_Table_View_triggered()
                      "Simple SQLite Viewer<br /><br />"
                      "Copyright (C) 2012 Y.Okamura<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/TableView\">Github</a><hr />"
-                     "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a>"));
+                     "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
+                     "Build at " __DATE__));
     about.exec();
 }
 

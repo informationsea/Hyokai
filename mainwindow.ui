@@ -169,6 +169,9 @@
    <property name="text">
     <string>Open</string>
    </property>
+   <property name="statusTip">
+    <string>Open SQLite3 or text file</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -181,6 +184,9 @@
    <property name="text">
     <string>Insert</string>
    </property>
+   <property name="statusTip">
+    <string>Insert new row</string>
+   </property>
   </action>
   <action name="actionDelete">
    <property name="icon">
@@ -189,6 +195,9 @@
    </property>
    <property name="text">
     <string>Delete</string>
+   </property>
+   <property name="statusTip">
+    <string>Delete selected row</string>
    </property>
   </action>
   <action name="actionCommit">
@@ -199,10 +208,16 @@
    <property name="text">
     <string>Commit</string>
    </property>
+   <property name="statusTip">
+    <string>Commit chagnes</string>
+   </property>
   </action>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+   <property name="statusTip">
+    <string>Quit Table View</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -211,6 +226,9 @@
   <action name="actionClose">
    <property name="text">
     <string>Close</string>
+   </property>
+   <property name="statusTip">
+    <string>Close Window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
@@ -224,6 +242,9 @@
    <property name="text">
     <string>New</string>
    </property>
+   <property name="statusTip">
+    <string>New SQLite3</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
@@ -236,15 +257,24 @@
    <property name="text">
     <string>Create Table</string>
    </property>
+   <property name="statusTip">
+    <string>Create new table</string>
+   </property>
   </action>
   <action name="actionAbout_Table_View">
    <property name="text">
+    <string>About Table View</string>
+   </property>
+   <property name="statusTip">
     <string>About Table View</string>
    </property>
   </action>
   <action name="actionGo_github">
    <property name="text">
     <string>Go to github</string>
+   </property>
+   <property name="statusTip">
+    <string>Go to github project page</string>
    </property>
   </action>
   <action name="actionImportTable">
@@ -255,6 +285,9 @@
    <property name="text">
     <string>Import Table</string>
    </property>
+   <property name="statusTip">
+    <string>Import Table from text or CSV</string>
+   </property>
   </action>
   <action name="actionRevert">
    <property name="icon">
@@ -264,9 +297,15 @@
    <property name="text">
     <string>Revert</string>
    </property>
+   <property name="statusTip">
+    <string>Revert changes</string>
+   </property>
   </action>
   <action name="actionAbout_Qt">
    <property name="text">
+    <string>About Qt</string>
+   </property>
+   <property name="statusTip">
     <string>About Qt</string>
    </property>
   </action>
@@ -278,6 +317,9 @@
    <property name="text">
     <string>Run Custum SQL</string>
    </property>
+   <property name="statusTip">
+    <string>Run Custum SQL</string>
+   </property>
   </action>
   <action name="actionRefresh">
    <property name="icon">
@@ -286,6 +328,9 @@
    </property>
    <property name="text">
     <string>Refresh</string>
+   </property>
+   <property name="statusTip">
+    <string>Refresh table list and contents</string>
    </property>
   </action>
   <action name="actionExport_Table">
@@ -296,20 +341,32 @@
    <property name="text">
     <string>Export Table</string>
    </property>
+   <property name="statusTip">
+    <string>Export table as CSV or Tab separated text</string>
+   </property>
   </action>
   <action name="actionOpen_In_Memory_Database">
    <property name="text">
     <string>Open In Memory Database</string>
+   </property>
+   <property name="statusTip">
+    <string>Open SQLite3 in memory database</string>
    </property>
   </action>
   <action name="actionAttach_Database">
    <property name="text">
     <string>Attach Database</string>
    </property>
+   <property name="statusTip">
+    <string>Attach exsists database</string>
+   </property>
   </action>
   <action name="actionCopy">
    <property name="text">
     <string>Copy</string>
+   </property>
+   <property name="statusTip">
+    <string>Copy contents</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -318,6 +375,9 @@
   <action name="actionView_in_File_Manager">
    <property name="text">
     <string>Open File Location</string>
+   </property>
+   <property name="statusTip">
+    <string>Open File Location with File Viewer</string>
    </property>
   </action>
   <action name="actionPreference">
@@ -328,15 +388,24 @@
    <property name="text">
     <string>Preference...</string>
    </property>
+   <property name="statusTip">
+    <string>Open Preference Pane</string>
+   </property>
   </action>
   <action name="actionR_code_to_import">
    <property name="text">
     <string>Copy R code to import</string>
    </property>
+   <property name="statusTip">
+    <string>Generate R code to manipulate data with R </string>
+   </property>
   </action>
   <action name="actionClear">
    <property name="text">
     <string>Clear</string>
+   </property>
+   <property name="statusTip">
+    <string>Clear recent files</string>
    </property>
   </action>
  </widget>
