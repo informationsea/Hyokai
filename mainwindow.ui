@@ -129,6 +129,7 @@
     <addaction name="actionCreateTable"/>
     <addaction name="actionImportTable"/>
     <addaction name="actionExport_Table"/>
+    <addaction name="actionDrop_Table"/>
     <addaction name="actionAttach_Database"/>
     <addaction name="separator"/>
     <addaction name="actionInsert"/>
@@ -149,6 +150,7 @@
     <addaction name="actionAbout_Qt"/>
     <addaction name="separator"/>
     <addaction name="actionGo_github"/>
+    <addaction name="actionGo_to_SQLite3_webpage"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -179,6 +181,7 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionCreateTable"/>
+   <addaction name="actionDrop_Table"/>
    <addaction name="actionRefresh"/>
    <addaction name="actionRun_Custum_SQL"/>
    <addaction name="actionImportTable"/>
@@ -434,6 +437,23 @@
    </property>
    <property name="statusTip">
     <string>Clear recent files</string>
+   </property>
+  </action>
+  <action name="actionGo_to_SQLite3_webpage">
+   <property name="text">
+    <string>Go to SQLite3 webpage</string>
+   </property>
+  </action>
+  <action name="actionDrop_Table">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/user-trash.png</normaloff>:/rc/images/user-trash.png</iconset>
+   </property>
+   <property name="text">
+    <string>Drop Table</string>
+   </property>
+   <property name="statusTip">
+    <string>Drop this table or view</string>
    </property>
   </action>
  </widget>

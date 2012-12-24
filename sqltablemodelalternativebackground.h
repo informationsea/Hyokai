@@ -16,6 +16,7 @@ public:
     QString plainTableName() const;
 
     bool editable() { return m_editable; }
+    bool isView() { return m_view; }
 
 private:
     bool m_editable;

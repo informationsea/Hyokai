@@ -14,7 +14,7 @@ JoinTableDialog::JoinTableDialog(QSqlDatabase *db, QWidget *parent) :
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
 
-    foreach(QString table, db->tables()) {
+    foreach(QString table, db->tables(QSql::AllTables)) {
         ui->leftTable->addItem(table);
         ui->rightTable->addItem(table);
     }

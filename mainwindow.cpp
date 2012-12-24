@@ -79,13 +79,11 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
          }
      }
 
-    m_tableModel = new SqlTableModelAlternativeBackground(this, m_database);
-    m_tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     ui->mainToolBar->setIconSize(QSize(22, 22));
 
+    setupTableModel();
     updateDatabase();
 
-    ui->tableView->setModel(m_tableModel);
 #if QT_VERSION >= 0x050000
     ui->tableView->horizontalHeader()->setSectionsMovable(true);
 #else
@@ -95,7 +93,6 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     connect(ui->sqlLine, SIGNAL(textChanged()), SLOT(filterChainging()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
-    connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     ui->tableView->horizontalHeader()->installEventFilter(this);
@@ -135,6 +132,14 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     }
     QFileInfo fileinfo(path);
     setWindowTitle(QString("[*] ") + fileinfo.completeBaseName());
+}
+
+void MainWindow::setupTableModel()
+{
+    m_tableModel = new SqlTableModelAlternativeBackground(this, m_database);
+    m_tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    ui->tableView->setModel(m_tableModel);
+    connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
 }
 
 MainWindow::~MainWindow()
@@ -1074,4 +1079,40 @@ void MainWindow::insertSqlFilter()
     QAction *senderAction = (QAction *)sender();
     QString add = senderAction->data().toString();
     ui->sqlLine->insertPlainText(add);
+}
+
+void MainWindow::on_actionGo_to_SQLite3_webpage_triggered()
+{
+    QDesktopServices::openUrl(QUrl("http://www.sqlite.org"));
+}
+
+void MainWindow::on_actionDrop_Table_triggered()
+{
+    if (m_tableModel->tableName().isEmpty())
+        return;
+    int ret = SheetMessageBox::question(this, tr("Drop table or view"),
+                                        tr("Are you sure to drop selected table or view?\nThis operation cannot be undone."),
+                                        QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
+    if (ret != QMessageBox::Yes)
+        return;
+
+    QString tableName = m_tableModel->tableName();
+    bool isView = m_tableModel->isView();
+    m_tableModel->setTable("");
+    ui->tableView->setModel(0);
+    delete m_tableModel;
+
+    if (isView)
+        m_database.exec(QString("DROP VIEW %1").arg(tableName));
+    else
+        m_database.exec(QString("DROP TABLE %1").arg(tableName));
+
+    setupTableModel();
+
+    if (m_database.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::warning(this, tr("Cannot drop table or view"), m_database.lastError().text());
+        return;
+    }
+
+    refresh();
 }

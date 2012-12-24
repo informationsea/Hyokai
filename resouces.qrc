@@ -19,6 +19,8 @@
         <file>images/icon32.png</file>
         <file>images/toolbar/export.png</file>
         <file>images/toolbar/import.png</file>
+        <file>images/emblem-unreadable.png</file>
+        <file>images/user-trash.png</file>
     </qresource>
     <qresource prefix="/txt">
         <file>sqlkeywords.txt</file>

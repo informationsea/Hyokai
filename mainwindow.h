@@ -42,6 +42,7 @@ private:
     void open(QString path);
     bool confirmDuty(); // return false if canceled
     QString importFile(QString path, bool autoimport);
+    void setupTableModel();
 
     QWidgetList m_windowList;
 
@@ -86,6 +87,8 @@ private slots:
     void on_actionPreference_triggered();
     void on_actionR_code_to_import_triggered();
     void on_buttonAssist_clicked();
+    void on_actionGo_to_SQLite3_webpage_triggered();
+    void on_actionDrop_Table_triggered();
 };
 
 #endif // MAINWINDOW_H
