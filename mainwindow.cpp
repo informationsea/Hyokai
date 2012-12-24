@@ -39,6 +39,8 @@
 #include <QAction>
 #include <QProgressDialog>
 
+#include "sqlite3-extension/sqlite3.h"
+
 #define RECENT_FILES "RECENT_FILES"
 #define RECENT_FILES_MAX 10
 
@@ -62,6 +64,15 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
     m_database.setDatabaseName(path);
     m_database.open();
+
+    QVariant v = m_database.driver()->handle();
+     if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*") == 0) {
+         // v.data() returns a pointer to the handle
+         sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
+         if (handle != 0) { // check that it is not NULL
+            sqlite3_enable_load_extension(handle, 1); // Enable extension
+         }
+     }
 
     m_tableModel = new SqlTableModelAlternativeBackground(this, m_database);
     m_tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
