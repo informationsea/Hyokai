@@ -13,6 +13,7 @@ public:
     explicit SQLSyntaxHighligter(QTextDocument *parent = 0);
     virtual void highlightBlock ( const QString & text );
     void setDatabase(QSqlDatabase *database);
+    void setTable(const QString &table);
 
 private:
     QTextCharFormat m_base_format;
@@ -26,6 +27,7 @@ private:
     QStringList m_keyword_list;
 
     QSqlDatabase *m_database;
+    QString m_table;
 
     virtual QStringList highlightBlockHelper (const QString & text, const QStringList & keys, const QTextCharFormat & format );
 };
@@ -38,6 +40,7 @@ public:
     virtual ~SQLTextEdit();
 
     void setDatabase(QSqlDatabase *database);
+    void setTable(const QString &table);
 
 protected:
     void virtual keyPressEvent ( QKeyEvent * event );
