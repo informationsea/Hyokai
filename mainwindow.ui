@@ -162,6 +162,7 @@
      <string>Edit</string>
     </property>
     <addaction name="actionCopy"/>
+    <addaction name="actionCopy_with_header"/>
     <addaction name="separator"/>
     <addaction name="actionPreference"/>
    </widget>
@@ -454,6 +455,14 @@
    </property>
    <property name="statusTip">
     <string>Drop this table or view</string>
+   </property>
+  </action>
+  <action name="actionCopy_with_header">
+   <property name="text">
+    <string>Copy with header</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
  </widget>

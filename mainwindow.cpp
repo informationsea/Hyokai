@@ -912,14 +912,10 @@ void MainWindow::on_buttonClear_clicked()
 #define MIN(x, y) ((x) > (y) ? (y) : (x))
 #define MAX(x, y) ((x) < (y) ? (y) : (x))
 
-void MainWindow::on_actionCopy_triggered()
+static void copyFromTableView(const QTableView *tableView, bool copyHeader)
 {
-    QModelIndexList selectedIndex;
-    if (m_custumSql && m_custumSql->isActiveWindow()) {
-        selectedIndex = m_custumSql->tableView()->selectionModel()->selectedIndexes();
-    } else {
-        selectedIndex = ui->tableView->selectionModel()->selectedIndexes();
-    }
+    QModelIndexList selectedIndex = tableView->selectionModel()->selectedIndexes();
+
     struct select_points {
         int x;
         int y;
@@ -944,6 +940,7 @@ void MainWindow::on_actionCopy_triggered()
     int height = right_bottom.y - left_top.y + 1;
 
     QList<QList<QVariant> >  matrix;
+    QStringList header;
     for (int i = 0; i < height; ++i) {
         QList<QVariant> line;
         for (int j = 0; j < width; ++j) {
@@ -952,11 +949,8 @@ void MainWindow::on_actionCopy_triggered()
         matrix.append(line);
     }
 
-    QTableView *tableView;
-    if (m_custumSql && m_custumSql->isActiveWindow()) {
-        tableView = m_custumSql->tableView();
-    } else {
-        tableView = ui->tableView;
+    for (int i = 0; i < width; ++i) {
+        header.append(tableView->model()->headerData(i + left_top.x, Qt::Horizontal).toString());
     }
 
     foreach(QModelIndex index, selectedIndex) {
@@ -964,6 +958,15 @@ void MainWindow::on_actionCopy_triggered()
     }
 
     QString clipboard;
+
+    if (copyHeader) {
+        for (int i = 0; i < width; ++i) {
+            if (i != 0)
+                clipboard += "\t";
+            clipboard += header[i];
+        }
+        clipboard += "\n";
+    }
 
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
@@ -976,6 +979,18 @@ void MainWindow::on_actionCopy_triggered()
     }
     QClipboard *clip = QApplication::clipboard();
     clip->setText(clipboard);
+}
+
+void MainWindow::on_actionCopy_triggered()
+{
+    QTableView *tableView;
+    if (m_custumSql && m_custumSql->isActiveWindow()) {
+        tableView = m_custumSql->tableView();
+    } else {
+        tableView = ui->tableView;
+    }
+
+    copyFromTableView(tableView, false);
 }
 
 void MainWindow::on_actionAttach_Database_triggered()
@@ -1115,4 +1130,16 @@ void MainWindow::on_actionDrop_Table_triggered()
     }
 
     refresh();
+}
+
+void MainWindow::on_actionCopy_with_header_triggered()
+{
+    QTableView *tableView;
+    if (m_custumSql && m_custumSql->isActiveWindow()) {
+        tableView = m_custumSql->tableView();
+    } else {
+        tableView = ui->tableView;
+    }
+
+    copyFromTableView(tableView, true);
 }

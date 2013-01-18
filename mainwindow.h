@@ -89,6 +89,7 @@ private slots:
     void on_buttonAssist_clicked();
     void on_actionGo_to_SQLite3_webpage_triggered();
     void on_actionDrop_Table_triggered();
+    void on_actionCopy_with_header_triggered();
 };
 
 #endif // MAINWINDOW_H
