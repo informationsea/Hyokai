@@ -11,7 +11,7 @@ QMessageBox* SheetMessageBox::makeMessageBox
         mesbox->setWindowModality(Qt::WindowModal);
     else
         mesbox->setWindowModality(Qt::ApplicationModal);
-#ifdef Q_WS_MACX
+#ifdef Q_OS_MACX
     mesbox->setText(title);
     mesbox->setInformativeText(text);
 #else

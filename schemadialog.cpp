@@ -219,7 +219,7 @@ char SchemaDialog::delimiter() const
         return ',';
     } else {
         if (ui->customDelimiterEdit->text().length())
-            return ui->customDelimiterEdit->text().at(0).toAscii();
+            return ui->customDelimiterEdit->text().at(0).toLatin1();
         else
             return '\t';
     }
