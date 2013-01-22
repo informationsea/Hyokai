@@ -139,7 +139,7 @@ SummaryDialog::~SummaryDialog()
     delete ui;
 }
 
-void SummaryDialog::closeEvent(QCloseEvent */*event*/)
+void SummaryDialog::closeEvent(QCloseEvent * /*event*/)
 {
     delete m_rdata_file;
     delete m_rdraw_file;

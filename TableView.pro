@@ -48,6 +48,12 @@ HEADERS  += mainwindow.h \
     sqlite3-extension/sqlite3ext.h \
     sqlite3-extension/sqlite3.h
 
+win32 {
+    SOURCES -= sqlite3-extension/extension-functions.c
+    HEADERS -= sqlite3-extension/sqlite3ext.h \
+        sqlite3-extension/sqlite3.h
+}
+
 FORMS    += mainwindow.ui \
     schemadialog.ui \
     custumsql.ui \

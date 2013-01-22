@@ -69,6 +69,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     m_database.setDatabaseName(path);
     m_database.open();
 
+#if !defined(Q_OS_WIN32)
     QVariant v = m_database.driver()->handle();
      if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*") == 0) {
          // v.data() returns a pointer to the handle
@@ -78,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
             RegisterExtensionFunctions(handle);
          }
      }
+#endif
 
     ui->mainToolBar->setIconSize(QSize(22, 22));
 
