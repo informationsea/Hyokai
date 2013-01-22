@@ -3,14 +3,14 @@
 #include <QColor>
 
 SchemaField::SchemaField() :
-    m_name(""), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1)
+    m_name(""), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
 {
 
 }
 
 
 SchemaField::SchemaField(QString name) :
-    m_name(name), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1)
+    m_name(name), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
 {
 
 }
@@ -236,4 +236,12 @@ void SchemaTableModel::setShowLogicalIndex(bool flag)
 bool SchemaTableModel::showLogicalIndex()
 {
     return m_show_logical_index;
+}
+
+void SchemaTableModel::makeIndexForAll(bool make)
+{
+    for (int i = 0; i < m_fieldList.size(); ++i) {
+        m_fieldList[i].setIndexedField(make);
+    }
+    emit dataChanged(index(0, 3), index(rowCount()-1, 3));
 }

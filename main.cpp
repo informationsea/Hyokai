@@ -99,3 +99,16 @@ QString suggestRPath()
 
     return "Rscript";
 }
+
+QString normstr(QString str, bool shoudStartWithAlpha)
+{
+    str = str.trimmed();
+    if (str.size() == 0)
+        str = "V";
+    if (str.at(0).isDigit() && shoudStartWithAlpha) {
+        str.insert(0, 'V');
+    }
+    str = str.replace("\"", "");
+    str = str.replace(QRegExp("[^a-zA-Z0-9_]"), "_");
+    return str;
+}

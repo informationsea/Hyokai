@@ -456,7 +456,7 @@ void MainWindow::on_actionCreateTable_triggered()
     if (!confirmDuty())
         return;
 
-    SchemaDialog dialog(this);
+    SchemaDialog dialog(&m_database, 0, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
 
@@ -566,19 +566,6 @@ void MainWindow::on_actionQuit_triggered()
     }
 }
 
-static QString normstr(QString str, bool shoudStartWithAlpha = true)
-{
-    str = str.trimmed();
-    if (str.size() == 0)
-        str = "V";
-    if (str.at(0).isDigit() && shoudStartWithAlpha) {
-        str.insert(0, 'V');
-    }
-    str = str.replace("\"", "");
-    str = str.replace(QRegExp("[^a-zA-Z0-9_]"), "_");
-    return str;
-}
-
 QString MainWindow::importFile(QString import, bool autoimport)
 {
     if (import.isEmpty())
@@ -590,9 +577,11 @@ QString MainWindow::importFile(QString import, bool autoimport)
     }
     QFileInfo fileInfo(import);
     tableview_settings->setValue(LAST_IMPORT_DIRECTORY, fileInfo.dir().absolutePath());
-    SchemaDialog dialog(this);
-    dialog.setShowLogicalIndex(true);
+    SchemaDialog dialog(&m_database, &file, this);
 
+    char delimiter = '\t';
+    if (import.endsWith(".csv"))
+        delimiter = ',';
     {
         // suggests table name
         QString tableName = normstr(fileInfo.completeBaseName());
@@ -606,82 +595,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
         dialog.setName(tableName);
     }
 
-    QList<SchemaField> fields;
-    QStringList fieldNames;
-    char separator = '\t';
-    if (import.endsWith(".csv"))
-        separator = ',';
-
-    QProgressDialog progress1(tr("Suggesting fields"), tr("Skip"), 0, fileInfo.size(), this);
-    progress1.setWindowModality(Qt::WindowModal);
-
-    // suggests field name
-    QList<QByteArray> header = file.readLine().trimmed().split(separator);
-    int counter = 0;
-    foreach(QByteArray one, header) {
-        QString newfieldname = normstr(one);
-        if (fieldNames.contains(newfieldname)) {
-            QString basename = newfieldname;
-            int counter = 2;
-            do {
-                newfieldname = QString("%1_%2").arg(basename, QString::number(counter));
-                counter += 1;
-            } while(fieldNames.contains(newfieldname));
-        }
-        fields.append(SchemaField(newfieldname));
-        fieldNames.append(newfieldname);
-        fields.last().setFieldType(SchemaField::FIELD_INTEGER);
-        fields.last().setLogicalIndex(counter);
-        counter += 1;
-    }
-
-    // suggests field type
-    while(!file.atEnd()) {
-        QList<QByteArray> elements = file.readLine().trimmed().split(separator);
-        while (elements.size() > fields.size()) {
-            fields.append(SchemaField(QString("V%1").arg(QString::number(fields.size()))));
-            fields.last().setFieldType(SchemaField::FIELD_INTEGER);
-            fields.last().setLogicalIndex(fields.size()-1);
-        }
-
-        progress1.setValue(file.pos());
-        if (progress1.wasCanceled()) {
-            goto skipSuggest;
-        }
-
-        for (int i = 0; i < fields.size() && i < elements.size(); i++) {
-            bool ok;
-            QString str(elements[i]);
-            switch (fields[i].fieldType()) {
-            case SchemaField::FIELD_NONE:
-            case SchemaField::FIELD_TEXT:
-                break;
-            case SchemaField::FIELD_INTEGER:
-                str.toLongLong(&ok);
-                if (ok)
-                    break;
-                fields[i].setFieldType(SchemaField::FIELD_REAL);
-                // no break
-            case SchemaField::FIELD_REAL:
-                str.toDouble(&ok);
-                if (ok)
-                    break;
-                fields[i].setFieldType(SchemaField::FIELD_NONE);
-                break;
-            }
-        }
-    }
-
-    skipSuggest:
-
-    for(int i = 0; i < fields.size(); ++i) {
-        if (fields[i].fieldType() == SchemaField::FIELD_INTEGER)
-            fields[i].setIndexedField(true);
-        if (fields[i].fieldType() == SchemaField::FIELD_REAL)
-            fields[i].setIndexedField(true);
-    }
-
-    progress1.close();
+    QList<SchemaField> fields = SchemaDialog::suggestSchema(&file, delimiter, 0, true, 20, this);
 
     dialog.setFields(fields);
     if (!autoimport) {
@@ -689,7 +603,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
             return QString();
     }
 
-    QProgressDialog progress2(tr("Importing file"), tr("Cancel"), 0, fileInfo.size(), this);
+    QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.baseName()), tr("Cancel"), 0, fileInfo.size(), this);
     progress2.setWindowModality(Qt::WindowModal);
 
     // creat table
@@ -720,11 +634,17 @@ QString MainWindow::importFile(QString import, bool autoimport)
     QSqlQuery insertQuery(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText), m_database);
 
     file.seek(0);
-    file.readLine(); // skip header
+
+    for (int i = 0; i < dialog.skipLines(); ++i) { // skip lines
+        file.readLine();
+    }
+
+    if (dialog.firstLineIsHeader())
+        file.readLine(); // skip header
 
     // insert data
     while(!file.atEnd()) {
-        QList<QByteArray> elements = file.readLine().trimmed().split(separator);
+        QList<QByteArray> elements = file.readLine().trimmed().split(dialog.delimiter());
         for (int i = 0; i < insertNumber; ++i) {
             if (fields[i].logicalIndex() >= elements.size() || fields[i].logicalIndex() < 0) {
                 insertQuery.bindValue(i, "");
@@ -910,9 +830,6 @@ void MainWindow::on_buttonClear_clicked()
     ui->sqlLine->setPlainText("");
     filterFinished();
 }
-
-#define MIN(x, y) ((x) > (y) ? (y) : (x))
-#define MAX(x, y) ((x) < (y) ? (y) : (x))
 
 static void copyFromTableView(const QTableView *tableView, bool copyHeader)
 {

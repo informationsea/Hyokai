@@ -10,6 +10,9 @@
 #include <QItemSelectionModel>
 #include <QPoint>
 
+#define MIN(x, y) ((x) > (y) ? (y) : (x))
+#define MAX(x, y) ((x) < (y) ? (y) : (x))
+
 #define LAST_IMPORT_DIRECTORY "LAST_IMPORT_DIRECTORY"
 #define LAST_EXPORT_DIRECTORY "LAST_EXPORT_DIRECTORY"
 #define LAST_SQLITE_DIRECTORY "LAST_SQLITE_DIRECTORY"
@@ -27,5 +30,6 @@ QPoint nextWindowPosition();
 QString addQuote(QString name);
 QString removeQuote(QString name);
 QString suggestRPath();
+QString normstr(QString str, bool shoudStartWithAlpha = true);
 
 #endif // MAIN_H
