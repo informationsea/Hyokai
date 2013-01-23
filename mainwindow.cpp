@@ -597,6 +597,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
 
     QList<SchemaField> fields = SchemaDialog::suggestSchema(&file, delimiter, 0, true, 20, this);
 
+    dialog.setDelimiter(delimiter);
     dialog.setFields(fields);
     if (!autoimport) {
         if (dialog.exec() != QDialog::Accepted)
@@ -992,6 +993,14 @@ void MainWindow::on_buttonAssist_clicked()
     }
     if (records.count() == 0) {
         columnMenu->setEnabled(false);
+    }
+
+    QMenu *tableMenu = m_assistPopup.addMenu(tr("Tables"));
+    QStringList tableList = m_database.tables(QSql::AllTables);
+    foreach(QString one, tableList) {
+        QAction *action = tableMenu->addAction(one);
+        action->setData(one);
+        connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
     }
 
     m_assistPopup.addSeparator();
