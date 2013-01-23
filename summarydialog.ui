@@ -40,19 +40,42 @@
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QPushButton" name="buttonCopyFull">
-         <property name="text">
-          <string>Copy full R code</string>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="spacing">
+          <number>12</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="buttonCopyImport">
-         <property name="text">
-          <string>R Import code</string>
-         </property>
-        </widget>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonCopyFull">
+           <property name="text">
+            <string>Copy full R code</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonCopyImport">
+           <property name="text">
+            <string>R Import code</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="ImageView" name="histogram" native="true">

@@ -9,6 +9,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = TableView
 TEMPLATE = app
+VERSION = 0.2
 
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc

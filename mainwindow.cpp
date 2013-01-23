@@ -343,6 +343,7 @@ void MainWindow::filterFinished()
     m_tableModel->select();
     if (m_tableModel->lastError().type() != QSqlError::NoError) {
         SheetMessageBox::warning(this, tr("Cannot apply the filter."), m_tableModel->lastError().text());
+        return;
     }
 
     ui->sqlLine->setStyleSheet("");
