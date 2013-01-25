@@ -241,6 +241,7 @@ void MainWindow::onRecentFileShow()
         QFileInfo info(file);
         QAction *action = ui->menuRecent_Files->addAction(info.completeBaseName());
         action->setData(file);
+        action->setToolTip(file);
         connect(action, SIGNAL(triggered()), SLOT(onRecentFileOpen()));
     }
 
@@ -255,7 +256,12 @@ void MainWindow::onRecentFileShow()
 void MainWindow::onRecentFileOpen()
 {
     QAction *action = static_cast<QAction *>(sender());
-    open(action->data().toString());
+    QFileInfo fileinfo(action->data().toString());
+    if (fileinfo.exists()) {
+        open(action->data().toString());
+    } else {
+        SheetMessageBox::critical(0, tr("Cannot open recent file."), tr("%1 is not found.").arg(fileinfo.completeBaseName()));
+    }
 }
 
 void MainWindow::onClearRecentFiles()
@@ -387,10 +393,19 @@ void MainWindow::tableChanged(const QString &name)
 
     m_tableModel->setTable(name);
     ui->sqlLine->setTable(name);
-    m_tableModel->select();
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
     m_isDirty = false;
     setWindowModified(false);
+    m_tableModel->select();
+    if (m_tableModel->lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::warning(this, tr("Cannot select table."), m_tableModel->lastError().text());
+        return;
+    }
+    ui->actionInsert->setEnabled(m_tableModel->editable());
+    ui->actionDelete->setEnabled(m_tableModel->editable());
+    ui->actionCommit->setEnabled(m_tableModel->editable());
+    ui->actionRevert->setEnabled(m_tableModel->editable());
+    setWindowTitle(QString("[*] %1 : %2").arg(m_tableModel->plainTableName(), QFileInfo(m_database.databaseName()).completeBaseName()));
     filterFinished();
 }
 
@@ -529,6 +544,8 @@ void MainWindow::on_actionInsert_triggered()
 {
     if (m_tableModel->plainTableName().isEmpty())
         return;
+    if (!m_tableModel->editable())
+        return;
     QItemSelectionModel *selection = ui->tableView->selectionModel();
     QList<int> rows;
     foreach (QModelIndex index, selection->selectedIndexes()) {
@@ -546,6 +563,8 @@ void MainWindow::on_actionInsert_triggered()
 void MainWindow::on_actionDelete_triggered()
 {
     if (m_tableModel->plainTableName().isEmpty())
+        return;
+    if (!m_tableModel->editable())
         return;
     QItemSelectionModel *selection = ui->tableView->selectionModel();
     QList<int> rows;
@@ -605,7 +624,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
             return QString();
     }
 
-    QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.baseName()), tr("Cancel"), 0, fileInfo.size(), this);
+    QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.completeBaseName()), tr("Cancel"), 0, fileInfo.size(), this);
     progress2.setWindowModality(Qt::WindowModal);
 
     // creat table
@@ -955,7 +974,7 @@ void MainWindow::on_actionR_code_to_import_triggered()
     if (m_tableModel->plainTableName().isEmpty())
         return;
     QFileInfo fileInfo(m_filepath);
-    QString basename = fileInfo.baseName();
+    QString basename = fileInfo.completeBaseName();
     QString where;
     if (!ui->sqlLine->toPlainText().isEmpty())
         where = QString("WHERE %1").arg(ui->sqlLine->toPlainText());

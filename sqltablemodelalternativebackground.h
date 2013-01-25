@@ -15,7 +15,7 @@ public:
     virtual void setTable(const QString &tableName);
     QString plainTableName() const;
 
-    bool editable() { return m_editable; }
+    bool editable() { return m_editable && !m_view; }
     bool isView() { return m_view; }
 
 private:

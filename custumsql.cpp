@@ -26,7 +26,7 @@ CustumSql::CustumSql(QSqlDatabase *database, QWidget *parent) :
 #else
     ui->tableView->horizontalHeader()->setMovable(true);
 #endif
-    setWindowTitle("Custum SQL "+QFileInfo(database->databaseName()).baseName());
+    setWindowTitle("Custum SQL "+QFileInfo(database->databaseName()).completeBaseName());
 
     ui->splitter->setStretchFactor(0, 0);
     ui->splitter->setStretchFactor(1, 1);
