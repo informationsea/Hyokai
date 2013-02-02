@@ -53,6 +53,11 @@ QTableView *CustumSql::tableView()
     return ui->tableView;
 }
 
+void CustumSql::selectTableAll()
+{
+    ui->tableView->selectAll();
+}
+
 void CustumSql::on_pushButton_clicked()
 {
     if(ui->sql->toPlainText().isEmpty())
@@ -134,6 +139,8 @@ void CustumSql::on_historyButton_clicked()
             action = historyMenu->addAction(showName);
         else if (count < MAX_HISTORY_SHOW_MORE_ITEMS)
             action = additionalHistoy->addAction(showName);
+        else
+            break;
         action->setData(query);
         connect(action, SIGNAL(triggered()), SLOT(onHistorySelected()));
         count += 1;

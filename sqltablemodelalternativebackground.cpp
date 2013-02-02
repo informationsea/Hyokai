@@ -52,3 +52,16 @@ QString SqlTableModelAlternativeBackground::plainTableName() const
 {
     return removeQuote(QSqlTableModel::tableName());
 }
+
+long long SqlTableModelAlternativeBackground::sqlRowCount()
+{
+    QSqlQuery count;
+    if (filter().isEmpty()) {
+        count = database().exec(QString("SELECT count(*) FROM %1;").arg(tableName()));
+    } else {
+        count = database().exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(tableName(), filter()));
+    }
+
+    count.next();
+    return count.value(0).toLongLong();
+}

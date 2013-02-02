@@ -260,14 +260,14 @@ void PreferenceWindow::on_removeSqlTemplate_clicked()
 
 void PreferenceWindow::on_lineRPath_textChanged(const QString &arg1)
 {
-    if (arg1.endsWith("Rscript")) {
+    if (arg1.endsWith("Rscript") || arg1.endsWith("Rscript.exe")) {
         tableview_settings->setValue(PATH_R, arg1);
     }
 }
 
 void PreferenceWindow::on_buttonRPath_clicked()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Select Rscript"), ui->lineRPath->text(), "Rscript (Rscript)");
+    QString path = QFileDialog::getOpenFileName(this, tr("Select Rscript"), ui->lineRPath->text(), "Rscript (Rscript Rscript.exe)");
     if (path.isEmpty())
         return;
     tableview_settings->setValue(PATH_R, path);

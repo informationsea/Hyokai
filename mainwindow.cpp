@@ -63,6 +63,8 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     move(nextWindowPosition());
 
     m_filepath = path;
+    QFileInfo fileinfo(path);
+    setWindowTitle(QString("[*] ") + fileinfo.completeBaseName());
 
     open_count++;
     m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
@@ -132,8 +134,6 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     } else {
         ui->actionR_code_to_import->setEnabled(false);
     }
-    QFileInfo fileinfo(path);
-    setWindowTitle(QString("[*] ") + fileinfo.completeBaseName());
 }
 
 void MainWindow::setupTableModel()
@@ -363,15 +363,7 @@ void MainWindow::filterFinished()
     }
     tableview_settings->setValue(SQL_FILTER_HISTORY, history);
 
-    QSqlQuery count;
-    if (ui->sqlLine->toPlainText().isEmpty()) {
-        count = m_database.exec(QString("SELECT count(*) FROM %1;").arg(m_tableModel->tableName()));
-    } else {
-        count = m_database.exec(QString("SELECT count(*) FROM %1 WHERE %2;").arg(m_tableModel->tableName(), ui->sqlLine->toPlainText()));
-    }
-
-    count.next();
-    m_rowcountlabel->setText(QString("%1 rows").arg(QString::number(count.value(0).toLongLong())));
+    m_rowcountlabel->setText(QString("%1 rows").arg(QString::number(m_tableModel->sqlRowCount())));
 }
 
 void MainWindow::filterChainging()
@@ -388,6 +380,8 @@ void MainWindow::tableChanged(const QString &name)
 {
     if (name == m_tableModel->plainTableName())
         return;
+    if (name.isEmpty())
+        return;
     if (!confirmDuty())
         return;
 
@@ -399,6 +393,7 @@ void MainWindow::tableChanged(const QString &name)
     m_tableModel->select();
     if (m_tableModel->lastError().type() != QSqlError::NoError) {
         SheetMessageBox::warning(this, tr("Cannot select table."), m_tableModel->lastError().text());
+        m_tableModel->clear();
         return;
     }
     ui->actionInsert->setEnabled(m_tableModel->editable());
@@ -516,7 +511,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "All (*.sqlite3; *.txt; *.csv);;SQLite3 (*.sqlite3);; Text (*.txt);; CSV (*.csv);; All (*)");
+                                                "All (*.sqlite3 *.txt *.csv);;SQLite3 (*.sqlite3);; Text (*.txt);; CSV (*.csv);; All (*)");
     if (path.isEmpty())
         return;
     if (path.endsWith(".sqlite3")) {
@@ -526,6 +521,7 @@ void MainWindow::on_actionOpen_triggered()
     }
     QFileInfo fileInfo(path);
     tableview_settings->setValue(LAST_SQLITE_DIRECTORY, fileInfo.dir().absolutePath());
+    tableview_settings->sync();
 }
 
 void MainWindow::on_actionNew_triggered()
@@ -750,7 +746,7 @@ void MainWindow::on_actionAbout_Table_View_triggered()
     about.setTextFormat(Qt::RichText);
     about.setText(tr("Table View 0.2<br /><br />"
                      "Simple SQLite Viewer<br /><br />"
-                     "Copyright (C) 2012 Y.Okamura<br /><br />"
+                     "Copyright (C) 2013 Y.Okamura<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/TableView\">Github</a><hr />"
                      "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
                      "Build at " __DATE__));
@@ -995,12 +991,21 @@ void MainWindow::on_buttonAssist_clicked()
     QMenu *historyMenu = m_assistPopup.addMenu(tr("History"));
     QStringList history = tableview_settings->value(SQL_FILTER_HISTORY).toStringList();
     foreach (QString oneHistory, history) {
-        QAction *action = historyMenu->addAction(oneHistory);
+        QString showHistory = oneHistory;
+        if (oneHistory.length() > 150) {
+            showHistory = QString("%1 .. %2").arg(oneHistory.left(75), oneHistory.right(75));
+        }
+        QAction *action = historyMenu->addAction(showHistory);
         action->setData(oneHistory);
         connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
     }
     if (history.isEmpty()) {
         historyMenu->setEnabled(false);
+    } else {
+        historyMenu->addSeparator();
+        QAction *action = historyMenu->addAction(tr("Clear"));
+        action->setData("<CLEAR>");
+        connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
     }
 
     m_assistPopup.addSeparator();
@@ -1041,6 +1046,10 @@ void MainWindow::insertSqlFilter()
 {
     QAction *senderAction = (QAction *)sender();
     QString add = senderAction->data().toString();
+    if (add.compare("<CLEAR>") == 0) {
+        tableview_settings->setValue(SQL_FILTER_HISTORY, QVariant());
+        return;
+    }
     ui->sqlLine->insertPlainText(add);
 }
 
@@ -1090,4 +1099,24 @@ void MainWindow::on_actionCopy_with_header_triggered()
     }
 
     copyFromTableView(tableView, true);
+}
+
+void MainWindow::on_actionSelect_All_triggered()
+{
+    if (m_custumSql && m_custumSql->isActiveWindow()) {
+        m_custumSql->selectTableAll();
+    } else {
+        int count = 0;
+        ui->tableView->scrollToBottom();
+        while (m_tableModel->sqlRowCount() != m_tableModel->rowCount()) {
+            if (count == 10) {
+                if (SheetMessageBox::warning(this, tr("Select All"), tr("This operation tooks long time. Do you want to continue?"), QMessageBox::Yes|QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
+                    return;
+                }
+            }
+            ui->tableView->scrollToBottom();
+            count += 1;
+        }
+        ui->tableView->selectAll();
+    }
 }

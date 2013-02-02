@@ -17,6 +17,7 @@ public:
 
     bool editable() { return m_editable && !m_view; }
     bool isView() { return m_view; }
+    long long sqlRowCount();
 
 private:
     bool m_editable;

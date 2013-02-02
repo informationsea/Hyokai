@@ -3,7 +3,7 @@
 #include <QFileOpenEvent>
 #include <QApplication>
 #include "main.h"
-#include "mainwindow.h";
+#include "mainwindow.h"
 #include <QDebug>
 
 FileEventHandler::FileEventHandler(QObject *parent) :

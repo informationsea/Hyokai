@@ -27,6 +27,9 @@ public:
     ~CustumSql();
 
     QTableView *tableView();
+
+public slots:
+    void selectTableAll();
     
 private slots:
     void on_pushButton_clicked();
