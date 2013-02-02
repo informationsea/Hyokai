@@ -11,6 +11,11 @@ macdeployqt TableView.app # for dynamic link library
 cp Info.plist TableView.app/Contents/
 cp ../images/fileicon/sqlite.icns TableView.app/Contents/Resources
 cp ../images/fileicon/table.icns TableView.app/Contents/Resources
+
+if [ -f ./codesign.sh ];then
+    sh ./codesign.sh
+fi
+
 rm TableView-osx.zip
 7za a TableView-osx.zip TableView.app
 
