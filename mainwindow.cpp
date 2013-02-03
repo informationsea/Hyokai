@@ -10,6 +10,7 @@
 #include "sqltablemodelalternativebackground.h"
 #include "attachdatabasedialog.h"
 #include "summarydialog.h"
+#include "databaseconnectiondialog.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -55,21 +56,33 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_isDirty(false), m_custumSql(0)
 {
+    m_databasename = path;
+
+    open_count++;
+    m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
+    m_database.setDatabaseName(path);
+    m_database.open();
+
+    initialize();
+}
+
+MainWindow::MainWindow(QSqlDatabase database, QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow), m_isDirty(false), m_custumSql(0)
+{
+    m_databasename = database.databaseName();
+    m_database = database;
+    initialize();
+}
+
+void MainWindow::initialize()
+{
     ui->setupUi(this);
     m_rowcountlabel = new QLabel(ui->statusBar);
     //ui->statusBar->addWidget(sqlLineCount);
     ui->statusBar->addPermanentWidget(m_rowcountlabel);
 
     move(nextWindowPosition());
-
-    m_filepath = path;
-    QFileInfo fileinfo(path);
-    setWindowTitle(QString("[*] ") + fileinfo.completeBaseName());
-
-    open_count++;
-    m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
-    m_database.setDatabaseName(path);
-    m_database.open();
 
 #if !defined(Q_OS_WIN32)
     QVariant v = m_database.driver()->handle();
@@ -102,33 +115,38 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     ui->tableView->horizontalHeader()->installEventFilter(this);
     ui->sqlLine->setDatabase(&m_database);
 
-    if (m_filepath.compare(":memory:") == 0) {
+    if (m_databasename.compare(":memory:") == 0 || m_database.driverName() != "QSQLITE") {
         ui->actionView_in_File_Manager->setEnabled(false);
+        setWindowTitle(QString("[*] ") + m_databasename);
+    } else {
+        setWindowTitle(QString("[*] ") + QFileInfo(m_databasename).completeBaseName());
     }
 
-    QList<QVariant> attachdb = tableview_settings->value(ATTACHED_DATABASES).toList();
-    foreach(QVariant l, attachdb) {
-        QStringList list = l.toStringList();
-        QString as = list[0].replace("\"", "");
-        QString db = list[1].replace("\"", "");
-        QSqlQuery q = m_database.exec(QString("ATTACH DATABASE \"%1\" AS \"%2\"").arg(db, as));
-        if (q.lastError().type() != QSqlError::NoError) {
-            SheetMessageBox::critical(NULL, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+q.lastQuery());
+    if (m_database.driverName() == "QSQLITE") {
+        QList<QVariant> attachdb = tableview_settings->value(ATTACHED_DATABASES).toList();
+        foreach(QVariant l, attachdb) {
+            QStringList list = l.toStringList();
+            QString as = list[0].replace("\"", "");
+            QString db = list[1].replace("\"", "");
+            QSqlQuery q = m_database.exec(QString("ATTACH DATABASE \"%1\" AS \"%2\"").arg(db, as));
+            if (q.lastError().type() != QSqlError::NoError) {
+                SheetMessageBox::critical(NULL, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+q.lastQuery());
+            }
         }
     }
 
     filterFinished();
 
-    if (m_filepath.compare(":memory:") != 0) {
-        setWindowFilePath(m_filepath);
+    if (m_databasename.compare(":memory:") != 0 && m_database.driverName() == "QSQLITE") {
+        setWindowFilePath(m_databasename);
 
         // update recent files
         QStringList recent = tableview_settings->value(RECENT_FILES).toStringList();
-        if (recent.contains(m_filepath))
-            recent.removeOne(m_filepath);
+        if (recent.contains(m_databasename))
+            recent.removeOne(m_databasename);
         while (recent.size() >= RECENT_FILES_MAX)
             recent.removeLast();
-        recent.insert(0, m_filepath);
+        recent.insert(0, m_databasename);
         tableview_settings->setValue(RECENT_FILES, recent);
         tableview_settings->sync();
     } else {
@@ -154,7 +172,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (m_filepath.compare(":memory:") == 0 && m_database.tables().size()) {
+    if (m_databasename.compare(":memory:") == 0 && m_database.tables().size()) {
         QMessageBox::StandardButton selected =
                 SheetMessageBox::warning(this, tr("All changes will be destoried."),
                                          tr("All changes in memory database will NOT be saved. You have to export table to save."),
@@ -220,7 +238,7 @@ void MainWindow::onWindowMenuShow()
     m_windowList.clear();
     m_windowList = QApplication::topLevelWidgets();
     for (int i = 0; i < m_windowList.size(); ++i) {
-        if (m_windowList[i]->isVisible()) {
+        if (m_windowList[i]->isVisible() && !m_windowList[i]->windowTitle().isEmpty()) {
             QAction *action = ui->menuWindow->addAction(m_windowList[i]->windowTitle().replace("[*] ", ""));
             action->setCheckable(true);
             if (m_windowList[i]->isActiveWindow())
@@ -496,7 +514,7 @@ void MainWindow::open(QString path)
     MainWindow *w = new MainWindow(NULL, path);
     w->show();
     ::windowList.append(w);
-    if (m_filepath.compare(":memory:") == 0 && m_database.tables().size() == 0) {
+    if (m_databasename.compare(":memory:") == 0 && m_database.tables().size() == 0) {
         close();
     }
 }
@@ -834,7 +852,7 @@ void MainWindow::on_actionExport_Table_triggered()
 void MainWindow::on_actionOpen_In_Memory_Database_triggered()
 {
     foreach (MainWindow *window, windowList) {
-        if (window->isVisible() && window->filePath() == ":memory:") {
+        if (window->isVisible() && window->databaseName() == ":memory:") {
             window->activateWindow();
             return;
         }
@@ -946,9 +964,9 @@ void MainWindow::on_actionAttach_Database_triggered()
 
 void MainWindow::on_actionView_in_File_Manager_triggered()
 {
-    if (m_filepath == ":memory:")
+    if (m_databasename == ":memory:")
         return;
-    QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(m_filepath).dir().absolutePath()));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(m_databasename).dir().absolutePath()));
 }
 
 void MainWindow::on_actionPreference_triggered()
@@ -963,13 +981,13 @@ void MainWindow::on_actionPreference_triggered()
 
 void MainWindow::on_actionR_code_to_import_triggered()
 {
-    if (m_filepath == ":memory:")
+    if (m_databasename == ":memory:")
         return;
     QString tableName = m_tableModel->tableName();
     QString tableName2 = m_tableModel->plainTableName();
     if (m_tableModel->plainTableName().isEmpty())
         return;
-    QFileInfo fileInfo(m_filepath);
+    QFileInfo fileInfo(m_databasename);
     QString basename = fileInfo.completeBaseName();
     QString where;
     if (!ui->sqlLine->toPlainText().isEmpty())
@@ -978,7 +996,7 @@ void MainWindow::on_actionR_code_to_import_triggered()
                           "library(RSQLite)\n"
                           "connection.%1 <- dbConnect(dbDriver(\"SQLite\"), dbname=\"%2\")\n"
                           "table.%3 <- dbGetQuery(connection.%1, \"select * from %4 %5;\")\n"
-                          "dbDisconnect(connection.%1)\n").arg(normstr(basename), m_filepath, tableName2,
+                          "dbDisconnect(connection.%1)\n").arg(normstr(basename), m_databasename, tableName2,
                                                                normstr(tableName));
     QClipboard *clip = QApplication::clipboard();
     clip->setText(str);
@@ -1119,4 +1137,10 @@ void MainWindow::on_actionSelect_All_triggered()
         }
         ui->tableView->selectAll();
     }
+}
+
+void MainWindow::on_actionConnect_to_database_triggered()
+{
+    DatabaseConnectionDialog *dialog = new DatabaseConnectionDialog();
+    dialog->show();
 }

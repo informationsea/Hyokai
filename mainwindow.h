@@ -19,9 +19,10 @@ class MainWindow : public QMainWindow
     
 public:
     explicit MainWindow(QWidget *parent = 0, QString path = ":memory:");
+    explicit MainWindow(QSqlDatabase database, QWidget *parent = 0);
     ~MainWindow();
 
-    QString filePath() { return m_filepath; }
+    QString databaseName() { return m_databasename; }
     void refresh();
     void importOneFile(const QString &path);
     bool isDirty() { return m_isDirty; }
@@ -34,10 +35,12 @@ private:
     QSqlDatabase m_database;
     SqlTableModelAlternativeBackground *m_tableModel;
     QLabel *m_rowcountlabel;
-    QString m_filepath;
+    QString m_databasename;
     bool m_isDirty;
     CustumSql *m_custumSql;
     QMenu m_assistPopup;
+
+    void initialize();
 
     void open(QString path);
     bool confirmDuty(); // return false if canceled
@@ -91,6 +94,7 @@ private slots:
     void on_actionDrop_Table_triggered();
     void on_actionCopy_with_header_triggered();
     void on_actionSelect_All_triggered();
+    void on_actionConnect_to_database_triggered();
 };
 
 #endif // MAINWINDOW_H

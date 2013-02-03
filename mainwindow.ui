@@ -120,6 +120,7 @@
      </property>
      <addaction name="actionClear"/>
     </widget>
+    <addaction name="actionConnect_to_database"/>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
     <addaction name="menuRecent_Files"/>
@@ -480,6 +481,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionConnect_to_database">
+   <property name="text">
+    <string>Connect to database...</string>
    </property>
   </action>
  </widget>

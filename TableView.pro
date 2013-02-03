@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     summarydialog.cpp \
     imageview.cpp \
     sqltextedit.cpp \
-    sqlite3-extension/extension-functions.c
+    sqlite3-extension/extension-functions.c \
+    databaseconnectiondialog.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -47,7 +48,8 @@ HEADERS  += mainwindow.h \
     imageview.h \
     sqltextedit.h \
     sqlite3-extension/sqlite3ext.h \
-    sqlite3-extension/sqlite3.h
+    sqlite3-extension/sqlite3.h \
+    databaseconnectiondialog.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
@@ -61,7 +63,8 @@ FORMS    += mainwindow.ui \
     attachdatabasedialog.ui \
     jointabledialog.ui \
     preferencewindow.ui \
-    summarydialog.ui
+    summarydialog.ui \
+    databaseconnectiondialog.ui
 
 RESOURCES += \
     resouces.qrc

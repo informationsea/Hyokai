@@ -123,7 +123,7 @@ void SQLSyntaxHighligter::highlightBlock(const QString &text)
 
         QStringList columns;
         foreach(QString oneTable, foundTables) {
-            QSqlRecord record = m_database->record(addQuote(oneTable));
+            QSqlRecord record = m_database->record(oneTable);
             for (int i = 0; i < record.count(); ++i) {
                 columns << record.fieldName(i);
             }

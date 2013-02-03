@@ -28,7 +28,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
             if (::windowList.length() == 1) {
                 MainWindow *onlyWindow = ::windowList.at(0);
                 if (onlyWindow->isVisible() &&
-                        onlyWindow->filePath() == ":memory:" &&
+                        onlyWindow->databaseName() == ":memory:" &&
                         !onlyWindow->isDirty()) {
                     onlyWindow->close();
                 }
@@ -44,7 +44,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
 
             MainWindow *w;
             foreach (MainWindow *window, ::windowList) {
-                if (window->isVisible() && window->filePath() == ":memory:") {
+                if (window->isVisible() && window->databaseName() == ":memory:") {
                     window->activateWindow();
                     w = window;
                     goto opened;

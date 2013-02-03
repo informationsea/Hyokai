@@ -37,7 +37,13 @@ Qt::ItemFlags SqlTableModelAlternativeBackground::flags(const QModelIndex &index
 
 void SqlTableModelAlternativeBackground::setTable(const QString &tableName)
 {
-    QSqlTableModel::setTable(addQuote(tableName));
+    beginResetModel();
+    clear();
+    if (database().driverName() == "QSQLITE") {
+        QSqlTableModel::setTable(addQuote(tableName));
+    } else {
+        QSqlTableModel::setTable(tableName);
+    }
 
     m_view = false;
     foreach(QString view, database().tables(QSql::Views)) {
@@ -46,6 +52,7 @@ void SqlTableModelAlternativeBackground::setTable(const QString &tableName)
             break;
         }
     }
+    endResetModel();
 }
 
 QString SqlTableModelAlternativeBackground::plainTableName() const
