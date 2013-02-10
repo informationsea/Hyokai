@@ -1144,3 +1144,27 @@ void MainWindow::on_actionConnect_to_database_triggered()
     DatabaseConnectionDialog *dialog = new DatabaseConnectionDialog();
     dialog->show();
 }
+
+void MainWindow::on_actionDuplicate_connection_triggered()
+{
+    ::tableviewCleanupWindows();
+    MainWindow *w = new MainWindow(m_database);
+    w->show();
+    windowList.append(w);
+}
+
+void MainWindow::on_actionDatabase_Information_triggered()
+{
+    SheetMessageBox::information(this, tr("Database Information"),
+                                 QString("Database type: %1\n"
+                                         "Host name: %2\n"
+                                         "Port: %3\n"
+                                         "User name: %4\n"
+                                         "Database name: %5\n"
+                                         "Connection name: %6").arg(m_database.driverName(),
+                                                                    m_database.hostName(),
+                                                                    QString::number(m_database.port()),
+                                                                    m_database.userName(),
+                                                                    m_database.databaseName(),
+                                                                    m_database.connectionName()));
+}

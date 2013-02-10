@@ -126,8 +126,12 @@
     <addaction name="menuRecent_Files"/>
     <addaction name="actionOpen_In_Memory_Database"/>
     <addaction name="separator"/>
+    <addaction name="actionDuplicate_connection"/>
+    <addaction name="actionDatabase_Information"/>
+    <addaction name="separator"/>
     <addaction name="actionView_in_File_Manager"/>
     <addaction name="actionClose"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuTable">
@@ -486,6 +490,22 @@
   <action name="actionConnect_to_database">
    <property name="text">
     <string>Connect to database...</string>
+   </property>
+  </action>
+  <action name="actionDuplicate_connection">
+   <property name="text">
+    <string>Duplicate connection</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionDatabase_Information">
+   <property name="text">
+    <string>Database Information...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>

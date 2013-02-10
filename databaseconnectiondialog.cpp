@@ -25,7 +25,7 @@ DatabaseConnectionDialog::~DatabaseConnectionDialog()
 
 void DatabaseConnectionDialog::accept()
 {
-    QString connectionName = QDateTime::currentDateTime().toString("yyMMDDhhmmsszzz");
+    QString connectionName = QDateTime::currentDateTime().toString("yyMMddhhmmsszzz");
     QSqlDatabase newconnection;
     if (ui->radioButtonSQLite->isChecked()) {
         newconnection = QSqlDatabase::addDatabase("QSQLITE", connectionName);

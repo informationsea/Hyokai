@@ -21,6 +21,12 @@ QVariant SqlTableModelAlternativeBackground::data(const QModelIndex & index, int
         if (index.row() % 2)
             return QVariant(QColor("#E8EDF5"));
         break;
+    case Qt::DisplayRole: {
+        QVariant d = QSqlTableModel::data(index, role);
+        if (d.type() == QVariant::String)
+            return d.toString().split("\n").at(0);
+        return d;
+    }
     }
 
     return QSqlTableModel::data(index, role);

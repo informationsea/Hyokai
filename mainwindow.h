@@ -95,6 +95,8 @@ private slots:
     void on_actionCopy_with_header_triggered();
     void on_actionSelect_All_triggered();
     void on_actionConnect_to_database_triggered();
+    void on_actionDuplicate_connection_triggered();
+    void on_actionDatabase_Information_triggered();
 };
 
 #endif // MAINWINDOW_H
