@@ -640,9 +640,6 @@ QString MainWindow::importFile(QString import, bool autoimport)
             return QString();
     }
 
-    QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.completeBaseName()), tr("Cancel"), 0, fileInfo.size(), this);
-    progress2.setWindowModality(Qt::WindowModal);
-    progress2.show();
 
     // creat table
     fields = dialog.fields();
@@ -677,6 +674,9 @@ QString MainWindow::importFile(QString import, bool autoimport)
         file.readLine();
     }
 
+    QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.completeBaseName()), tr("Cancel"), 0, fileInfo.size(), this);
+    progress2.setWindowModality(Qt::WindowModal);
+
     if (dialog.firstLineIsHeader())
         file.readLine(); // skip header
 
@@ -693,7 +693,8 @@ QString MainWindow::importFile(QString import, bool autoimport)
         if (!insertQuery.exec()) {
             if (SheetMessageBox::warning(this, tr("Insert error"),
                                          insertQuery.lastError().text() + "\n\n" + insertQuery.lastQuery(),
-                                         QMessageBox::Ok|QMessageBox::Abort) == QMessageBox::Abort) {
+                                         QMessageBox::Abort) == QMessageBox::Abort) {
+                progress2.cancel();
                 break;
             }
         }

@@ -30,6 +30,52 @@ void SQLTextEdit::setTable(const QString &table)
     m_syntaxHilighter->setTable(table);
 }
 
+QStringList SQLTextEdit::loadFunctionList(const QString &driver)
+{
+    QFile listfile;
+    if (driver == "QSQLITE")
+        listfile.setFileName(":/txt/keywords/sqlite-functions.txt");
+    else if (driver == "QMYSQL")
+        listfile.setFileName(":/txt/keywords/mysql-functions.txt");
+    else if (driver == "QPSQL")
+        listfile.setFileName(":/txt/keywords/postgresql-functions.txt");
+    else
+        return QStringList();
+
+    listfile.open(QIODevice::ReadOnly);
+
+    QStringList list;
+    QString line;
+
+    while (!(line = listfile.readLine()).isEmpty()) {
+        list << line.trimmed();
+    }
+    return list;
+}
+
+QStringList SQLTextEdit::loadKeywords(const QString &driver)
+{
+    QFile listfile;
+    if (driver == "QSQLITE")
+        listfile.setFileName(":/txt/keywords/sqlite-keywords.txt");
+    else if (driver == "QMYSQL")
+        listfile.setFileName(":/txt/keywords/mysql-keywords.txt");
+    else if (driver == "QPSQL")
+        listfile.setFileName(":/txt/keywords/postgresql-keywords.txt");
+    else
+        return QStringList();
+
+    listfile.open(QIODevice::ReadOnly);
+
+    QStringList list;
+    QString line;
+
+    while (!(line = listfile.readLine()).isEmpty()) {
+        list << line.trimmed();
+    }
+    return list;
+}
+
 void SQLTextEdit::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Enter ||
@@ -70,27 +116,6 @@ SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
                    << "SELECT"
                    << "UPDATE"
                    << "VACUUM";
-
-    QByteArray line;
-    QFile keyword(":/txt/sqlkeywords.txt");
-    keyword.open(QIODevice::ReadOnly);
-    while(!(line = keyword.readLine()).isEmpty()) {
-        m_keyword_list.append(line.trimmed());
-    }
-
-    QFile functions(":/txt/functionlist.txt");
-    functions.open(QIODevice::ReadOnly);
-    QByteArray functionLine;
-    while (!(functionLine = functions.readLine()).isEmpty()) {
-        QString func(functionLine);
-        if (!func.startsWith(">")) {
-            int pos = func.indexOf('(');
-            if (pos > 0)
-                m_function_list << func.left(pos).trimmed();
-            else
-                m_function_list << func.trimmed();
-        }
-    }
 
     m_sql_command_format.setForeground(QBrush(QColor("#1F36E0")));
     m_sql_command_format.setFontWeight(QFont::Bold);
@@ -145,6 +170,13 @@ void SQLSyntaxHighligter::highlightBlock(const QString &text)
 void SQLSyntaxHighligter::setDatabase(QSqlDatabase *database)
 {
     m_database = database;
+
+    m_keyword_list = SQLTextEdit::loadKeywords(m_database->driverName());
+
+    foreach (const QString line, SQLTextEdit::loadFunctionList(m_database->driverName())) {
+        if (!line.startsWith(">"))
+            m_function_list << line;
+    }
 }
 
 void SQLSyntaxHighligter::setTable(const QString &table)

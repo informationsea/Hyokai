@@ -28,6 +28,8 @@ private slots:
 
     void on_pushButtonSQLiteChoose_clicked();
 
+    void on_radioButtonODBC_clicked(bool checked);
+
 private:
     Ui::DatabaseConnectionDialog *ui;
 };

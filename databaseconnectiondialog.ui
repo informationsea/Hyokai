@@ -48,12 +48,9 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QRadioButton" name="radioButtonFirebird">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
+       <widget class="QRadioButton" name="radioButtonODBC">
         <property name="text">
-         <string>Firebird</string>
+         <string>ODBC</string>
         </property>
        </widget>
       </item>
@@ -166,6 +163,23 @@
        </item>
        <item row="4" column="1">
         <widget class="QLineEdit" name="lineEditDatabaseName"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Connection options:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="lineEditConnectionOptions">
+         <property name="toolTip">
+          <string>Don't use this field if you don't understant what is this!</string>
+         </property>
+         <property name="placeholderText">
+          <string>Advanced options</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

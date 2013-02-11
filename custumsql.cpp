@@ -310,20 +310,21 @@ void CustumSql::createMenus()
     }
 
 
-    QFile functions(":/txt/functionlist.txt");
-    functions.open(QIODevice::ReadOnly);
+    //QFile functions(":/txt/functionlist.txt");
+    //functions.open(QIODevice::ReadOnly);
 
     QMenu *functioninsert = assistMenu->addMenu(tr("All SQL Functions"));
-    QByteArray functionLine;
-    while (!(functionLine = functions.readLine()).isEmpty()) {
-        QString func(functionLine);
-        if (functionLine.startsWith(">")) {
+    //QByteArray functionLine;
+    //while (!(functionLine = functions.readLine()).isEmpty()) {
+    foreach(QString func, SQLTextEdit::loadFunctionList(m_database->driverName())) {
+        //QString func(functionLine);
+        if (func.startsWith(">")) {
             functioninsert->addSeparator();
             QAction *action = functioninsert->addAction(func.right(func.size()-1));
             action->setEnabled(false);
         } else {
-            QAction *action = functioninsert->addAction(QString(functionLine).trimmed());
-            action->setData(QString(functionLine).trimmed());
+            QAction *action = functioninsert->addAction(func.trimmed());
+            action->setData(func.trimmed());
             connect(action, SIGNAL(triggered()), SLOT(insertSql()));
         }
     }

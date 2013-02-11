@@ -74,5 +74,4 @@ OTHER_FILES += \
     images/fileicon/table.icns \
     images/fileicon/sqlite.ico \
     images/fileicon/sqlite.icns \
-    sqlkeywords.txt \
     functionlist.txt

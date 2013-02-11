@@ -23,7 +23,11 @@
         <file>images/user-trash.png</file>
     </qresource>
     <qresource prefix="/txt">
-        <file>sqlkeywords.txt</file>
-        <file>functionlist.txt</file>
+        <file>keywords/mysql-keywords.txt</file>
+        <file>keywords/sqlite-functions.txt</file>
+        <file>keywords/sqlite-keywords.txt</file>
+        <file>keywords/mysql-functions.txt</file>
+        <file>keywords/postgresql-keywords.txt</file>
+        <file>keywords/postgresql-functions.txt</file>
     </qresource>
 </RCC>

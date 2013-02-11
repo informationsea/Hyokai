@@ -30,12 +30,18 @@ void DatabaseConnectionDialog::accept()
     if (ui->radioButtonSQLite->isChecked()) {
         newconnection = QSqlDatabase::addDatabase("QSQLITE", connectionName);
         newconnection.setDatabaseName(ui->lineEditSQLiteDatabase->text());
+        if (ui->checkBoxSQLiteReadOnly->isChecked()) {
+            newconnection.setConnectOptions("QSQLITE_OPEN_READONLY=1;");
+        }
     } else if (ui->radioButtonMySQL->isChecked() || ui->radioButtonPostgreSQL->isChecked()) {
         if (ui->radioButtonMySQL->isChecked()) {
             newconnection = QSqlDatabase::addDatabase("QMYSQL", connectionName);
-        } else {
+        } else if (ui->radioButtonPostgreSQL->isChecked()) {
             newconnection = QSqlDatabase::addDatabase("QPSQL", connectionName);
+        } else {
+            newconnection = QSqlDatabase::addDatabase("QODBC", connectionName);
         }
+        newconnection.setConnectOptions(ui->lineEditConnectionOptions->text());
         newconnection.setHostName(ui->lineEditHostName->text());
         newconnection.setPort(ui->spinBoxPort->value());
         newconnection.setDatabaseName(ui->lineEditDatabaseName->text());
@@ -82,4 +88,9 @@ void DatabaseConnectionDialog::on_pushButtonSQLiteChoose_clicked()
         return;
     tableview_settings->setValue(LAST_SQLITE_DIRECTORY, QFileInfo(path).dir().absolutePath());
     ui->lineEditSQLiteDatabase->setText(path);
+}
+
+void DatabaseConnectionDialog::on_radioButtonODBC_clicked(bool checked)
+{
+    // Do nothing
 }

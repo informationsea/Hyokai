@@ -44,6 +44,9 @@ public:
     void setDatabase(QSqlDatabase *database);
     void setTable(const QString &table);
 
+    static QStringList loadFunctionList(const QString &driver);
+    static QStringList loadKeywords(const QString &driver);
+
 protected:
     void virtual keyPressEvent ( QKeyEvent * event );
 
