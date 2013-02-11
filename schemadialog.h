@@ -33,7 +33,7 @@ public:
     char delimiter() const;
     int skipLines() const;
     bool firstLineIsHeader() const;
-    static QList<SchemaField> suggestSchema(QFile *file, char delimiter, int skipLines, bool firstLineIsHeader, int suggestLine, QWidget *progressParent);
+    QList<SchemaField> suggestSchema(QFile *file, char delimiter, int skipLines, bool firstLineIsHeader, int suggestLine, QWidget *progressParent);
 
 private slots:
     void on_addButton_clicked();

@@ -172,7 +172,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (m_databasename.compare(":memory:") == 0 && m_database.tables().size()) {
+    if (m_database.driverName() == "QSQLITE" && m_databasename.compare(":memory:") == 0 && m_database.tables().size()) {
         QMessageBox::StandardButton selected =
                 SheetMessageBox::warning(this, tr("All changes will be destoried."),
                                          tr("All changes in memory database will NOT be saved. You have to export table to save."),
@@ -183,6 +183,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
             if (m_custumSql) {
                 m_custumSql->close();
             }
+            m_database.close();
             return;
         default:
             event->ignore();
@@ -197,6 +198,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         if (m_custumSql) {
             m_custumSql->close();
         }
+        m_database.close();
     }
 }
 
@@ -629,7 +631,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
         dialog.setName(tableName);
     }
 
-    QList<SchemaField> fields = SchemaDialog::suggestSchema(&file, delimiter, 0, true, 20, this);
+    QList<SchemaField> fields = dialog.suggestSchema(&file, delimiter, 0, true, 20, this);
 
     dialog.setDelimiter(delimiter);
     dialog.setFields(fields);
@@ -640,6 +642,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
 
     QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.completeBaseName()), tr("Cancel"), 0, fileInfo.size(), this);
     progress2.setWindowModality(Qt::WindowModal);
+    progress2.show();
 
     // creat table
     fields = dialog.fields();
@@ -685,17 +688,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
                 insertQuery.bindValue(i, "");
                 continue;
             }
-            switch(fields[i].fieldType()) {
-            case SchemaField::FIELD_INTEGER:
-                insertQuery.bindValue(i, elements[fields[i].logicalIndex()].toLongLong());
-                break;
-            case SchemaField::FIELD_REAL:
-                insertQuery.bindValue(i, elements[fields[i].logicalIndex()].toDouble());
-                break;
-            default:
-                insertQuery.bindValue(i, QString(elements[fields[i].logicalIndex()]));
-                break;
-            }
+            insertQuery.bindValue(i, QString(elements[fields[i].logicalIndex()]));
         }
         if (!insertQuery.exec()) {
             if (SheetMessageBox::warning(this, tr("Insert error"),

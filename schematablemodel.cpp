@@ -3,14 +3,14 @@
 #include <QColor>
 
 SchemaField::SchemaField() :
-    m_name(""), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
+    m_name(""), m_type("INTEGER"), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
 {
 
 }
 
 
 SchemaField::SchemaField(QString name) :
-    m_name(name), m_type(FIELD_NONE), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
+    m_name(name), m_type("INTEGER"), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
 {
 
 }
@@ -74,16 +74,7 @@ QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
         case 0:
             return m_fieldList[index.row()].name();
         case 1:
-            switch(m_fieldList[index.row()].fieldType()) {
-            case SchemaField::FIELD_INTEGER:
-                return "INTEGER";
-            case SchemaField::FIELD_REAL:
-                return "REAL";
-            case SchemaField::FIELD_TEXT:
-                return "TEXT";
-            case SchemaField::FIELD_NONE:
-                return "NONE";
-            }
+            return m_fieldList[index.row()].fieldType();
         case 2:
             return m_fieldList[index.row()].isPrimaryKey();
         case 3:
@@ -135,28 +126,8 @@ bool SchemaTableModel::setData ( const QModelIndex & index, const QVariant & val
             emit dataChanged(index, index);
             return true;
         case 1:{
-            QString text = value.toString().toUpper();
-            if (text == "INTEGER" || text.startsWith("I")) {
-                m_fieldList[index.row()].setFieldType(SchemaField::FIELD_INTEGER);
-                emit dataChanged(index, index);
-                return true;
-            }
-            if (text == "TEXT" || text.startsWith("T") || text.startsWith("C")) {
-                m_fieldList[index.row()].setFieldType(SchemaField::FIELD_TEXT);
-                emit dataChanged(index, index);
-                return true;
-            }
-            if (text == "REAL" || text.startsWith("D") || text.startsWith("F")) {
-                m_fieldList[index.row()].setFieldType(SchemaField::FIELD_REAL);
-                emit dataChanged(index, index);
-                return true;
-            }
-            if (text == "NONE" || text.startsWith("N") ) {
-                m_fieldList[index.row()].setFieldType(SchemaField::FIELD_NONE);
-                emit dataChanged(index, index);
-                return true;
-            }
-            // TODO: implement here
+            m_fieldList[index.row()].setFieldType(value.toString());
+            emit dataChanged(index, index);
             return false;
         }
         case 2:

@@ -140,20 +140,9 @@ QString SchemaDialog::createTableSql() const
         else
             sql += ",";
         sql += field.name();
+        sql += " ";
+        sql += field.fieldType();
 
-        switch(field.fieldType()) {
-        case SchemaField::FIELD_TEXT:
-            sql += " TEXT";
-            break;
-        case SchemaField::FIELD_INTEGER:
-            sql += " INTEGER";
-            break;
-        case SchemaField::FIELD_REAL:
-            sql += " REAL";
-            break;
-        default:
-            break;
-        }
         if (field.isPrimaryKey())
             hasPrimaryKey = true;
     }
@@ -241,6 +230,7 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
     QFileInfo fileInfo(file->fileName());
 
     QList<SchemaField> fields;
+    QList<SchemaField::FieldType> fieldTypes;
     QStringList fieldNames;
     //char separator = '\t';
     //if (import.endsWith(".csv"))
@@ -272,7 +262,7 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
         }
         fields.append(SchemaField(newfieldname));
         fieldNames.append(newfieldname);
-        fields.last().setFieldType(SchemaField::FIELD_INTEGER);
+        fieldTypes.append(SchemaField::FIELD_INTEGER);
         fields.last().setLogicalIndex(counter);
         counter += 1;
     }
@@ -283,7 +273,8 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
         QList<QByteArray> elements = file->readLine().trimmed().split(delimiter);
         while (elements.size() > fields.size()) {
             fields.append(SchemaField(QString("V%1").arg(QString::number(fields.size()))));
-            fields.last().setFieldType(SchemaField::FIELD_INTEGER);
+            fieldTypes.append(SchemaField::FIELD_INTEGER);
+            //fields.last().setFieldType(SchemaField::FIELD_INTEGER);
             fields.last().setLogicalIndex(fields.size()-1);
         }
 
@@ -300,7 +291,7 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
 
             bool ok;
             QString str(elements[i]);
-            switch (fields[i].fieldType()) {
+            switch (fieldTypes[i]) {
             case SchemaField::FIELD_NONE:
             case SchemaField::FIELD_TEXT:
                 break;
@@ -308,13 +299,13 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
                 str.toLongLong(&ok);
                 if (ok)
                     break;
-                fields[i].setFieldType(SchemaField::FIELD_REAL);
+                fieldTypes[i] = SchemaField::FIELD_REAL;
                 // no break
             case SchemaField::FIELD_REAL:
                 str.toDouble(&ok);
                 if (ok)
                     break;
-                fields[i].setFieldType(SchemaField::FIELD_TEXT);
+                fieldTypes[i] = SchemaField::FIELD_TEXT;
                 break;
             }
         }
@@ -323,10 +314,30 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
     skipSuggest:
 
     for(int i = 0; i < fields.size(); ++i) {
-        if (fields[i].fieldType() == SchemaField::FIELD_INTEGER ||
-                fields[i].fieldType() == SchemaField::FIELD_REAL ||
+        if (fieldTypes[i] == SchemaField::FIELD_INTEGER ||
+                fieldTypes[i] == SchemaField::FIELD_REAL ||
                 fields[i].maximumLength() < 20)
             fields[i].setIndexedField(true);
+
+        switch (fieldTypes[i]) {
+        case SchemaField::FIELD_INTEGER:
+            fields[i].setFieldType("INTEGER");
+            break;
+        case SchemaField::FIELD_REAL:
+            fields[i].setFieldType("REAL");
+            break;
+        case SchemaField::FIELD_TEXT:
+            if (m_sql_database->driverName() == "QSQLITE") {
+                fields[i].setFieldType("TEXT");
+            } else {
+                int round = ((int)(fields[i].maximumLength()*1.5/10))*10+10;
+                fields[i].setFieldType(QString("varchar(%1)").arg(round));
+            }
+            break;
+        default:
+            fields[i].setFieldType("NONE");
+            break;
+        }
     }
 
     if (suggestProgress) {

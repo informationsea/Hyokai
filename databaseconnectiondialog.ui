@@ -22,8 +22,8 @@
      <property name="title">
       <string>Database</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
        <widget class="QRadioButton" name="radioButtonSQLite">
         <property name="text">
          <string>SQLite</string>
@@ -33,17 +33,27 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="0">
        <widget class="QRadioButton" name="radioButtonMySQL">
         <property name="text">
          <string>MySQL</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="1">
        <widget class="QRadioButton" name="radioButtonPostgreSQL">
         <property name="text">
          <string>PostgreSQL</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QRadioButton" name="radioButtonFirebird">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Firebird</string>
         </property>
        </widget>
       </item>

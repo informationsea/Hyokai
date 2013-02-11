@@ -13,7 +13,7 @@ public:
     enum FieldType { FIELD_TEXT, FIELD_INTEGER, FIELD_REAL, FIELD_NONE };
 private:
     QString m_name;
-    enum FieldType m_type;
+    QString m_type;
     bool m_primary_key;
     bool m_indexed_field;
     int m_logical_index; /* only for import file */
@@ -25,14 +25,14 @@ public:
     virtual ~SchemaField();
 
     QString name() const { return m_name; }
-    enum FieldType fieldType() const {return m_type; }
+    QString fieldType() const {return m_type; }
     bool isPrimaryKey() const {return m_primary_key; }
     bool indexedField() const { return m_indexed_field; }
     int logicalIndex() const {return m_logical_index; }
     int maximumLength() const {return m_maximum_length; }
 
     void setName(const QString &name) { m_name = name; }
-    void setFieldType(enum FieldType type) { m_type = type; }
+    void setFieldType(const QString &type) { m_type = type; }
     void setPrimaryKey(bool key) { m_primary_key = key; }
     void setIndexedField(bool flag) { m_indexed_field = flag; }
     void setLogicalIndex(int index) { m_logical_index = index; }
