@@ -979,7 +979,7 @@ void MainWindow::on_actionR_code_to_import_triggered()
                           "connection.%1 <- dbConnect(dbDriver(\"SQLite\"), dbname=\"%2\")\n"
                           "table.%3 <- dbGetQuery(connection.%1, \"select * from %4 %5;\")\n"
                           "dbDisconnect(connection.%1)\n").arg(normstr(basename), m_filepath, tableName2,
-                                                               normstr(tableName));
+                                                               normstr(tableName), where);
     QClipboard *clip = QApplication::clipboard();
     clip->setText(str);
 }
