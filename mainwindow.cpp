@@ -661,12 +661,14 @@ QString MainWindow::importFile(QString import, bool autoimport)
 
     // prepare insert SQL
     int insertNumber = dialog.fields().size();
-    QString insertSqlText("?");
-    for (int i = 0; i < insertNumber-1; i++) {
-        insertSqlText.append(",?");
+    QString insertSqlText(":v0");
+    for (int i = 1; i < insertNumber; i++) {
+        insertSqlText.append(", :v");
+        insertSqlText.append(QString::number(i));
     }
 
-    QSqlQuery insertQuery(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText), m_database);
+    QSqlQuery insertQuery(m_database);
+    insertQuery.prepare(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText));
 
     file.seek(0);
 
@@ -685,10 +687,10 @@ QString MainWindow::importFile(QString import, bool autoimport)
         QList<QByteArray> elements = file.readLine().trimmed().split(dialog.delimiter());
         for (int i = 0; i < insertNumber; ++i) {
             if (fields[i].logicalIndex() >= elements.size() || fields[i].logicalIndex() < 0) {
-                insertQuery.bindValue(i, "");
+                insertQuery.bindValue(QString(":v%1").arg(QString::number(i)), "");
                 continue;
             }
-            insertQuery.bindValue(i, QString(elements[fields[i].logicalIndex()]));
+            insertQuery.bindValue(QString(":v%1").arg(QString::number(i)), QString(elements[fields[i].logicalIndex()]));
         }
         if (!insertQuery.exec()) {
             if (SheetMessageBox::warning(this, tr("Insert error"),
