@@ -6,7 +6,7 @@
 #include <QDebug>
 
 #include "attachdatabasedialog.h"
-#include "custumsql.h"
+#include "customsql.h"
 #include "sheetmessagebox.h"
 #include "main.h"
 
@@ -73,7 +73,7 @@ void PreferenceWindow::uncheckAll()
 void PreferenceWindow::on_pushButtonClearCustumSqlHistory_clicked()
 {
     QStringList list;
-    tableview_settings->setValue(CUSTUM_SQL_HISTORY, list);
+    tableview_settings->setValue(CUSTOM_SQL_HISTORY, list);
 }
 
 AttachDBTableModel::AttachDBTableModel(QObject *parent)  : QAbstractTableModel(parent)

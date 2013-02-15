@@ -12,19 +12,19 @@
 
 #include "sqlquerymodelalternativebackground.h"
 
-#define CUSTUM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
+#define CUSTOM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
 
 namespace Ui {
-class CustumSql;
+class CustomSql;
 }
 
-class CustumSql : public QDialog
+class CustomSql : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit CustumSql(QSqlDatabase *database, QWidget *parent = 0);
-    ~CustumSql();
+    explicit CustomSql(QSqlDatabase *database, QWidget *parent = 0);
+    ~CustomSql();
 
     QTableView *tableView();
 
@@ -51,7 +51,7 @@ private slots:
 private:
     void createMenus();
 
-    Ui::CustumSql *ui;
+    Ui::CustomSql *ui;
     QSqlDatabase *m_database;
     QSqlQuery m_query;
     SqlQueryModelAlternativeBackground m_querymodel;

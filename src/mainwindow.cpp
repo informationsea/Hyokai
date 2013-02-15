@@ -6,7 +6,7 @@
 #include "main.h"
 #include "schemadialog.h"
 #include "sheetmessagebox.h"
-#include "custumsql.h"
+#include "customsql.h"
 #include "sqltablemodelalternativebackground.h"
 #include "attachdatabasedialog.h"
 #include "summarydialog.h"
@@ -54,7 +54,7 @@ int RegisterExtensionFunctions(sqlite3 *db);
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false), m_custumSql(0)
+    ui(new Ui::MainWindow), m_isDirty(false), m_customSql(0)
 {
     m_databasename = path;
 
@@ -68,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 
 MainWindow::MainWindow(QSqlDatabase database, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false), m_custumSql(0)
+    ui(new Ui::MainWindow), m_isDirty(false), m_customSql(0)
 {
     m_databasename = database.databaseName();
     m_database = database;
@@ -165,8 +165,8 @@ void MainWindow::setupTableModel()
 MainWindow::~MainWindow()
 {
     delete ui;
-    if (m_custumSql) {
-        delete m_custumSql;
+    if (m_customSql) {
+        delete m_customSql;
     }
 }
 
@@ -180,8 +180,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         switch(selected) {
         case QMessageBox::Discard:
             event->accept();
-            if (m_custumSql) {
-                m_custumSql->close();
+            if (m_customSql) {
+                m_customSql->close();
             }
             m_database.close();
             return;
@@ -195,8 +195,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     } else {
         event->accept();
-        if (m_custumSql) {
-            m_custumSql->close();
+        if (m_customSql) {
+            m_customSql->close();
         }
         m_database.close();
     }
@@ -769,17 +769,17 @@ void MainWindow::on_actionAbout_Table_View_triggered()
 
 void MainWindow::on_actionRun_Custum_SQL_triggered()
 {
-    if (m_custumSql) {
-        if (m_custumSql->isVisible()) {
-            m_custumSql->activateWindow();
+    if (m_customSql) {
+        if (m_customSql->isVisible()) {
+            m_customSql->activateWindow();
             return;
         } else {
-            delete m_custumSql;
+            delete m_customSql;
         }
     }
 
-    m_custumSql = new CustumSql(&m_database, this);
-    m_custumSql->show();
+    m_customSql = new CustomSql(&m_database, this);
+    m_customSql->show();
 }
 
 void MainWindow::on_actionRefresh_triggered()
@@ -934,8 +934,8 @@ static void copyFromTableView(const QTableView *tableView, bool copyHeader)
 void MainWindow::on_actionCopy_triggered()
 {
     QTableView *tableView;
-    if (m_custumSql && m_custumSql->isActiveWindow()) {
-        tableView = m_custumSql->tableView();
+    if (m_customSql && m_customSql->isActiveWindow()) {
+        tableView = m_customSql->tableView();
     } else {
         tableView = ui->tableView;
     }
@@ -1106,8 +1106,8 @@ void MainWindow::on_actionDrop_Table_triggered()
 void MainWindow::on_actionCopy_with_header_triggered()
 {
     QTableView *tableView;
-    if (m_custumSql && m_custumSql->isActiveWindow()) {
-        tableView = m_custumSql->tableView();
+    if (m_customSql && m_customSql->isActiveWindow()) {
+        tableView = m_customSql->tableView();
     } else {
         tableView = ui->tableView;
     }
@@ -1117,8 +1117,8 @@ void MainWindow::on_actionCopy_with_header_triggered()
 
 void MainWindow::on_actionSelect_All_triggered()
 {
-    if (m_custumSql && m_custumSql->isActiveWindow()) {
-        m_custumSql->selectTableAll();
+    if (m_customSql && m_customSql->isActiveWindow()) {
+        m_customSql->selectTableAll();
     } else {
         int count = 0;
         ui->tableView->scrollToBottom();

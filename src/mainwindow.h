@@ -7,7 +7,7 @@
 #include <QLabel>
 
 #include "sqltablemodelalternativebackground.h"
-#include "custumsql.h"
+#include "customsql.h"
 
 namespace Ui {
 class MainWindow;
@@ -37,7 +37,7 @@ private:
     QLabel *m_rowcountlabel;
     QString m_databasename;
     bool m_isDirty;
-    CustumSql *m_custumSql;
+    CustomSql *m_customSql;
     QMenu m_assistPopup;
 
     void initialize();

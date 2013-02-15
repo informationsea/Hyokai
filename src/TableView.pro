@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     schemadialog.cpp \
     sheetmessagebox.cpp \
     schematablemodel.cpp \
-    custumsql.cpp \
     sqltablemodelalternativebackground.cpp \
     sqlquerymodelalternativebackground.cpp \
     attachdatabasedialog.cpp \
@@ -30,14 +29,14 @@ SOURCES += main.cpp\
     imageview.cpp \
     sqltextedit.cpp \
     sqlite3-extension/extension-functions.c \
-    databaseconnectiondialog.cpp
+    databaseconnectiondialog.cpp \
+    customsql.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
     schemadialog.h \
     sheetmessagebox.h \
     schematablemodel.h \
-    custumsql.h \
     sqltablemodelalternativebackground.h \
     sqlquerymodelalternativebackground.h \
     attachdatabasedialog.h \
@@ -49,7 +48,8 @@ HEADERS  += mainwindow.h \
     sqltextedit.h \
     sqlite3-extension/sqlite3ext.h \
     sqlite3-extension/sqlite3.h \
-    databaseconnectiondialog.h
+    databaseconnectiondialog.h \
+    customsql.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
@@ -59,12 +59,12 @@ win32 {
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
-    custumsql.ui \
     attachdatabasedialog.ui \
     jointabledialog.ui \
     preferencewindow.ui \
     summarydialog.ui \
-    databaseconnectiondialog.ui
+    databaseconnectiondialog.ui \
+    customsql.ui
 
 RESOURCES += \
     resouces.qrc

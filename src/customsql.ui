@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CustumSql</class>
- <widget class="QDialog" name="CustumSql">
+ <class>CustomSql</class>
+ <widget class="QDialog" name="CustomSql">
   <property name="geometry">
    <rect>
     <x>0</x>
