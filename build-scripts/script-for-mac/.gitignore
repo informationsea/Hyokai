@@ -1,0 +1,8 @@
+codesign.sh
+ui_*.h
+*.o
+*.app
+*.cpp
+*.h
+Makefile
+*.zip

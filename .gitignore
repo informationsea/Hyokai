@@ -22,10 +22,4 @@ Makefile
 .DS_Store
 *.swp
 *~
-script-for-mac/*.o
-script-for-mac/*.app
-script-for-mac/*.cpp
-script-for-mac/*.h
-script-for-mac/Makefile
-script-for-mac/*.zip
 extensions.sqlext
