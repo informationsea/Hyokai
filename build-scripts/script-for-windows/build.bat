@@ -1,2 +1,2 @@
-qmake -config release ..
+qmake -config release ..\..\src
 nmake

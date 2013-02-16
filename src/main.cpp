@@ -26,13 +26,28 @@ int main(int argc, char *argv[])
     a.setWindowIcon(QIcon(":/rc/images/icon128.png"));
 #endif
 
+    QStringList filelist;
+    if (argc > 1) {
+        for (int i = 0; i < argc-1; ++i) {
+            filelist << argv[i+1];
+        }
+    } else {
+        filelist << ":memory:";
+    }
+
     handler = new FileEventHandler(&a);
     a.installEventFilter(handler);
 
     tableview_settings = new QSettings(&a);
-    MainWindow *w = new MainWindow;
+    MainWindow *w = new MainWindow(NULL, filelist[0]);
     w->show();
     windowList.append(w);
+
+    for (int i = 1; i < filelist.length(); ++i) {
+        MainWindow *w2 = new MainWindow(NULL, filelist[i]);
+        w2->show();
+        windowList.append(w2);
+    }
     
     int value = a.exec();
     tableview_settings->sync();

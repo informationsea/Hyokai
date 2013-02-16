@@ -14,7 +14,11 @@ You have to include these files in below to distribute.
 * QtGui4.dll
 * QtSql4.dll
 
-You can find them in C:\Qt\4.8.4\bin
+They are found in C:\Qt\4.8.4\bin
+
+### Installer
+
+Run "installer.nsi" to build the installer. TableView.exe should be built with Qt 4.8.4 before making the installer.
 
 
 Qt 5.0.1 with Visual Studio 2010
@@ -33,4 +37,5 @@ You have to include these files in below to distribute.
 * Qt5Sql.dll
 * Qt5Widgets.dll
 
-You can find them in C:\Qt\Qt5.0.1\5.0.1\msvc2010\bin
+They are found in C:\Qt\Qt5.0.1\5.0.1\msvc2010\bin
+
