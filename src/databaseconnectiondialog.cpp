@@ -16,6 +16,10 @@ DatabaseConnectionDialog::DatabaseConnectionDialog(QWidget *parent) :
     ui(new Ui::DatabaseConnectionDialog)
 {
     ui->setupUi(this);
+
+    ui->radioButtonMySQL->setEnabled(QSqlDatabase::isDriverAvailable("QMYSQL"));
+    ui->radioButtonPostgreSQL->setEnabled(QSqlDatabase::isDriverAvailable("QPSQL"));
+    ui->radioButtonODBC->setEnabled(QSqlDatabase::isDriverAvailable("QODBC"));
 }
 
 DatabaseConnectionDialog::~DatabaseConnectionDialog()
