@@ -63,8 +63,11 @@ private slots:
     void onRecentFileShow();
     void onRecentFileOpen();
     void onClearRecentFiles();
+    void onShowHiddenColumnShow();
     void activate();
     void showColumnSummary();
+    void showColumn();
+    void hideColumn();
     void insertSqlFilter();
 
     void on_actionGo_github_triggered();
