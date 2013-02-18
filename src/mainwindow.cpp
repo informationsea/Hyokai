@@ -112,6 +112,7 @@ void MainWindow::initialize()
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
+    connect(ui->menuShowHiddenColumn, SIGNAL(aboutToShow()), SLOT(onShowHiddenColumnShow()));
     ui->tableView->horizontalHeader()->installEventFilter(this);
     ui->sqlLine->setDatabase(&m_database);
 
@@ -228,6 +229,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
             QAction *summary = popup.addAction("Summary");
             summary->setData(logical_index);
             connect(summary, SIGNAL(triggered()), SLOT(showColumnSummary()));
+            QAction *hideColumn = popup.addAction("Hide");
+            hideColumn->setData(logical_index);
+            connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
             popup.exec();
         }
     }
@@ -290,6 +294,31 @@ void MainWindow::onClearRecentFiles()
     tableview_settings->clear();
 }
 
+void MainWindow::onShowHiddenColumnShow()
+{
+    ui->menuShowHiddenColumn->clear();
+
+    int numLogicalColumns = m_tableModel->columnCount();
+    bool isHiddenColumnExists = false;
+
+    for (int logicalIndex = 0; logicalIndex < numLogicalColumns; logicalIndex++) {
+        if (ui->tableView->isColumnHidden(logicalIndex)) {
+            QString columnName = m_tableModel->headerData(logicalIndex, Qt::Horizontal).toString();
+
+            QAction *showColumn = ui->menuShowHiddenColumn->addAction(columnName);
+            showColumn->setData(logicalIndex);
+            connect(showColumn, SIGNAL(triggered()), SLOT(showColumn()));
+
+            isHiddenColumnExists = true;
+        }
+    }
+
+    if (!isHiddenColumnExists) {
+        QAction *empty = ui->menuShowHiddenColumn->addAction(tr("No hidden column"));
+        empty->setDisabled(true);
+    }
+}
+
 void MainWindow::activate()
 {
     QAction *action = (QAction *)sender();
@@ -331,6 +360,20 @@ void MainWindow::showColumnSummary()
 
     SummaryDialog *summary = new SummaryDialog(doubleList, column_name, this);
     summary->show();
+}
+
+void MainWindow::showColumn()
+{
+    QAction *sigsender = static_cast<QAction *>(sender());
+    int logicalIndex = sigsender->data().toInt();
+    ui->tableView->showColumn(logicalIndex);
+}
+
+void MainWindow::hideColumn()
+{
+    QAction *sigsender = static_cast<QAction *>(sender());
+    int logicalIndex = sigsender->data().toInt();
+    ui->tableView->hideColumn(logicalIndex);
 }
 
 bool MainWindow::confirmDuty()
@@ -825,19 +868,29 @@ void MainWindow::on_actionExport_Table_triggered()
         separator = ",";
 
     QSqlRecord records = m_database.record(m_tableModel->tableName());
+    bool isFirstColumnWritten = false;
     for (int i = 0; i < records.count(); ++i) {
-        if (i != 0)
-            outputfile.write(separator.toUtf8());
-        outputfile.write(records.fieldName(i).toUtf8());
+        if (!ui->tableView->isColumnHidden(i)) {
+            if (isFirstColumnWritten)
+                outputfile.write(separator.toUtf8());
+
+            outputfile.write(records.fieldName(i).toUtf8());
+            isFirstColumnWritten = true;
+        }
     }
     outputfile.write("\n");
 
     while(query.next()) {
         records = query.record();
+        isFirstColumnWritten = false;
         for (int i = 0; i < records.count(); ++i) {
-            if (i != 0)
-                outputfile.write(separator.toUtf8());
-            outputfile.write(records.value(i).toString().toUtf8());
+            if (!ui->tableView->isColumnHidden(i)) {
+                if (isFirstColumnWritten)
+                    outputfile.write(separator.toUtf8());
+
+                outputfile.write(records.value(i).toString().toUtf8());
+                isFirstColumnWritten = true;
+            }
         }
         outputfile.write("\n");
     }

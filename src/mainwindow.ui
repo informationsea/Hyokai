@@ -138,6 +138,12 @@
     <property name="title">
      <string>Table</string>
     </property>
+    <widget class="QMenu" name="menuShowHiddenColumn">
+     <property name="title">
+      <string>Show hidden column</string>
+     </property>
+     <addaction name="actionShowDummyHiddenColumn"/>
+    </widget>
     <addaction name="actionCreateTable"/>
     <addaction name="actionImportTable"/>
     <addaction name="actionExport_Table"/>
@@ -148,6 +154,8 @@
     <addaction name="actionDelete"/>
     <addaction name="actionRefresh"/>
     <addaction name="actionRun_Custum_SQL"/>
+    <addaction name="separator"/>
+    <addaction name="menuShowHiddenColumn"/>
     <addaction name="separator"/>
     <addaction name="actionCommit"/>
     <addaction name="actionRevert"/>
@@ -506,6 +514,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionShowDummyHiddenColumn">
+   <property name="text">
+    <string>Dummy</string>
    </property>
   </action>
  </widget>
