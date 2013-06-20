@@ -7,6 +7,10 @@
 QT       += core gui sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+macx {
+    greaterThan(QT_MAJOR_VERSION, 4): QT += macextras
+}
+
 TARGET = TableView
 TEMPLATE = app
 VERSION = 0.2

@@ -9,6 +9,8 @@
 #include "sqltablemodelalternativebackground.h"
 #include "customsql.h"
 
+class QMacNativeToolBar;
+
 namespace Ui {
 class MainWindow;
 }
@@ -32,6 +34,12 @@ protected:
     
 private:
     Ui::MainWindow *ui;
+#ifdef Q_OS_MACX
+#if QT_VERSION >= 0x050000
+    QMacNativeToolBar *nativeToolbar;
+#endif
+#endif
+
     QSqlDatabase m_database;
     SqlTableModelAlternativeBackground *m_tableModel;
     QLabel *m_rowcountlabel;

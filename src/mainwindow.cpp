@@ -40,6 +40,12 @@
 #include <QAction>
 #include <QProgressDialog>
 
+#ifdef Q_OS_MACX
+#if QT_VERSION >= 0x050000
+#include <QMacNativeToolBar>
+#endif
+#endif
+
 #include "sqlite3-extension/sqlite3.h"
 
 #define RECENT_FILES "RECENT_FILES"
@@ -137,6 +143,15 @@ void MainWindow::initialize()
     }
 
     filterFinished();
+
+#ifdef Q_OS_MACX
+#if QT_VERSION >= 0x050000
+    nativeToolbar = QtMacExtras::setNativeToolBar(ui->mainToolBar, true);
+    nativeToolbar->setIconSize(QSize(22,22));
+    nativeToolbar->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(0));
+    ui->menuEdit->addAction(tr("Customize Toolbar"), nativeToolbar, SLOT(showCustomizationSheet()));
+#endif
+#endif
 
     if (m_databasename.compare(":memory:") != 0 && m_database.driverName() == "QSQLITE") {
         setWindowFilePath(m_databasename);
