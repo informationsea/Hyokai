@@ -10,6 +10,12 @@
 #include "sheetmessagebox.h"
 #include "main.h"
 
+#ifdef Q_OS_MACX
+#if QT_VERSION >= 0x050000
+#include <QMacNativeToolBar>
+#endif
+#endif
+
 PreferenceWindow::PreferenceWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::PreferenceWindow)
@@ -26,6 +32,14 @@ PreferenceWindow::PreferenceWindow(QWidget *parent) :
 
     ui->lineRPath->setText(tableview_settings->value(PATH_R, suggestRPath()).toString());
 
+
+#ifdef Q_OS_MACX
+#if QT_VERSION >= 0x050000
+    QMacNativeToolBar *nativeToolbar = QtMacExtras::setNativeToolBar(ui->toolBar, true);
+    nativeToolbar->setIconSize(QSize(22,22));
+#endif
+#endif
+
     move(nextWindowPosition());
 }
 
@@ -40,6 +54,7 @@ void PreferenceWindow::activate()
 {
     raise();
     activateWindow();
+    setWindowFilePath(QString::null);
 }
 
 void PreferenceWindow::on_actionGeneral_triggered()
