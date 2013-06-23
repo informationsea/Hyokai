@@ -102,7 +102,7 @@ void MainWindow::initialize()
      }
 #endif
 
-    ui->mainToolBar->setIconSize(QSize(22, 22));
+    ui->mainToolBar->setIconSize(QSize(32, 32));
 
     setupTableModel();
     updateDatabase();
@@ -147,7 +147,7 @@ void MainWindow::initialize()
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050000
     nativeToolbar = QtMacExtras::setNativeToolBar(ui->mainToolBar, true);
-    nativeToolbar->setIconSize(QSize(22,22));
+    nativeToolbar->setIconSize(QSize(32,32));
     nativeToolbar->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(0));
     ui->menuEdit->addAction(tr("Customize Toolbar"), nativeToolbar, SLOT(showCustomizationSheet()));
 #endif
