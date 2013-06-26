@@ -1052,6 +1052,10 @@ void MainWindow::on_actionR_code_to_import_triggered()
     if (m_tableModel->plainTableName().isEmpty())
         return;
     QFileInfo fileInfo(m_databasename);
+    QString filename = m_databasename;
+#ifdef Q_WS_WIN32
+    filename = filename.replace('\\', '/');
+#endif
     QString basename = fileInfo.completeBaseName();
     QString where;
     if (!ui->sqlLine->toPlainText().isEmpty())
@@ -1060,7 +1064,7 @@ void MainWindow::on_actionR_code_to_import_triggered()
                           "library(RSQLite)\n"
                           "connection.%1 <- dbConnect(dbDriver(\"SQLite\"), dbname=\"%2\")\n"
                           "table.%3 <- dbGetQuery(connection.%1, \"select * from %4 %5;\")\n"
-                          "dbDisconnect(connection.%1)\n").arg(normstr(basename), m_databasename, tableName2,
+                          "dbDisconnect(connection.%1)\n").arg(normstr(basename), filename, tableName2,
                                                                normstr(tableName), where);
     QClipboard *clip = QApplication::clipboard();
     clip->setText(str);
