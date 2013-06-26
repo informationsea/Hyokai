@@ -32,7 +32,6 @@ SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidge
     }
 
     ui->enableFTS4->setVisible(sql_database->driverName() == "QSQLITE");
-    qDebug() << sql_database->driverName();
 }
 
 SchemaDialog::~SchemaDialog()

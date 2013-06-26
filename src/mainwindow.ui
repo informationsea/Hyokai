@@ -241,6 +241,9 @@
    <property name="statusTip">
     <string>Insert new row</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl++</string>
+   </property>
   </action>
   <action name="actionDelete">
    <property name="icon">
@@ -253,6 +256,9 @@
    <property name="statusTip">
     <string>Delete selected row</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
   </action>
   <action name="actionCommit">
    <property name="icon">
@@ -264,6 +270,9 @@
    </property>
    <property name="statusTip">
     <string>Commit chagnes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionQuit">
@@ -313,6 +322,9 @@
    </property>
    <property name="statusTip">
     <string>Create new table</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
    </property>
   </action>
   <action name="actionAbout_Table_View">
@@ -386,6 +398,9 @@
    <property name="statusTip">
     <string>Refresh table list and contents</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
   </action>
   <action name="actionExport_Table">
    <property name="icon">
@@ -397,6 +412,9 @@
    </property>
    <property name="statusTip">
     <string>Export table as CSV or Tab separated text</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="actionOpen_In_Memory_Database">
@@ -445,6 +463,9 @@
    <property name="statusTip">
     <string>Open Preference Pane</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+,</string>
+   </property>
   </action>
   <action name="actionR_code_to_import">
    <property name="text">
@@ -477,6 +498,9 @@
    </property>
    <property name="statusTip">
     <string>Drop this table or view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Backspace</string>
    </property>
   </action>
   <action name="actionCopy_with_header">
