@@ -31,3 +31,4 @@ windowsicon.res
 *.swp
 *~
 extensions.sqlext
+*.nsi
