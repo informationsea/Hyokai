@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QProgressDialog>
+#include <QRegExp>
 
 #include "main.h"
 
@@ -29,6 +30,9 @@ SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidge
     if (!importFile) {
         ui->importWidget->setVisible(false);
     }
+
+    ui->enableFTS4->setVisible(sql_database->driverName() == "QSQLITE");
+    qDebug() << sql_database->driverName();
 }
 
 SchemaDialog::~SchemaDialog()
@@ -102,7 +106,8 @@ void SchemaDialog::on_upButton_clicked()
 
 void SchemaDialog::tableChanged()
 {
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(model->isVaild() && !ui->lineEdit->text().isEmpty());
+    QRegExp tableNameVaild("^[a-zA-Z_][0-9a-zA-Z_]*$");
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(model->isVaild() && tableNameVaild.exactMatch(ui->lineEdit->text()));
 }
 
 void SchemaDialog::setName(const QString &name)
@@ -132,7 +137,18 @@ QString SchemaDialog::createTableSql() const
     QString sql("CREATE TABLE ");
     bool isFirstIteration = true;
     bool hasPrimaryKey = false;
+    bool usingFTS4 = m_sql_database->driverName() == "QSQLITE" && ui->enableFTS4->isChecked();
+
+    if (usingFTS4) {
+        sql = "CREATE VIRTUAL TABLE ";
+    }
+
     sql += name();
+
+    if (usingFTS4) {
+        sql += " USING fts4";
+    }
+
     sql += "(";
     foreach(const SchemaField field, fields()) {
         if (isFirstIteration)
