@@ -9,6 +9,7 @@
 *.so
 *.dll
 *.dylib
+*.obj
 
 # Qt-es
 
@@ -17,8 +18,14 @@
 moc_*.cpp
 qrc_*.cpp
 Makefile
+Makefile.Debug
+Makefile.Release
 *-build-*
 build-*
+*.exe
+ui_*.h
+windowsicon.res
+*.manifest
 
 .DS_Store
 *.swp
