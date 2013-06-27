@@ -148,6 +148,7 @@
     <addaction name="actionImportTable"/>
     <addaction name="actionExport_Table"/>
     <addaction name="actionDrop_Table"/>
+    <addaction name="actionDuplicate_Table"/>
     <addaction name="actionAttach_Database"/>
     <addaction name="separator"/>
     <addaction name="actionInsert"/>
@@ -529,7 +530,7 @@
     <string>Duplicate connection</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+D</string>
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
   <action name="actionDatabase_Information">
@@ -543,6 +544,14 @@
   <action name="actionShowDummyHiddenColumn">
    <property name="text">
     <string>Dummy</string>
+   </property>
+  </action>
+  <action name="actionDuplicate_Table">
+   <property name="text">
+    <string>Duplicate Table...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
  </widget>

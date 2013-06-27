@@ -215,6 +215,12 @@ void SchemaDialog::setDelimiter(char ch)
     }
 }
 
+void SchemaDialog::setDuplicationMode(bool duplicate)
+{
+    m_duplication_mode = duplicate;
+    ui->messageLabel->setText(tr("Information of primary key and indexes are not copied from orignal table."));
+}
+
 char SchemaDialog::delimiter() const
 {
     if (ui->tabDelimiter->isChecked()) {

@@ -34,7 +34,9 @@ SOURCES += main.cpp\
     sqltextedit.cpp \
     sqlite3-extension/extension-functions.c \
     databaseconnectiondialog.cpp \
-    customsql.cpp
+    customsql.cpp \
+    sheettextinputdialog.cpp \
+    sqlservice.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -53,7 +55,9 @@ HEADERS  += mainwindow.h \
     sqlite3-extension/sqlite3ext.h \
     sqlite3-extension/sqlite3.h \
     databaseconnectiondialog.h \
-    customsql.h
+    customsql.h \
+    sheettextinputdialog.h \
+    sqlservice.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
@@ -68,7 +72,8 @@ FORMS    += mainwindow.ui \
     preferencewindow.ui \
     summarydialog.ui \
     databaseconnectiondialog.ui \
-    customsql.ui
+    customsql.ui \
+    sheettextinputdialog.ui
 
 RESOURCES += \
     resouces.qrc

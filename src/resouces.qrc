@@ -21,6 +21,7 @@
         <file>images/toolbar/import.png</file>
         <file>images/emblem-unreadable.png</file>
         <file>images/user-trash.png</file>
+        <file>images/x-office-spreadsheet.png</file>
     </qresource>
     <qresource prefix="/txt">
         <file>keywords/mysql-keywords.txt</file>

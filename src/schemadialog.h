@@ -30,6 +30,7 @@ public:
     QStringList createIndexSqls() const;
 
     void setDelimiter(char ch);
+    void setDuplicationMode(bool duplicate);
     char delimiter() const;
     int skipLines() const;
     bool firstLineIsHeader() const;
@@ -49,6 +50,7 @@ private:
     Ui::SchemaDialog *ui;
     SchemaTableModel *model;
     QSqlDatabase *m_sql_database;
+    bool m_duplication_mode;
     QFile *m_import_file;
 };
 

@@ -6,11 +6,13 @@
 #include "main.h"
 #include "schemadialog.h"
 #include "sheetmessagebox.h"
+#include "sheettextinputdialog.h"
 #include "customsql.h"
 #include "sqltablemodelalternativebackground.h"
 #include "attachdatabasedialog.h"
 #include "summarydialog.h"
 #include "databaseconnectiondialog.h"
+#include "sqlservice.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -39,6 +41,7 @@
 #include <QUrl>
 #include <QAction>
 #include <QProgressDialog>
+#include <QSqlField>
 
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050000
@@ -676,18 +679,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
     char delimiter = '\t';
     if (import.endsWith(".csv"))
         delimiter = ',';
-    {
-        // suggests table name
-        QString tableName = normstr(fileInfo.completeBaseName());
-        if (m_database.tables(QSql::AllTables).contains(tableName)) {
-            QString baseName = tableName;
-            int i = 2;
-            while(m_database.tables(QSql::AllTables).contains(QString("%1_%2").arg(baseName, QString::number(i))))
-                i++;
-            tableName = QString("%1_%2").arg(baseName, QString::number(i));
-        }
-        dialog.setName(tableName);
-    }
+    dialog.setName(SqlService::suggestTableName(fileInfo.completeBaseName(), &m_database));
 
     QList<SchemaField> fields = dialog.suggestSchema(&file, delimiter, 0, true, 20, this);
 
@@ -1235,4 +1227,120 @@ void MainWindow::on_actionDatabase_Information_triggered()
                                                                     m_database.userName(),
                                                                     m_database.databaseName(),
                                                                     m_database.connectionName()));
+}
+
+void MainWindow::on_actionDuplicate_Table_triggered()
+{
+    QString tableName = m_tableModel->plainTableName();
+    if (tableName.isEmpty())
+        return;
+    QString where = ui->sqlLine->toPlainText();
+    QMessageBox::StandardButton ret =
+            SheetMessageBox::question(this, tr("Table duplication"), tr("Do you want to tweek table scheme?"),
+                                      QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+    QString newTableName;
+
+    if (ret == QMessageBox::Yes) {
+        QList<SchemaField> fields;
+        QStringList orignalFieldNames;
+        QSqlRecord record = m_database.record(tableName);
+        for (int i = 0; i < record.count(); ++i) {
+            QSqlField field = record.field(i);
+            SchemaField newfield(field.name());
+            switch(field.type()) {
+            case QVariant::Int:
+                newfield.setFieldType("INTEGER");
+                break;
+            case QVariant::Double:
+                newfield.setFieldType("REAL");
+                break;
+            case QVariant::ByteArray:
+                newfield.setFieldType("BOLB");
+                break;
+            default:
+                qDebug() << field;
+            case QVariant::String:
+                newfield.setFieldType("TEXT");
+                break;
+            }
+
+            fields.append(newfield);
+            orignalFieldNames << field.name();
+            //qDebug() << field;
+        }
+
+        m_database.transaction();
+
+        SchemaDialog dialog(&m_database, NULL, this);
+        dialog.setFields(fields);
+        dialog.setName(SqlService::suggestTableName(tableName, &m_database));
+
+        dialog.exec();
+
+        QString tablesql = dialog.createTableSql();
+        QStringList indexsqls = dialog.createIndexSqls();
+
+        QSqlQuery query = m_database.exec(tablesql);
+        if (query.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::critical(this, tr("Cannot create table"), query.lastError().text());
+            m_database.rollback();
+            return;
+        }
+
+        foreach(QString sql, indexsqls) {
+            query = m_database.exec(sql);
+            if (query.lastError().type() != QSqlError::NoError) {
+                SheetMessageBox::critical(this, tr("Cannot create index"), query.lastError().text());
+                m_database.rollback();
+                return;
+            }
+        }
+
+        QString commonFieldNames;
+        foreach(SchemaField field, dialog.fields()) {
+            if (orignalFieldNames.contains(field.name())) {
+                if (!commonFieldNames.isEmpty())
+                    commonFieldNames += ", ";
+                commonFieldNames += field.name();
+            }
+        }
+
+        QString whereStatement;
+        if (!where.isEmpty()) {
+            whereStatement = " WHERE " + where;
+        }
+
+        query = m_database.exec(QString("INSERT INTO %1 SELECT %2 FROM %3 %4").arg(dialog.name(), commonFieldNames, m_tableModel->plainTableName(), whereStatement));
+        if (query.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::critical(this, tr("Cannot copy data"), query.lastError().text());
+            m_database.rollback();
+            return;
+        }
+        newTableName = dialog.name();
+        m_database.commit();
+    } else if (ret == QMessageBox::No) {
+        newTableName = SheetTextInputDialog::textInput(tr("New table name"), tr("Please input new table name"), this, SqlService::suggestTableName(tableName, &m_database));
+        if (newTableName.isEmpty())
+            return;
+
+        if (!SqlService::isVaildTableName(newTableName)) {
+            SheetMessageBox::critical(this, tr("Invaild table name"), tr("The table name is not vaild."));
+            return;
+        }
+
+        QString whereStatement;
+        if (!where.isEmpty()) {
+            whereStatement = " WHERE " + where;
+        }
+
+        QSqlQuery query = m_database.exec(QString("CREATE TABLE %1 AS SELECT * FROM %2 %3").arg(newTableName, m_tableModel->plainTableName(), whereStatement));
+        if (query.lastError().type() != QSqlError::NoError) {
+            SheetMessageBox::critical(this, tr("Cannot copy data"), query.lastError().text());
+            return;
+        }
+    }
+
+    refresh();
+    ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(newTableName));
+    tableChanged(newTableName);
 }
