@@ -36,7 +36,8 @@ SOURCES += main.cpp\
     databaseconnectiondialog.cpp \
     customsql.cpp \
     sheettextinputdialog.cpp \
-    sqlservice.cpp
+    sqlservice.cpp \
+    sqlplotchart.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -57,7 +58,8 @@ HEADERS  += mainwindow.h \
     databaseconnectiondialog.h \
     customsql.h \
     sheettextinputdialog.h \
-    sqlservice.h
+    sqlservice.h \
+    sqlplotchart.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
@@ -73,7 +75,8 @@ FORMS    += mainwindow.ui \
     summarydialog.ui \
     databaseconnectiondialog.ui \
     customsql.ui \
-    sheettextinputdialog.ui
+    sheettextinputdialog.ui \
+    sqlplotchart.ui
 
 RESOURCES += \
     resouces.qrc

@@ -161,6 +161,7 @@
     <addaction name="actionCommit"/>
     <addaction name="actionRevert"/>
     <addaction name="separator"/>
+    <addaction name="actionPlot"/>
     <addaction name="actionR_code_to_import"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -210,6 +211,7 @@
    <addaction name="actionRun_Custum_SQL"/>
    <addaction name="actionImportTable"/>
    <addaction name="actionExport_Table"/>
+   <addaction name="actionPlot"/>
    <addaction name="actionInsert"/>
    <addaction name="actionDelete"/>
    <addaction name="actionCommit"/>
@@ -552,6 +554,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionPlot">
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/x-office-spreadsheet.png</normaloff>:/rc/images/x-office-spreadsheet.png</iconset>
+   </property>
+   <property name="text">
+    <string>Plot...</string>
+   </property>
+   <property name="toolTip">
+    <string>Plot chart</string>
    </property>
   </action>
  </widget>

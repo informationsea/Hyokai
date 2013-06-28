@@ -13,6 +13,7 @@
 #include "summarydialog.h"
 #include "databaseconnectiondialog.h"
 #include "sqlservice.h"
+#include "sqlplotchart.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -1343,4 +1344,10 @@ void MainWindow::on_actionDuplicate_Table_triggered()
     refresh();
     ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(newTableName));
     tableChanged(newTableName);
+}
+
+void MainWindow::on_actionPlot_triggered()
+{
+    SqlPlotChart *plotChart = new SqlPlotChart(&m_database, this, m_tableModel->plainTableName());
+    plotChart->show();
 }

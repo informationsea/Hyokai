@@ -109,6 +109,7 @@ private slots:
     void on_actionDuplicate_connection_triggered();
     void on_actionDatabase_Information_triggered();
     void on_actionDuplicate_Table_triggered();
+    void on_actionPlot_triggered();
 };
 
 #endif // MAINWINDOW_H
