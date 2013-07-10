@@ -8,6 +8,7 @@
 
 #include "sqltablemodelalternativebackground.h"
 #include "customsql.h"
+#include "sqlplotchart.h"
 
 class QMacNativeToolBar;
 
@@ -21,7 +22,7 @@ class MainWindow : public QMainWindow
     
 public:
     explicit MainWindow(QWidget *parent = 0, QString path = ":memory:");
-    explicit MainWindow(QSqlDatabase database, QWidget *parent = 0);
+    explicit MainWindow(const QSqlDatabase &database, QWidget *parent = 0);
     ~MainWindow();
 
     QString databaseName() { return m_databasename; }
@@ -45,7 +46,7 @@ private:
     QLabel *m_rowcountlabel;
     QString m_databasename;
     bool m_isDirty;
-    CustomSql *m_customSql;
+    QList<QDialog *> m_dialogs;
     QMenu m_assistPopup;
 
     void initialize();
@@ -78,6 +79,7 @@ private slots:
     void hideColumn();
     void createIndexForColumn();
     void insertSqlFilter();
+    void onCopyTriggered(bool withHeader);
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();

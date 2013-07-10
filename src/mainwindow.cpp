@@ -64,7 +64,7 @@ int RegisterExtensionFunctions(sqlite3 *db);
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false), m_customSql(0)
+    ui(new Ui::MainWindow), m_isDirty(false)
 {
     m_databasename = path;
 
@@ -76,12 +76,11 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     initialize();
 }
 
-MainWindow::MainWindow(QSqlDatabase database, QWidget *parent) :
+MainWindow::MainWindow(const QSqlDatabase &database, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false), m_customSql(0)
+    ui(new Ui::MainWindow), m_isDirty(false)
 {
     m_databasename = database.databaseName();
-    m_database = database;
     initialize();
 }
 
@@ -96,15 +95,20 @@ void MainWindow::initialize()
 
 #if !defined(Q_OS_WIN32)
     QVariant v = m_database.driver()->handle();
-     if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*") == 0) {
-         // v.data() returns a pointer to the handle
-         sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
-         if (handle != 0) { // check that it is not NULL
+    if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*") == 0) {
+        // v.data() returns a pointer to the handle
+        sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
+        if (handle != 0) { // check that it is not NULL
             sqlite3_enable_load_extension(handle, 1); // Enable extension
             RegisterExtensionFunctions(handle);
-         }
-     }
+        }
+    }
 #endif
+
+    ui->actionAbout_Qt->setMenuRole(QAction::AboutQtRole);
+    ui->actionAbout_Table_View->setMenuRole(QAction::AboutRole);
+    ui->actionQuit->setMenuRole(QAction::QuitRole);
+    ui->actionPreference->setMenuRole(QAction::PreferencesRole);
 
     ui->mainToolBar->setIconSize(QSize(32, 32));
 
@@ -185,9 +189,6 @@ void MainWindow::setupTableModel()
 MainWindow::~MainWindow()
 {
     delete ui;
-    if (m_customSql) {
-        delete m_customSql;
-    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -200,10 +201,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
         switch(selected) {
         case QMessageBox::Discard:
             event->accept();
-            if (m_customSql) {
-                m_customSql->close();
-            }
             m_database.close();
+
+            foreach(QDialog *dialog, m_dialogs) {
+                if (dialog->isVisible()) {
+                    dialog->close();
+                }
+                delete dialog;
+            }
+
             return;
         default:
             event->ignore();
@@ -215,10 +221,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     } else {
         event->accept();
-        if (m_customSql) {
-            m_customSql->close();
-        }
         m_database.close();
+
+        foreach(QDialog *dialog, m_dialogs) {
+            if (dialog->isVisible()) {
+                dialog->close();
+            }
+            delete dialog;
+        }
     }
 }
 
@@ -384,6 +394,7 @@ void MainWindow::showColumnSummary()
 
     SummaryDialog *summary = new SummaryDialog(doubleList, column_name, this);
     summary->show();
+    m_dialogs.append(summary);
 }
 
 void MainWindow::showColumn()
@@ -843,17 +854,9 @@ void MainWindow::on_actionAbout_Table_View_triggered()
 
 void MainWindow::on_actionRun_Custum_SQL_triggered()
 {
-    if (m_customSql) {
-        if (m_customSql->isVisible()) {
-            m_customSql->activateWindow();
-            return;
-        } else {
-            delete m_customSql;
-        }
-    }
-
-    m_customSql = new CustomSql(&m_database, this);
-    m_customSql->show();
+    CustomSql *customSql = new CustomSql(&m_database, this);
+    customSql->show();
+    m_dialogs.append(customSql);
 }
 
 void MainWindow::on_actionRefresh_triggered()
@@ -1017,14 +1020,31 @@ static void copyFromTableView(const QTableView *tableView, bool copyHeader)
 
 void MainWindow::on_actionCopy_triggered()
 {
+    onCopyTriggered(false);
+}
+
+
+void MainWindow::on_actionCopy_with_header_triggered()
+{
+    onCopyTriggered(true);
+}
+
+void MainWindow::onCopyTriggered(bool withHeader)
+{
     QTableView *tableView;
-    if (m_customSql && m_customSql->isActiveWindow()) {
-        tableView = m_customSql->tableView();
-    } else {
-        tableView = ui->tableView;
+    QWidget *widget = qApp->activeWindow();
+
+    tableView = ui->tableView;
+    foreach(QDialog *dialog, m_dialogs) {
+        if (widget == dialog) {
+            CustomSql *customDialog = dynamic_cast<CustomSql *>(dialog);
+            if (customDialog)
+                tableView = customDialog->tableView();
+            break;
+        }
     }
 
-    copyFromTableView(tableView, false);
+    copyFromTableView(tableView, withHeader);
 }
 
 void MainWindow::on_actionAttach_Database_triggered()
@@ -1191,36 +1211,30 @@ void MainWindow::on_actionDrop_Table_triggered()
     refresh();
 }
 
-void MainWindow::on_actionCopy_with_header_triggered()
-{
-    QTableView *tableView;
-    if (m_customSql && m_customSql->isActiveWindow()) {
-        tableView = m_customSql->tableView();
-    } else {
-        tableView = ui->tableView;
-    }
-
-    copyFromTableView(tableView, true);
-}
-
 void MainWindow::on_actionSelect_All_triggered()
 {
-    if (m_customSql && m_customSql->isActiveWindow()) {
-        m_customSql->selectTableAll();
-    } else {
-        int count = 0;
-        ui->tableView->scrollToBottom();
-        while (m_tableModel->sqlRowCount() != m_tableModel->rowCount()) {
-            if (count == 10) {
-                if (SheetMessageBox::warning(this, tr("Select All"), tr("This operation tooks long time. Do you want to continue?"), QMessageBox::Yes|QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
-                    return;
-                }
-            }
-            ui->tableView->scrollToBottom();
-            count += 1;
+    QWidget* widget = qApp->activeWindow();
+    foreach(QDialog *dialog, m_dialogs) {
+        if (widget == dialog) {
+            CustomSql *customDialog = dynamic_cast<CustomSql *>(dialog);
+            if (customDialog)
+                customDialog->selectTableAll();
+            return;
         }
-        ui->tableView->selectAll();
     }
+
+    int count = 0;
+    ui->tableView->scrollToBottom();
+    while (m_tableModel->sqlRowCount() != m_tableModel->rowCount()) {
+        if (count == 10) {
+            if (SheetMessageBox::warning(this, tr("Select All"), tr("This operation tooks long time. Do you want to continue?"), QMessageBox::Yes|QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
+                return;
+            }
+        }
+        ui->tableView->scrollToBottom();
+        count += 1;
+    }
+    ui->tableView->selectAll();
 }
 
 void MainWindow::on_actionConnect_to_database_triggered()
@@ -1373,4 +1387,5 @@ void MainWindow::on_actionPlot_triggered()
 {
     SqlPlotChart *plotChart = new SqlPlotChart(&m_database, this, m_tableModel->plainTableName());
     plotChart->show();
+    m_dialogs.append(plotChart);
 }
