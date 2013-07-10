@@ -3,6 +3,7 @@
 
 #include "sheetmessagebox.h"
 #include "jointabledialog.h"
+#include "sqlservice.h"
 #include "main.h"
 #include <QSqlQuery>
 #include <QSqlError>
@@ -13,6 +14,7 @@
 #include <QComboBox>
 #include <QStringList>
 #include <QFileDialog>
+#include <QClipboard>
 
 CustomSql::CustomSql(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
@@ -226,6 +228,12 @@ void CustomSql::onCreateView()
     ui->sql->textCursor().setPosition(QString("CREATE VIEW newview").length(), QTextCursor::KeepAnchor);
 }
 
+void CustomSql::onExportToR()
+{
+    QClipboard *clip = qApp->clipboard();
+    clip->setText(SqlService::createRcodeToImport(*m_database, ui->sql->toPlainText(), "custom.table"));
+}
+
 
 void CustomSql::createMenus()
 {
@@ -360,6 +368,12 @@ void CustomSql::createMenus()
     QAction* createView = menu->addAction(tr("Create View for this table"));
     connect(createView, SIGNAL(triggered()), SLOT(onCreateView()));
     m_menu_for_select.append(createView);
+
+    if (m_database->driverName() == "QSQLITE" && m_database->databaseName() != ":memory:") {
+        QAction* exportToR = menu->addAction(tr("Export to R"));
+        connect(exportToR, SIGNAL(triggered()), SLOT(onExportToR()));
+        m_menu_for_select.append(exportToR);
+    }
 }
 
 void CustomSql::on_sql_textChanged()

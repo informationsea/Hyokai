@@ -86,4 +86,10 @@ OTHER_FILES += \
     images/fileicon/table.icns \
     images/fileicon/sqlite.ico \
     images/fileicon/sqlite.icns \
-    functionlist.txt
+    functionlist.txt \
+    keywords/sqlite-keywords.txt \
+    keywords/sqlite-functions.txt \
+    keywords/postgresql-keywords.txt \
+    keywords/postgresql-functions.txt \
+    keywords/mysql-keywords.txt \
+    keywords/mysql-functions.txt

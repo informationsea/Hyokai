@@ -1081,6 +1081,8 @@ void MainWindow::on_actionR_code_to_import_triggered()
 {
     if (m_databasename == ":memory:")
         return;
+    QString str = SqlService::createRcodeToImportWithTable(m_database, m_tableModel->plainTableName(), ui->sqlLine->toPlainText());
+#if 0
     QString tableName = m_tableModel->tableName();
     QString tableName2 = m_tableModel->plainTableName();
     if (m_tableModel->plainTableName().isEmpty())
@@ -1100,6 +1102,7 @@ void MainWindow::on_actionR_code_to_import_triggered()
                           "table.%3 <- dbGetQuery(connection.%1, \"select * from %4 %5;\")\n"
                           "dbDisconnect(connection.%1)\n").arg(normstr(basename), filename, tableName2,
                                                                normstr(tableName), where);
+#endif
     QClipboard *clip = QApplication::clipboard();
     clip->setText(str);
 }

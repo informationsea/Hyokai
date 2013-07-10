@@ -45,6 +45,7 @@ private slots:
     void on_menuButton_clicked();
     void onExportTable();
     void onCreateView();
+    void onExportToR();
 
     void on_sql_textChanged();
 

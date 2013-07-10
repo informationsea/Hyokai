@@ -8,6 +8,12 @@
 #include <QIcon>
 #include <QFileInfo>
 
+#ifdef Q_OS_MACX
+#if QT_VERSION >= 0x050000
+#include <QMacFunctions>
+#endif
+#endif
+
 #include "fileeventhandler.h"
 
 QList<MainWindow *> windowList;
@@ -48,7 +54,7 @@ int main(int argc, char *argv[])
         w2->show();
         windowList.append(w2);
     }
-    
+
     int value = a.exec();
     tableview_settings->sync();
     delete tableview_settings;
@@ -59,8 +65,8 @@ void tableviewCleanupWindows()
 {
     foreach(MainWindow* window, windowList) {
         if (!window->isVisible()) {
-            delete window;
             windowList.removeOne(window);
+            delete window;
         }
     }
 }
