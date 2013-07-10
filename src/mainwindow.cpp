@@ -1387,6 +1387,7 @@ void MainWindow::on_actionDuplicate_Table_triggered()
 void MainWindow::on_actionPlot_triggered()
 {
     SqlPlotChart *plotChart = new SqlPlotChart(&m_database, this, m_tableModel->plainTableName());
+    plotChart->setFilter(ui->sqlLine->toPlainText());
     plotChart->show();
     m_dialogs.append(plotChart);
 }

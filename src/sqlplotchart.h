@@ -20,6 +20,8 @@ public:
     explicit SqlPlotChart(QSqlDatabase *database, QWidget *parent = 0, const QString &defaultName = "");
     ~SqlPlotChart();
 
+    void setFilter(const QString &filter);
+
 protected:
     void changeEvent ( QEvent * event );
     

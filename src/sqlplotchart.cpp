@@ -28,6 +28,7 @@ SqlPlotChart::SqlPlotChart(QSqlDatabase *database, QWidget *parent, const QStrin
         setWindowTitle(QString("Plot : ") + database->databaseName());
     }
     ui->sqlFilter->setDatabase(m_database);
+    connect(ui->sqlFilter, SIGNAL(returnPressed()), ui->plotButton, SLOT(click()));
     setMaximumSize(size());
     refreshTables();
 }
@@ -37,6 +38,11 @@ SqlPlotChart::~SqlPlotChart()
     delete ui;
     SAFE_DELETE(m_rcode);
     SAFE_DELETE(m_rpng);
+}
+
+void SqlPlotChart::setFilter(const QString &filter)
+{
+    ui->sqlFilter->setPlainText(filter);
 }
 
 void SqlPlotChart::changeEvent(QEvent *event)
