@@ -272,6 +272,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/toolbar/attach.png</normaloff>:/rc/images/toolbar/attach.png</iconset>
+   </property>
    <property name="text">
     <string>Attach DB</string>
    </property>
@@ -279,6 +283,10 @@
   <action name="actionSQL_Templates">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resouces.qrc">
+     <normaloff>:/rc/images/toolbar/template.png</normaloff>:/rc/images/toolbar/template.png</iconset>
    </property>
    <property name="text">
     <string>SQL Templates</string>

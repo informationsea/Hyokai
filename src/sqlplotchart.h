@@ -34,8 +34,8 @@ private:
 private slots:
     void refreshTables();
     void on_chartTypeComboBox_currentIndexChanged(int index);
-    void on_tableComboBox_textChanged(const QString &arg1);
     void on_plotButton_clicked();
+    void on_tableComboBox_editTextChanged(const QString &arg1);
 };
 
 #endif // SQLPLOTCHART_H

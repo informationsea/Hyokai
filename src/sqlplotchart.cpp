@@ -110,8 +110,38 @@ QString SqlPlotChart::generateRcode(const QString &device)
 
     switch (ui->chartTypeComboBox->currentIndex()) {
     case 0: { // scatter plot
+        switch(ui->pchComboBox->currentIndex()) {
+        case 0:
+        default:
+            rcode += "pch <- 1\n";
+             break;
+        case 1:
+            rcode += "pch <- 20\n";
+            break;
+        case 2:
+            rcode += "pch <- 4\n";
+            break;
+        case 3:
+            rcode += "pch <- 3\n";
+            break;
+        case 4:
+            rcode += "pch <- 2\n";
+            break;
+        case 5:
+            rcode += "pch <- 17\n";
+            break;
+        case 6:
+            rcode += "pch <- 0\n";
+            break;
+        case 7:
+            rcode += "pch <- 15\n";
+            break;
+        }
+
+        rcode += "alpha <- "+QString::number(ui->alphaSpin->value())+"\n";
+
         rcode += "cor.result <- cor.test(table.data[[1]], table.data[[2]])\n"
-                "xyplot(table.data[[2]] ~ table.data[[1]], grid=T, xlab=axis.name[[1]], ylab=axis.name[[2]], main=sprintf(\"Correlation: %f   p-value: %f\", cor.result[[4]], cor.result[[3]]))\n";
+                "xyplot(table.data[[2]] ~ table.data[[1]], alpha=alpha, pch=pch, grid=T, xlab=axis.name[[1]], ylab=axis.name[[2]], main=sprintf(\"Correlation: %f   p-value: %f\", cor.result[[4]], cor.result[[3]]))\n";
         break;
     }
     case 1: { // heatmap
@@ -122,7 +152,8 @@ QString SqlPlotChart::generateRcode(const QString &device)
         break;
     }
     case 2: { // histogram
-        rcode += "histogram(table.data[[1]], xlab=axis.name[[1]])\n";
+        rcode += "nint <- "+QString::number(ui->binSpin->value())+"\n";
+        rcode += "histogram(table.data[[1]], nint=nint, xlab=axis.name[[1]])\n";
         break;
     }
     case 3: { // densityplot
@@ -155,23 +186,12 @@ void SqlPlotChart::on_chartTypeComboBox_currentIndexChanged(int index)
         ui->axis2ComboBox->setEnabled(false);
         break;
     }
-}
 
-void SqlPlotChart::on_tableComboBox_textChanged(const QString &arg1)
-{
-    qDebug() << "currentIndexChanged " << arg1;
-    QSqlRecord record = m_database->record(arg1);
-    QStringList columns;
-    for (int i = 0; i < record.count(); ++i) {
-        columns << record.fieldName(i);
-    }
-    ui->axis1ComboBox->clear();
-    ui->axis2ComboBox->clear();
-    ui->axis1ComboBox->addItems(columns);
-    ui->axis2ComboBox->addItems(columns);
-    ui->sqlFilter->setTable(arg1);
-}
 
+    ui->alphaSpin->setEnabled(index == 0);
+    ui->pchComboBox->setEnabled(index == 0);
+    ui->binSpin->setEnabled(index == 2);
+}
 
 void SqlPlotChart::on_plotButton_clicked()
 {
@@ -200,4 +220,19 @@ void SqlPlotChart::on_plotButton_clicked()
     ui->imageView->setImage(img);
     ui->imageView->repaint();
 
+}
+
+void SqlPlotChart::on_tableComboBox_editTextChanged(const QString &arg1)
+{
+    qDebug() << "currentIndexChanged " << arg1;
+    QSqlRecord record = m_database->record(arg1);
+    QStringList columns;
+    for (int i = 0; i < record.count(); ++i) {
+        columns << record.fieldName(i);
+    }
+    ui->axis1ComboBox->clear();
+    ui->axis2ComboBox->clear();
+    ui->axis1ComboBox->addItems(columns);
+    ui->axis2ComboBox->addItems(columns);
+    ui->sqlFilter->setTable(arg1);
 }

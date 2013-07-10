@@ -36,7 +36,7 @@ PreferenceWindow::PreferenceWindow(QWidget *parent) :
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050000
     QMacNativeToolBar *nativeToolbar = QtMacExtras::setNativeToolBar(ui->toolBar, true);
-    nativeToolbar->setIconSize(QSize(22,22));
+    nativeToolbar->setIconSize(QSize(32,32));
 #endif
 #endif
 
