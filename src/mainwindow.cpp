@@ -693,9 +693,7 @@ void MainWindow::on_actionDelete_triggered()
 
 void MainWindow::on_actionQuit_triggered()
 {
-    foreach (QWidget *widget, QApplication::topLevelWidgets()) {
-        widget->close();
-    }
+    qApp->closeAllWindows();
 }
 
 QString MainWindow::importFile(QString import, bool autoimport)
