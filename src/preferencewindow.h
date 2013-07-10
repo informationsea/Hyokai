@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QList>
 #include <QStringList>
+#include <QActionGroup>
 
 #define ATTACHED_DATABASES "ATTACHED_DATABASES"
 #define SQL_TEMPLATES "SQL_TEMPLATES"
@@ -98,6 +99,7 @@ private:
     Ui::PreferenceWindow *ui;
     AttachDBTableModel *m_attachmodel;
     SqlTemplateTableModel *m_sqlmodel;
+    QActionGroup m_group;
     void uncheckAll();
 };
 

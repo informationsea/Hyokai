@@ -18,7 +18,7 @@
 
 PreferenceWindow::PreferenceWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::PreferenceWindow)
+    ui(new Ui::PreferenceWindow), m_group(this)
 {
     ui->setupUi(this);
     ui->actionGeneral->setChecked(true);
@@ -32,6 +32,10 @@ PreferenceWindow::PreferenceWindow(QWidget *parent) :
 
     ui->lineRPath->setText(tableview_settings->value(PATH_R, suggestRPath()).toString());
 
+
+    m_group.addAction(ui->actionAttach_DB);
+    m_group.addAction(ui->actionGeneral);
+    m_group.addAction(ui->actionSQL_Templates);
 
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050000
