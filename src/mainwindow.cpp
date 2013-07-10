@@ -251,6 +251,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
             QAction *hideColumn = popup.addAction("Hide");
             hideColumn->setData(logical_index);
             connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
+            if (!m_tableModel->isView()) {
+                QAction *createIndex = popup.addAction(tr("Create index"));
+                createIndex->setData(logical_index);
+                connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
+            }
             popup.exec();
         }
     }
@@ -393,6 +398,24 @@ void MainWindow::hideColumn()
     QAction *sigsender = static_cast<QAction *>(sender());
     int logicalIndex = sigsender->data().toInt();
     ui->tableView->hideColumn(logicalIndex);
+}
+
+void MainWindow::createIndexForColumn()
+{
+    QAction *sigsender = static_cast<QAction *>(sender());
+    int logicalIndex = sigsender->data().toInt();
+
+    QString tableName = m_tableModel->plainTableName();
+    QString columnName = m_tableModel->headerData(logicalIndex, Qt::Horizontal).toString();
+
+    QString indexName = QString("%1__%2__index").arg(tableName, columnName);
+
+    QSqlQuery query = m_database.exec(QString("CREATE INDEX %1 ON %2(%3)").arg(indexName, tableName, columnName));
+    if (query.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::critical(this, tr("SQL Error"), query.lastError().text()+"\n\n"+query.lastQuery());
+    }
+
+    //SheetTextInputDialog dialog(this);
 }
 
 bool MainWindow::confirmDuty()

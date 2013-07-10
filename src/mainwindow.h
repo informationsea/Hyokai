@@ -76,6 +76,7 @@ private slots:
     void showColumnSummary();
     void showColumn();
     void hideColumn();
+    void createIndexForColumn();
     void insertSqlFilter();
 
     void on_actionGo_github_triggered();
