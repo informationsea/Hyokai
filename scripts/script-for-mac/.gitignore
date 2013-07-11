@@ -6,3 +6,5 @@ ui_*.h
 *.h
 Makefile
 *.zip
+*.dmg
+Table View

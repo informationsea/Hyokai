@@ -29,6 +29,20 @@
 			<string>Editor</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+				<string>sqlite</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>SQLite3</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeIconFile</key>
+			<string>sqlite</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
 				<string>sqlite3</string>
 			</array>
 			<key>CFBundleTypeName</key>
