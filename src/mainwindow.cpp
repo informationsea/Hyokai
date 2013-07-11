@@ -81,6 +81,7 @@ MainWindow::MainWindow(const QSqlDatabase &database, QWidget *parent) :
     ui(new Ui::MainWindow), m_isDirty(false)
 {
     m_databasename = database.databaseName();
+    m_database = database;
     initialize();
 }
 
@@ -201,15 +202,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         switch(selected) {
         case QMessageBox::Discard:
             event->accept();
-            m_database.close();
-
-            foreach(QDialog *dialog, m_dialogs) {
-                if (dialog->isVisible()) {
-                    dialog->close();
-                }
-                delete dialog;
-            }
-
+            cleanupDatabase();
             return;
         default:
             event->ignore();
@@ -221,15 +214,33 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     } else {
         event->accept();
-        m_database.close();
+        cleanupDatabase();
+    }
+}
 
-        foreach(QDialog *dialog, m_dialogs) {
-            if (dialog->isVisible()) {
-                dialog->close();
+
+void MainWindow::cleanupDatabase()
+{
+    foreach(QDialog *dialog, m_dialogs) {
+        if (dialog->isVisible()) {
+            dialog->close();
+        }
+        delete dialog;
+    }
+
+
+    foreach(QWidget *widget, qApp->topLevelWidgets()) {
+        MainWindow *mainWindow = dynamic_cast<MainWindow *>(widget);
+        if (mainWindow && mainWindow != this && mainWindow->isVisible()) {
+            if (mainWindow->database().driverName() == m_database.driverName() &&
+                    mainWindow->database().connectionName() == m_database.connectionName()) {
+                return; // shared connection is found.
             }
-            delete dialog;
         }
     }
+
+    // shared connection is not found.
+    m_database.close(); qDebug() << "close;";
 }
 
 void MainWindow::importOneFile(const QString &path)

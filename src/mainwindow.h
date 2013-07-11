@@ -26,6 +26,7 @@ public:
     ~MainWindow();
 
     QString databaseName() { return m_databasename; }
+    const QSqlDatabase &database() {return m_database;}
     void refresh();
     void importOneFile(const QString &path);
     bool isDirty() { return m_isDirty; }
@@ -80,6 +81,7 @@ private slots:
     void createIndexForColumn();
     void insertSqlFilter();
     void onCopyTriggered(bool withHeader);
+    void cleanupDatabase();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
