@@ -1432,3 +1432,15 @@ void MainWindow::on_actionPlot_triggered()
 }
 
 
+
+void MainWindow::on_actionClose_triggered()
+{
+    foreach (QDialog *widget, m_dialogs) {
+        if (widget->isActiveWindow()) {
+            widget->close();
+            return;
+        }
+    }
+    // no active dialog is found.
+    close();
+}
