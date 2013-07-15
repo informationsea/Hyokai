@@ -178,6 +178,7 @@
     <property name="title">
      <string>Window</string>
     </property>
+    <addaction name="actionDummy"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -566,6 +567,11 @@
    </property>
    <property name="toolTip">
     <string>Plot chart</string>
+   </property>
+  </action>
+  <action name="actionDummy">
+   <property name="text">
+    <string>Dummy</string>
    </property>
   </action>
  </widget>

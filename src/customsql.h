@@ -28,6 +28,9 @@ public:
 
     QTableView *tableView();
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *ev);
+
 public slots:
     void selectTableAll();
     
@@ -46,6 +49,7 @@ private slots:
     void onExportTable();
     void onCreateView();
     void onExportToR();
+    void showCell();
 
     void on_sql_textChanged();
 

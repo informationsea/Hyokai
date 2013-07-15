@@ -28,7 +28,11 @@ CustomSql::CustomSql(QSqlDatabase *database, QWidget *parent) :
 #else
     ui->tableView->horizontalHeader()->setMovable(true);
 #endif
+    ui->tableView->installEventFilter(this);
     setWindowTitle("Custom SQL "+QFileInfo(database->databaseName()).completeBaseName());
+    if (database->driverName() == "QSQLITE") {
+        setWindowFilePath(database->databaseName());
+    }
 
     ui->splitter->setStretchFactor(0, 0);
     ui->splitter->setStretchFactor(1, 1);
@@ -53,6 +57,37 @@ CustomSql::~CustomSql()
 QTableView *CustomSql::tableView()
 {
     return ui->tableView;
+}
+
+bool CustomSql::eventFilter(QObject *obj, QEvent *ev)
+{
+    if (obj == ui->tableView && ev->type() == QEvent::ContextMenu) {
+        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
+        QPoint pos = cev->pos();
+        pos.rx() -= ui->tableView->verticalHeader()->width();
+        pos.ry() -= ui->tableView->horizontalHeader()->height();
+        QModelIndex index = ui->tableView->indexAt(pos);
+        if (index.isValid()) {
+            cev->accept();
+            QMenu popup(this);
+            popup.move(cev->globalPos());
+            QAction *showContent = popup.addAction(tr("Copy"), parent(), SLOT(on_actionCopy_triggered()));
+            showContent->setData(index);
+            QAction *showCellContent = popup.addAction(tr("Show"), this, SLOT(showCell()));
+            showCellContent->setData(index);
+            popup.exec();
+            return true;
+        }
+    }
+    return false;
+}
+
+void CustomSql::showCell()
+{
+    QAction *action = (QAction *)sender();
+    QModelIndex index = action->data().toModelIndex();
+    QString header = m_querymodel.headerData(index.column(), Qt::Horizontal).toString();
+    SheetMessageBox::information(this, tr("%1, #%2").arg(header, QString::number(index.row()+1)), m_querymodel.data(index).toString());
 }
 
 void CustomSql::selectTableAll()

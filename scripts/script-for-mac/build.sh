@@ -9,7 +9,7 @@ if [ -f Makefile ];then
 fi
 
 if [ -d "$DISTDIR" ];then
-    rm -r "$DISTDIR"
+    rm -rf "$DISTDIR"
 fi
 
 qmake -spec macx-clang -config release ../../src

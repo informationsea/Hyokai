@@ -81,6 +81,7 @@ private slots:
     void createIndexForColumn();
     void insertSqlFilter();
     void onCopyTriggered(bool withHeader);
+    void showCell();
     void cleanupDatabase();
 
     void on_actionGo_github_triggered();

@@ -129,6 +129,7 @@ void MainWindow::initialize()
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     connect(ui->menuShowHiddenColumn, SIGNAL(aboutToShow()), SLOT(onShowHiddenColumnShow()));
     ui->tableView->horizontalHeader()->installEventFilter(this);
+    ui->tableView->installEventFilter(this);
     ui->sqlLine->setDatabase(&m_database);
 
     if (m_databasename.compare(":memory:") == 0 || m_database.driverName() != "QSQLITE") {
@@ -240,7 +241,7 @@ void MainWindow::cleanupDatabase()
     }
 
     // shared connection is not found.
-    m_database.close(); qDebug() << "close;";
+    m_database.close(); //qDebug() << "close;";
 }
 
 void MainWindow::importOneFile(const QString &path)
@@ -278,6 +279,25 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
                 connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
             }
             popup.exec();
+        }
+        return true;
+    } else if (obj == ui->tableView && ev->type() == QEvent::ContextMenu) {
+        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
+        QPoint pos = cev->pos();
+        pos.rx() -= ui->tableView->verticalHeader()->width();
+        pos.ry() -= ui->tableView->horizontalHeader()->height();
+        QModelIndex index = ui->tableView->indexAt(pos);
+        if (index.isValid()) {
+            //qDebug() << "Table View context menu" << index << pos;
+            cev->accept();
+            QMenu popup(this);
+            popup.move(cev->globalPos());
+            QAction *showContent = popup.addAction(tr("Copy"), this, SLOT(on_actionCopy_triggered()));
+            showContent->setData(index);
+            QAction *showCellContent = popup.addAction(tr("Show"), this, SLOT(showCell()));
+            showCellContent->setData(index);
+            popup.exec();
+            return true;
         }
     }
     return false;
@@ -362,6 +382,14 @@ void MainWindow::onShowHiddenColumnShow()
         QAction *empty = ui->menuShowHiddenColumn->addAction(tr("No hidden column"));
         empty->setDisabled(true);
     }
+}
+
+void MainWindow::showCell()
+{
+    QAction *action = (QAction *)sender();
+    QModelIndex index = action->data().toModelIndex();
+    QString header = m_tableModel->headerData(index.column(), Qt::Horizontal).toString();
+    SheetMessageBox::information(this, tr("%1, #%2").arg(header, QString::number(index.row()+1)), m_tableModel->data(index).toString());
 }
 
 void MainWindow::activate()
@@ -1402,3 +1430,5 @@ void MainWindow::on_actionPlot_triggered()
     plotChart->show();
     m_dialogs.append(plotChart);
 }
+
+
