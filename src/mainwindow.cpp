@@ -74,6 +74,19 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     m_database.open();
 
     initialize();
+
+    if (m_database.driverName() == "QSQLITE") {
+        QList<QVariant> attachdb = tableview_settings->value(ATTACHED_DATABASES).toList();
+        foreach(QVariant l, attachdb) {
+            QStringList list = l.toStringList();
+            QString as = list[0].replace("\"", "");
+            QString db = list[1].replace("\"", "");
+            QSqlQuery q = m_database.exec(QString("ATTACH DATABASE \"%1\" AS \"%2\"").arg(db, as));
+            if (q.lastError().type() != QSqlError::NoError) {
+                SheetMessageBox::critical(NULL, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+q.lastQuery());
+            }
+        }
+    }
 }
 
 MainWindow::MainWindow(const QSqlDatabase &database, QWidget *parent) :
@@ -137,19 +150,6 @@ void MainWindow::initialize()
         setWindowTitle(QString("[*] ") + m_databasename);
     } else {
         setWindowTitle(QString("[*] ") + QFileInfo(m_databasename).completeBaseName());
-    }
-
-    if (m_database.driverName() == "QSQLITE") {
-        QList<QVariant> attachdb = tableview_settings->value(ATTACHED_DATABASES).toList();
-        foreach(QVariant l, attachdb) {
-            QStringList list = l.toStringList();
-            QString as = list[0].replace("\"", "");
-            QString db = list[1].replace("\"", "");
-            QSqlQuery q = m_database.exec(QString("ATTACH DATABASE \"%1\" AS \"%2\"").arg(db, as));
-            if (q.lastError().type() != QSqlError::NoError) {
-                SheetMessageBox::critical(NULL, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+q.lastQuery());
-            }
-        }
     }
 
     filterFinished();
@@ -783,10 +783,10 @@ QString MainWindow::importFile(QString import, bool autoimport)
 
     // prepare insert SQL
     int insertNumber = dialog.fields().size();
-    QString insertSqlText(":v0");
+    QString insertSqlText("?");
     for (int i = 1; i < insertNumber; i++) {
-        insertSqlText.append(", :v");
-        insertSqlText.append(QString::number(i));
+        insertSqlText.append(", ?");
+        //insertSqlText.append(QString::number(i));
     }
 
     QSqlQuery insertQuery(m_database);
@@ -799,22 +799,43 @@ QString MainWindow::importFile(QString import, bool autoimport)
     }
 
     QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.completeBaseName()), tr("Cancel"), 0, fileInfo.size(), this);
+    progress2.setMinimumDuration(0);
     progress2.setWindowModality(Qt::WindowModal);
 
     if (dialog.firstLineIsHeader())
         file.readLine(); // skip header
 
     // insert data
+    QVariantList variantList[insertNumber];
+    for (int j = 0; j < insertNumber; ++j) {
+        variantList[j].reserve(500);
+    }
+
     while(!file.atEnd()) {
-        QList<QByteArray> elements = file.readLine().trimmed().split(dialog.delimiter());
-        for (int i = 0; i < insertNumber; ++i) {
-            if (fields[i].logicalIndex() >= elements.size() || fields[i].logicalIndex() < 0) {
-                insertQuery.bindValue(QString(":v%1").arg(QString::number(i)), "");
-                continue;
-            }
-            insertQuery.bindValue(QString(":v%1").arg(QString::number(i)), QString(elements[fields[i].logicalIndex()]));
+        insertQuery.prepare(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText));
+        for (int j = 0; j < insertNumber; ++j) {
+            variantList[j].clear();
+            variantList[j].reserve(500);
         }
-        if (!insertQuery.exec()) {
+
+        for (int i = 0; i < 500 && !file.atEnd(); ++i) {
+            QList<QByteArray> elements = file.readLine().trimmed().split(dialog.delimiter());
+            for (int j = 0; j < insertNumber; ++j) {
+                if (fields[j].logicalIndex() >= elements.size() || fields[j].logicalIndex() < 0) {
+                    //insertQuery.bindValue(QString(":v%1").arg(QString::number(j)), "");
+                    variantList[j] << "";
+                } else {
+                    variantList[j] << QString(elements[fields[j].logicalIndex()]);
+                    //insertQuery.bindValue(QString(":v%1").arg(QString::number(j)), QString(elements[fields[j].logicalIndex()]));
+                }
+            }
+        }
+
+        for (int j = 0; j < insertNumber; ++j) {
+            insertQuery.addBindValue(variantList[j]);
+        }
+
+        if (!insertQuery.execBatch()) {
             if (SheetMessageBox::warning(this, tr("Insert error"),
                                          insertQuery.lastError().text() + "\n\n" + insertQuery.lastQuery(),
                                          QMessageBox::Abort) == QMessageBox::Abort) {
