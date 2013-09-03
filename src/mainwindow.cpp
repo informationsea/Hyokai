@@ -681,8 +681,9 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionNew_triggered()
 {
+    QString defaultpath = QFileInfo(tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(), "Untitled.sqlite3").absoluteFilePath();
     QString path = QFileDialog::getSaveFileName(NULL, "New SQLite3 Database",
-                                                tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
+                                                defaultpath,
                                                 "SQLite3 (*.sqlite3);; All (*)");
     if (path.isEmpty())
         return;
@@ -947,7 +948,11 @@ void MainWindow::on_actionExport_Table_triggered()
         return;
     }
 
-    QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"), tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(), "Tab separated (*.txt);; CSV (*.csv)");
+    QString defaultpath = QFileInfo(tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(), m_tableModel->plainTableName()+".txt").absoluteFilePath();
+    qDebug() << "defaultpath: " << defaultpath;
+    QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
+                                                      defaultpath,
+                                                      "Tab separated (*.txt);; CSV (*.csv)");
     if (outputpath.isEmpty())
         return;
     QFile outputfile(outputpath);
