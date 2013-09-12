@@ -807,8 +807,9 @@ QString MainWindow::importFile(QString import, bool autoimport)
         file.readLine(); // skip header
 
     // insert data
-    QVariantList variantList[insertNumber];
+    QList<QVariantList> variantList;
     for (int j = 0; j < insertNumber; ++j) {
+        variantList.append(QVariantList());
         variantList[j].reserve(500);
     }
 
