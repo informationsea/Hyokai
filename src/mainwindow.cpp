@@ -113,7 +113,7 @@ void MainWindow::initialize()
         // v.data() returns a pointer to the handle
         sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
         if (handle != 0) { // check that it is not NULL
-            sqlite3_enable_load_extension(handle, 1); // Enable extension
+            //sqlite3_enable_load_extension(handle, 1); // Enable extension
             RegisterExtensionFunctions(handle);
         }
     }
@@ -595,7 +595,7 @@ void MainWindow::sortIndicatorChanged(int logicalIndex, Qt::SortOrder order)
 
 void MainWindow::on_actionGo_github_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://github.com/informationsea/TableView"));
+    QDesktopServices::openUrl(QUrl("https://github.com/informationsea/Hyokai"));
 }
 
 void MainWindow::on_actionCommit_triggered()
@@ -900,13 +900,13 @@ void MainWindow::on_actionAbout_Qt_triggered()
 void MainWindow::on_actionAbout_Table_View_triggered()
 {
     QMessageBox about(this);
-    about.setWindowTitle(tr("Table View"));
+    about.setWindowTitle(tr("Hyokai"));
     about.setIconPixmap(QPixmap(":rc/images/icon128.png"));
     about.setTextFormat(Qt::RichText);
-    about.setText(tr("Table View 0.2<br /><br />"
+    about.setText(tr("Hyokai 0.2<br /><br />"
                      "Simple SQLite Viewer<br /><br />"
                      "Copyright (C) 2013 Y.Okamura<br /><br />"
-                     "Developing on <a href=\"https://github.com/informationsea/TableView\">Github</a><hr />"
+                     "Developing on <a href=\"https://github.com/informationsea/Hyokai\">Github</a><hr />"
                      "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
                      "Build at " __DATE__));
     about.exec();

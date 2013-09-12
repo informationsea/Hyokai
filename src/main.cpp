@@ -24,7 +24,7 @@ static FileEventHandler *handler;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    a.setApplicationName("TableView");
+    a.setApplicationName("Hyokai");
     a.setOrganizationDomain("informationsea.info");
     a.setOrganizationName("informationsea");
     a.setApplicationVersion("0.1");

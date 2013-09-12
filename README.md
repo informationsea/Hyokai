@@ -1,10 +1,10 @@
-Table View
+Hyokai
 ==========
 
 About
 -----
 
-Table View is database viewer for big data analysis.
+Hyokai is database viewer for big data analysis.
 Easy to import from tab-separated values or CSV and export to them.
 
 ![Screen Shot](http://informationsea.info/apps/tableview/img/screenshot2.png)
@@ -12,7 +12,7 @@ Easy to import from tab-separated values or CSV and export to them.
 Downloads
 ---------
 
-* [Source code](https://github.com/informationsea/TableView)
+* [Source code](https://github.com/informationsea/Hyokai)
 * [Binaries](http://informationsea.info/apps/tableview/downloads.html)
 
 Requirements
@@ -59,7 +59,7 @@ Please read `build-scripts/script-for-windows/README.md` to learn more.
 ### Debug build
 
 1. Build Qt if you are using OS X or other unix-like systems with `-qt-sql-sqlite -system-sqlite` options
-2. Open `src/TableView.pro` with Qt Creator
+2. Open `src/Hyokai.pro` with Qt Creator
 3. Build it
 
 Authors

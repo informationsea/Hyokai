@@ -284,7 +284,7 @@
     <string>Quit</string>
    </property>
    <property name="statusTip">
-    <string>Quit Table View</string>
+    <string>Quit Hyokai</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -333,10 +333,10 @@
   </action>
   <action name="actionAbout_Table_View">
    <property name="text">
-    <string>About Table View</string>
+    <string>About Hyokai</string>
    </property>
    <property name="statusTip">
-    <string>About Table View</string>
+    <string>About Hyokai</string>
    </property>
   </action>
   <action name="actionGo_github">

@@ -11,7 +11,7 @@ macx {
     greaterThan(QT_MAJOR_VERSION, 4): QT += macextras
 }
 
-TARGET = TableView
+TARGET = Hyokai
 TEMPLATE = app
 VERSION = 0.2
 
