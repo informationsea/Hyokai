@@ -389,7 +389,15 @@ void MainWindow::showCell()
     QAction *action = (QAction *)sender();
     QModelIndex index = action->data().toModelIndex();
     QString header = m_tableModel->headerData(index.column(), Qt::Horizontal).toString();
-    SheetMessageBox::information(this, tr("%1, #%2").arg(header, QString::number(index.row()+1)), m_tableModel->data(index).toString());
+
+    QMessageBox *message = SheetMessageBox::makeMessageBox(this, tr("%1, #%2").arg(header, QString::number(index.row()+1)),
+                                                           m_tableModel->data(index).toString());
+    if(m_tableModel->data(index) != m_tableModel->data(index, Qt::EditRole)) {
+        message->setDetailedText(m_tableModel->data(index, Qt::EditRole).toString());
+    }
+    message->setIcon(QMessageBox::Information);
+    message->exec();
+    delete message;
 }
 
 void MainWindow::activate()
@@ -1055,7 +1063,7 @@ static void copyFromTableView(const QTableView *tableView, bool copyHeader)
     }
 
     foreach(QModelIndex index, selectedIndex) {
-        matrix[index.row() - left_top.y][index.column() - left_top.x] = tableView->model()->data(index);
+        matrix[index.row() - left_top.y][index.column() - left_top.x] = tableView->model()->data(index, Qt::EditRole);
     }
 
     QString clipboard;
