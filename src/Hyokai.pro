@@ -93,3 +93,5 @@ OTHER_FILES += \
     keywords/postgresql-functions.txt \
     keywords/mysql-keywords.txt \
     keywords/mysql-functions.txt
+
+cache()

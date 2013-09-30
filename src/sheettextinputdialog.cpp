@@ -7,7 +7,7 @@ SheetTextInputDialog::SheetTextInputDialog(const QString &title, const QString &
 {
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     ui->label_2->setText(title);
     ui->label->setText(text);
 #else
