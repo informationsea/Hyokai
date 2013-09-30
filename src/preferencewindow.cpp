@@ -6,7 +6,7 @@
 #include <QDebug>
 
 #include "attachdatabasedialog.h"
-#include "customsql.h"
+#include "customsqldialog.h"
 #include "sheetmessagebox.h"
 #include "main.h"
 

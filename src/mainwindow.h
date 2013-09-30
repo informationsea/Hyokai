@@ -7,7 +7,7 @@
 #include <QLabel>
 
 #include "sqltablemodelalternativebackground.h"
-#include "customsql.h"
+#include "customsqldialog.h"
 #include "sqlplotchart.h"
 
 class QMacNativeToolBar;

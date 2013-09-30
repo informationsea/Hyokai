@@ -1,5 +1,5 @@
-#include "customsql.h"
-#include "ui_customsql.h"
+#include "customsqldialog.h"
+#include "ui_customsqldialog.h"
 
 #include "sheetmessagebox.h"
 #include "jointabledialog.h"
@@ -16,7 +16,7 @@
 #include <QFileDialog>
 #include <QClipboard>
 
-CustomSql::CustomSql(QSqlDatabase *database, QWidget *parent) :
+CustomSqlDialog::CustomSqlDialog(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CustomSql), m_database(database),
     m_query(*database), m_querymodel(this)
@@ -46,7 +46,7 @@ CustomSql::CustomSql(QSqlDatabase *database, QWidget *parent) :
     m_history = tableview_settings->value(CUSTOM_SQL_HISTORY).toStringList();
 }
 
-CustomSql::~CustomSql()
+CustomSqlDialog::~CustomSqlDialog()
 {
     delete ui;
     delete assistMenu;
@@ -54,12 +54,12 @@ CustomSql::~CustomSql()
     delete menu;
 }
 
-QTableView *CustomSql::tableView()
+QTableView *CustomSqlDialog::tableView()
 {
     return ui->tableView;
 }
 
-bool CustomSql::eventFilter(QObject *obj, QEvent *ev)
+bool CustomSqlDialog::eventFilter(QObject *obj, QEvent *ev)
 {
     if (obj == ui->tableView && ev->type() == QEvent::ContextMenu) {
         QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
@@ -82,7 +82,7 @@ bool CustomSql::eventFilter(QObject *obj, QEvent *ev)
     return false;
 }
 
-void CustomSql::showCell()
+void CustomSqlDialog::showCell()
 {
     QAction *action = (QAction *)sender();
     QModelIndex index = action->data().toModelIndex();
@@ -90,12 +90,12 @@ void CustomSql::showCell()
     SheetMessageBox::information(this, tr("%1, #%2").arg(header, QString::number(index.row()+1)), m_querymodel.data(index).toString());
 }
 
-void CustomSql::selectTableAll()
+void CustomSqlDialog::selectTableAll()
 {
     ui->tableView->selectAll();
 }
 
-void CustomSql::on_pushButton_clicked()
+void CustomSqlDialog::on_pushButton_clicked()
 {
     if(ui->sql->toPlainText().isEmpty())
         return;
@@ -121,27 +121,27 @@ void CustomSql::on_pushButton_clicked()
 }
 
 
-void CustomSql::on_assistButton_clicked()
+void CustomSqlDialog::on_assistButton_clicked()
 {
     QPoint point = ui->assistButton->pos();
     point.setY(point.y() + ui->assistButton->size().height());
     assistMenu->popup(mapToGlobal(point));
 }
 
-void CustomSql::setSqlTemplate()
+void CustomSqlDialog::setSqlTemplate()
 {
     QAction *sender = (QAction *)QObject::sender();
     ui->sql->setPlainText(sender->data().toString());
 }
 
 
-void CustomSql::insertSql()
+void CustomSqlDialog::insertSql()
 {
     QAction *sender = (QAction *)QObject::sender();
     ui->sql->insertPlainText(sender->data().toString());
 }
 
-void CustomSql::joinSqlWizard()
+void CustomSqlDialog::joinSqlWizard()
 {
     JoinTableDialog dialog(m_database, this);
     if (dialog.exec() != QDialog::Accepted)
@@ -155,7 +155,7 @@ void CustomSql::joinSqlWizard()
 #define MAX_HISTORY_SHOW_ITEMS 10
 #define MAX_HISTORY_SHOW_MORE_ITEMS 60
 
-void CustomSql::on_historyButton_clicked()
+void CustomSqlDialog::on_historyButton_clicked()
 {
     int count = 0;
     historyMenu->clear();
@@ -192,7 +192,7 @@ void CustomSql::on_historyButton_clicked()
     historyMenu->popup(mapToGlobal(point));
 }
 
-void CustomSql::onHistorySelected()
+void CustomSqlDialog::onHistorySelected()
 {
     QAction *senderAction = (QAction *)sender();
     if (senderAction->data().toString().compare(CLEAR_TEXT) == 0) {
@@ -203,7 +203,7 @@ void CustomSql::onHistorySelected()
     }
 }
 
-void CustomSql::on_menuButton_clicked()
+void CustomSqlDialog::on_menuButton_clicked()
 {
     foreach(QAction* action, m_menu_for_select) {
         action->setEnabled(m_query.isSelect());
@@ -214,7 +214,7 @@ void CustomSql::on_menuButton_clicked()
     menu->popup(mapToGlobal(point));
 }
 
-void CustomSql::onExportTable()
+void CustomSqlDialog::onExportTable()
 {
     QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
                                                       tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(),
@@ -256,21 +256,21 @@ void CustomSql::onExportTable()
     outputfile.close();
 }
 
-void CustomSql::onCreateView()
+void CustomSqlDialog::onCreateView()
 {
     ui->sql->setPlainText(QString("CREATE VIEW newview AS %1").arg(m_query.lastQuery()));
     ui->sql->textCursor().setPosition(QString("CREATE VIEW ").length());
     ui->sql->textCursor().setPosition(QString("CREATE VIEW newview").length(), QTextCursor::KeepAnchor);
 }
 
-void CustomSql::onExportToR()
+void CustomSqlDialog::onExportToR()
 {
     QClipboard *clip = qApp->clipboard();
     clip->setText(SqlService::createRcodeToImport(*m_database, ui->sql->toPlainText(), "custom.table"));
 }
 
 
-void CustomSql::createMenus()
+void CustomSqlDialog::createMenus()
 {
     // Assist Menu
     assistMenu = new QMenu(this);
@@ -411,7 +411,7 @@ void CustomSql::createMenus()
     }
 }
 
-void CustomSql::on_sql_textChanged()
+void CustomSqlDialog::on_sql_textChanged()
 {
     if (ui->sql->toPlainText().trimmed() == m_query.lastQuery()) {
         ui->sql->setStyleSheet("SQLTextEdit{ background: white; }");

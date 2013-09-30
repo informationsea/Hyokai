@@ -18,13 +18,13 @@ namespace Ui {
 class CustomSql;
 }
 
-class CustomSql : public QDialog
+class CustomSqlDialog : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit CustomSql(QSqlDatabase *database, QWidget *parent = 0);
-    ~CustomSql();
+    explicit CustomSqlDialog(QSqlDatabase *database, QWidget *parent = 0);
+    ~CustomSqlDialog();
 
     QTableView *tableView();
 

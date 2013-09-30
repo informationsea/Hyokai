@@ -7,7 +7,7 @@
 #include "schemadialog.h"
 #include "sheetmessagebox.h"
 #include "sheettextinputdialog.h"
-#include "customsql.h"
+#include "customsqldialog.h"
 #include "sqltablemodelalternativebackground.h"
 #include "attachdatabasedialog.h"
 #include "summarydialog.h"
@@ -922,7 +922,7 @@ void MainWindow::on_actionAbout_Table_View_triggered()
 
 void MainWindow::on_actionRun_Custum_SQL_triggered()
 {
-    CustomSql *customSql = new CustomSql(&m_database, this);
+    CustomSqlDialog *customSql = new CustomSqlDialog(&m_database, this);
     customSql->show();
     m_dialogs.append(customSql);
 }
@@ -1109,7 +1109,7 @@ void MainWindow::onCopyTriggered(bool withHeader)
     tableView = ui->tableView;
     foreach(QDialog *dialog, m_dialogs) {
         if (widget == dialog) {
-            CustomSql *customDialog = dynamic_cast<CustomSql *>(dialog);
+            CustomSqlDialog *customDialog = dynamic_cast<CustomSqlDialog *>(dialog);
             if (customDialog)
                 tableView = customDialog->tableView();
             break;
@@ -1291,7 +1291,7 @@ void MainWindow::on_actionSelect_All_triggered()
     QWidget* widget = qApp->activeWindow();
     foreach(QDialog *dialog, m_dialogs) {
         if (widget == dialog) {
-            CustomSql *customDialog = dynamic_cast<CustomSql *>(dialog);
+            CustomSqlDialog *customDialog = dynamic_cast<CustomSqlDialog *>(dialog);
             if (customDialog)
                 customDialog->selectTableAll();
             return;
