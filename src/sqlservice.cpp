@@ -58,7 +58,7 @@ QString SqlService::createRcodeToImport(const QSqlDatabase &database, const QStr
 
     QString databaseName = database.databaseName();
 
-#ifdef Q_WS_WIN32
+#ifdef Q_OS_WIN32
     if (driver == "QSQLITE")
         databaseName = databaseName.replace('\\', '/');
 #endif

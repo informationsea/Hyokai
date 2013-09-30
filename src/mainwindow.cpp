@@ -1163,7 +1163,7 @@ void MainWindow::on_actionR_code_to_import_triggered()
         return;
     QFileInfo fileInfo(m_databasename);
     QString filename = m_databasename;
-#ifdef Q_WS_WIN32
+#ifdef Q_OS_WIN32
     filename = filename.replace('\\', '/');
 #endif
     QString basename = fileInfo.completeBaseName();
