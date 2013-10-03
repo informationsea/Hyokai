@@ -9,6 +9,10 @@
 #include <QProgressDialog>
 #include <QRegExp>
 
+#include <csvreader.hpp>
+#include <tablereader.hpp>
+#include <memory>
+
 #include "main.h"
 
 SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidget *parent) :
@@ -199,8 +203,6 @@ void SchemaDialog::setDelimiter(char ch)
 {
     ui->tabDelimiter->setChecked(false);
     ui->cammaDelimiter->setChecked(false);
-    ui->customDelimiter->setChecked(false);
-    ui->customDelimiterEdit->setEnabled(false);
     switch(ch) {
     case '\t':
         ui->tabDelimiter->setChecked(true);
@@ -209,8 +211,6 @@ void SchemaDialog::setDelimiter(char ch)
         ui->cammaDelimiter->setChecked(true);
         break;
     default:
-        ui->customDelimiter->setChecked(true);
-        ui->customDelimiterEdit->setText(QChar(ch));
         break;
     }
 }
@@ -227,12 +227,8 @@ char SchemaDialog::delimiter() const
         return '\t';
     } else if (ui->cammaDelimiter->isChecked()) {
         return ',';
-    } else {
-        if (ui->customDelimiterEdit->text().length())
-            return ui->customDelimiterEdit->text().at(0).toLatin1();
-        else
-            return '\t';
     }
+    return '\0';
 }
 
 int SchemaDialog::skipLines() const
@@ -250,6 +246,15 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
     file->seek(0);
     QFileInfo fileInfo(file->fileName());
 
+    TableReader *tableReader_raw;
+    if (delimiter == ',') {
+        tableReader_raw = new CSVReader();
+    } else {
+        tableReader_raw = new TableReader();
+    }
+    std::auto_ptr<TableReader> tableReader(tableReader_raw);
+    tableReader->open_path(file->fileName().toUtf8().data());
+
     QList<SchemaField> fields;
     QList<SchemaField::FieldType> fieldTypes;
     QStringList fieldNames;
@@ -263,35 +268,65 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
         suggestProgress->setWindowModality(Qt::WindowModal);
     }
 
-    for (int i = 0; i < skipLines; ++i) {
-        file->readLine();
+    for (int i = 0; i < skipLines;) {
+        bool lineend;
+        size_t readlen;
+        tableReader->readnext(&readlen, &lineend);
+        if (lineend)
+            i++;
     }
 
     // suggests field name
     if (firstLineIsHeader) {
-    QList<QByteArray> header = file->readLine().trimmed().split(delimiter);
-    int counter = 0;
-    foreach(QByteArray one, header) {
-        QString newfieldname = normstr(one);
-        if (fieldNames.contains(newfieldname)) {
-            QString basename = newfieldname;
-            int counter = 2;
-            do {
-                newfieldname = QString("%1_%2").arg(basename, QString::number(counter));
-                counter += 1;
-            } while(fieldNames.contains(newfieldname));
+        QList<QByteArray> header;
+        do {
+            bool lineend;
+            size_t readlen;
+            const char *column = tableReader->readnext(&readlen, &lineend);
+            if (column == NULL)
+                break;
+
+            header.append(QByteArray(column, readlen));
+
+            if (lineend)
+                break;
+        } while(1);
+
+        int counter = 0;
+        foreach(QByteArray one, header) {
+            QString newfieldname = normstr(one);
+            if (fieldNames.contains(newfieldname)) {
+                QString basename = newfieldname;
+                int counter = 2;
+                do {
+                    newfieldname = QString("%1_%2").arg(basename, QString::number(counter));
+                    counter += 1;
+                } while(fieldNames.contains(newfieldname));
+            }
+            fields.append(SchemaField(newfieldname));
+            fieldNames.append(newfieldname);
+            fieldTypes.append(SchemaField::FIELD_INTEGER);
+            fields.last().setLogicalIndex(counter);
+            counter += 1;
         }
-        fields.append(SchemaField(newfieldname));
-        fieldNames.append(newfieldname);
-        fieldTypes.append(SchemaField::FIELD_INTEGER);
-        fields.last().setLogicalIndex(counter);
-        counter += 1;
-    }
     }
 
     // suggests field type
-    for (int i = 0; !file->atEnd() && (suggestLine < 0 || i < suggestLine); ++i) {
-        QList<QByteArray> elements = file->readLine().trimmed().split(delimiter);
+    for (int i = 0; suggestLine < 0 || i < suggestLine; ++i) {
+        QList<QByteArray> elements;
+        do {
+            bool lineend;
+            size_t readlen;
+            const char *column = tableReader->readnext(&readlen, &lineend);
+            if (column == NULL)
+                goto skipSuggest;
+
+            elements.append(QByteArray(column, readlen));
+
+            if (lineend)
+                break;
+        } while(1);
+
         while (elements.size() > fields.size()) {
             fields.append(SchemaField(QString("V%1").arg(QString::number(fields.size()))));
             fieldTypes.append(SchemaField::FIELD_INTEGER);
@@ -299,13 +334,13 @@ QList<SchemaField> SchemaDialog::suggestSchema(QFile *file, char delimiter, int 
             fields.last().setLogicalIndex(fields.size()-1);
         }
 
-        if (suggestProgress) {
-            suggestProgress->setValue(file->pos());
+//        if (suggestProgress) {
+//            suggestProgress->setValue(file->pos());
 
-            if (suggestProgress->wasCanceled()) {
-                goto skipSuggest;
-            }
-        }
+//            if (suggestProgress->wasCanceled()) {
+//                goto skipSuggest;
+//            }
+//        }
 
         for (int i = 0; i < fields.size() && i < elements.size(); i++) {
             fields[i].setMaximumLength(MAX(fields[i].maximumLength(), elements[i].length()));

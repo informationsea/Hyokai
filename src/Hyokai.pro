@@ -15,6 +15,9 @@ TARGET = Hyokai
 TEMPLATE = app
 VERSION = 0.2
 
+INCLUDEPATH += /usr/local/include/filereader
+LIBS += -lfilereader -L/usr/local/lib
+
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc
 

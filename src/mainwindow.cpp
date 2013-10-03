@@ -44,6 +44,9 @@
 #include <QProgressDialog>
 #include <QSqlField>
 
+#include <tablereader.hpp>
+#include <csvreader.hpp>
+
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050000
 #include <QMacNativeToolBar>
@@ -757,6 +760,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
     tableview_settings->setValue(LAST_IMPORT_DIRECTORY, fileInfo.dir().absolutePath());
     SchemaDialog dialog(&m_database, &file, this);
 
+
     char delimiter = '\t';
     if (import.endsWith(".csv"))
         delimiter = ',';
@@ -801,18 +805,34 @@ QString MainWindow::importFile(QString import, bool autoimport)
     QSqlQuery insertQuery(m_database);
     insertQuery.prepare(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText));
 
-    file.seek(0);
+    TableReader *tableReader_raw;
+    if (dialog.delimiter() == ',') {
+        tableReader_raw = new CSVReader();
+    } else {
+        tableReader_raw = new TableReader();
+    }
+    std::auto_ptr<TableReader> tableReader(tableReader_raw);
+    tableReader->open_path(file.fileName().toUtf8().data());
 
-    for (int i = 0; i < dialog.skipLines(); ++i) { // skip lines
-        file.readLine();
+    for (int i = 0; i < dialog.skipLines();) {
+        bool lineend;
+        size_t readlen;
+        tableReader->readnext(&readlen, &lineend);
+        if (lineend)
+            i++;
     }
 
     QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.completeBaseName()), tr("Cancel"), 0, fileInfo.size(), this);
     progress2.setMinimumDuration(0);
     progress2.setWindowModality(Qt::WindowModal);
 
-    if (dialog.firstLineIsHeader())
-        file.readLine(); // skip header
+    if (dialog.firstLineIsHeader()) {
+        bool lineend;
+        size_t readlen;
+        do {
+            tableReader->readnext(&readlen, &lineend);
+        } while (!lineend);
+    }
 
     // insert data
     QList<QVariantList> variantList;
@@ -821,15 +841,32 @@ QString MainWindow::importFile(QString import, bool autoimport)
         variantList[j].reserve(500);
     }
 
-    while(!file.atEnd()) {
+    bool fileend = false;
+    while(!fileend) {
         insertQuery.prepare(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText));
         for (int j = 0; j < insertNumber; ++j) {
             variantList[j].clear();
             variantList[j].reserve(500);
         }
 
-        for (int i = 0; i < 500 && !file.atEnd(); ++i) {
-            QList<QByteArray> elements = file.readLine().trimmed().split(dialog.delimiter());
+        for (int i = 0; i < 500; ++i) {
+
+            QList<QByteArray> elements;
+            do {
+                bool lineend;
+                size_t readlen;
+                const char *column = tableReader->readnext(&readlen, &lineend);
+                if (column == NULL) {
+                    fileend = true;
+                    goto skip;
+                }
+
+                elements.append(QByteArray(column, readlen));
+
+                if (lineend)
+                    break;
+            } while(1);
+
             for (int j = 0; j < insertNumber; ++j) {
                 if (fields[j].logicalIndex() >= elements.size() || fields[j].logicalIndex() < 0) {
                     //insertQuery.bindValue(QString(":v%1").arg(QString::number(j)), "");
@@ -840,6 +877,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
                 }
             }
         }
+        skip:
 
         for (int j = 0; j < insertNumber; ++j) {
             insertQuery.addBindValue(variantList[j]);
@@ -854,7 +892,7 @@ QString MainWindow::importFile(QString import, bool autoimport)
             }
         }
 
-        progress2.setValue(file.pos());
+        //progress2.setValue(file.pos());
         if (progress2.wasCanceled()) {
             m_database.rollback();
             return QString();
