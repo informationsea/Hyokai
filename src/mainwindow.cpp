@@ -14,6 +14,8 @@
 #include "databaseconnectiondialog.h"
 #include "sqlservice.h"
 #include "sqlplotchart.h"
+#include "sqlfileimporter.h"
+#include "sqlfileexporter.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -637,9 +639,7 @@ void MainWindow::on_actionCreateTable_triggered()
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    QStringList sqls;
-    sqls.append(dialog.createTableSql());
-    sqls.append(dialog.createIndexSqls());
+    QStringList sqls = SqlFileImporter::createSql(dialog.name(), dialog.fields(), dialog.useFts4());
 
     foreach (const QString sql, sqls) {
         m_database.exec(sql);
@@ -761,31 +761,30 @@ QString MainWindow::importFile(QString import, bool autoimport)
     SchemaDialog dialog(&m_database, &file, this);
 
 
-    char delimiter = '\t';
-    if (import.endsWith(".csv"))
-        delimiter = ',';
     dialog.setName(SqlService::suggestTableName(fileInfo.completeBaseName(), &m_database));
 
-    QList<SchemaField> fields = dialog.suggestSchema(&file, delimiter, 0, true, 20, this);
+    //QList<SchemaField> fields = dialog.suggestSchema(&file, delimiter, 0, true, 20, this);
+    SqlFileImporter::FileType filetype;
+    if (import.endsWith(".csv"))
+        filetype = SqlFileImporter::FILETYPE_CSV;
+    else
+        filetype = SqlFileImporter::FILETYPE_TVS;
 
-    dialog.setDelimiter(delimiter);
+    QList<SchemaField> fields = SqlFileImporter::suggestSchema(file.fileName(), filetype, 0, true, m_database.driverName() == "QSQLITE");
+
+    dialog.setFileType(filetype);
     dialog.setFields(fields);
     if (!autoimport) {
         if (dialog.exec() != QDialog::Accepted)
             return QString();
     }
 
-
     // creat table
     fields = dialog.fields();
 
     m_database.transaction();
 
-    QStringList sqls;
-    sqls.append(dialog.createTableSql());
-    sqls.append(dialog.createIndexSqls());
-
-    foreach (const QString sql, sqls) {
+    foreach (const QString sql, SqlFileImporter::createSql(dialog.name(), fields, dialog.useFts4())) {
         m_database.exec(sql);
 
         if (m_database.lastError().type() != QSqlError::NoError) {
@@ -794,112 +793,9 @@ QString MainWindow::importFile(QString import, bool autoimport)
         }
     }
 
-    // prepare insert SQL
-    int insertNumber = dialog.fields().size();
-    QString insertSqlText("?");
-    for (int i = 1; i < insertNumber; i++) {
-        insertSqlText.append(", ?");
-        //insertSqlText.append(QString::number(i));
-    }
-
-    QSqlQuery insertQuery(m_database);
-    insertQuery.prepare(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText));
-
-    TableReader *tableReader_raw;
-    if (dialog.delimiter() == ',') {
-        tableReader_raw = new CSVReader();
-    } else {
-        tableReader_raw = new TableReader();
-    }
-    std::auto_ptr<TableReader> tableReader(tableReader_raw);
-    tableReader->open_path(file.fileName().toUtf8().data());
-
-    for (int i = 0; i < dialog.skipLines();) {
-        bool lineend;
-        size_t readlen;
-        tableReader->readnext(&readlen, &lineend);
-        if (lineend)
-            i++;
-    }
-
-    QProgressDialog progress2(tr("Importing file %1").arg(fileInfo.completeBaseName()), tr("Cancel"), 0, fileInfo.size(), this);
-    progress2.setMinimumDuration(0);
-    progress2.setWindowModality(Qt::WindowModal);
-
-    if (dialog.firstLineIsHeader()) {
-        bool lineend;
-        size_t readlen;
-        do {
-            tableReader->readnext(&readlen, &lineend);
-        } while (!lineend);
-    }
-
-    // insert data
-    QList<QVariantList> variantList;
-    for (int j = 0; j < insertNumber; ++j) {
-        variantList.append(QVariantList());
-        variantList[j].reserve(500);
-    }
-
-    bool fileend = false;
-    while(!fileend) {
-        insertQuery.prepare(QString("INSERT INTO %1 VALUES(%2)").arg(dialog.name(), insertSqlText));
-        for (int j = 0; j < insertNumber; ++j) {
-            variantList[j].clear();
-            variantList[j].reserve(500);
-        }
-
-        for (int i = 0; i < 500; ++i) {
-
-            QList<QByteArray> elements;
-            do {
-                bool lineend;
-                size_t readlen;
-                const char *column = tableReader->readnext(&readlen, &lineend);
-                if (column == NULL) {
-                    fileend = true;
-                    goto skip;
-                }
-
-                elements.append(QByteArray(column, readlen));
-
-                if (lineend)
-                    break;
-            } while(1);
-
-            for (int j = 0; j < insertNumber; ++j) {
-                if (fields[j].logicalIndex() >= elements.size() || fields[j].logicalIndex() < 0) {
-                    //insertQuery.bindValue(QString(":v%1").arg(QString::number(j)), "");
-                    variantList[j] << "";
-                } else {
-                    variantList[j] << QString(elements[fields[j].logicalIndex()]);
-                    //insertQuery.bindValue(QString(":v%1").arg(QString::number(j)), QString(elements[fields[j].logicalIndex()]));
-                }
-            }
-        }
-        skip:
-
-        for (int j = 0; j < insertNumber; ++j) {
-            insertQuery.addBindValue(variantList[j]);
-        }
-
-        if (!insertQuery.execBatch()) {
-            if (SheetMessageBox::warning(this, tr("Insert error"),
-                                         insertQuery.lastError().text() + "\n\n" + insertQuery.lastQuery(),
-                                         QMessageBox::Abort) == QMessageBox::Abort) {
-                progress2.cancel();
-                break;
-            }
-        }
-
-        //progress2.setValue(file.pos());
-        if (progress2.wasCanceled()) {
-            m_database.rollback();
-            return QString();
-        }
-    }
-
-    progress2.close();
+    SqlFileImporter importer(&m_database);
+    if (!importer.importFile(import, dialog.name(), fields, dialog.fileType(), dialog.skipLines(), dialog.firstLineIsHeader()))
+        return QString();
 
     m_database.commit();
     return dialog.name();
@@ -995,51 +891,21 @@ void MainWindow::on_actionExport_Table_triggered()
         return;
     }
 
-    QString defaultpath = QFileInfo(tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(), m_tableModel->plainTableName()+".txt").absoluteFilePath();
-    qDebug() << "defaultpath: " << defaultpath;
+    QString defaultpath = QFileInfo(tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(),
+                                    m_tableModel->plainTableName()+".csv").absoluteFilePath();
+    //qDebug() << "defaultpath: " << defaultpath;
     QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
                                                       defaultpath,
-                                                      "Tab separated (*.txt);; CSV (*.csv)");
+                                                      "CSV (*.csv);; Tab separated (*.txt)");
     if (outputpath.isEmpty())
         return;
-    QFile outputfile(outputpath);
     QFileInfo outputfileinfo(outputpath);
     tableview_settings->setValue(LAST_EXPORT_DIRECTORY, outputfileinfo.dir().absolutePath());
-    outputfile.open(QIODevice::WriteOnly);
 
-    QString separator = "\t";
-    if (outputpath.endsWith(".csv"))
-        separator = ",";
-
-    QSqlRecord records = m_database.record(m_tableModel->tableName());
-    bool isFirstColumnWritten = false;
-    for (int i = 0; i < records.count(); ++i) {
-        if (!ui->tableView->isColumnHidden(i)) {
-            if (isFirstColumnWritten)
-                outputfile.write(separator.toUtf8());
-
-            outputfile.write(records.fieldName(i).toUtf8());
-            isFirstColumnWritten = true;
-        }
+    SqlFileExporter exporter(&m_database, this);
+    if (!exporter.exportTable(query, outputpath, outputpath.endsWith(".csv"))) {
+        SheetMessageBox::critical(this, tr("Cannot export table"), exporter.errorMessage());
     }
-    outputfile.write("\n");
-
-    while(query.next()) {
-        records = query.record();
-        isFirstColumnWritten = false;
-        for (int i = 0; i < records.count(); ++i) {
-            if (!ui->tableView->isColumnHidden(i)) {
-                if (isFirstColumnWritten)
-                    outputfile.write(separator.toUtf8());
-
-                outputfile.write(records.value(i).toString().toUtf8());
-                isFirstColumnWritten = true;
-            }
-        }
-        outputfile.write("\n");
-    }
-
-    outputfile.close();
 }
 
 void MainWindow::on_actionOpen_In_Memory_Database_triggered()
@@ -1057,75 +923,6 @@ void MainWindow::on_buttonClear_clicked()
 {
     ui->sqlLine->setPlainText("");
     filterFinished();
-}
-
-static void copyFromTableView(const QTableView *tableView, bool copyHeader)
-{
-    QModelIndexList selectedIndex = tableView->selectionModel()->selectedIndexes();
-
-    struct select_points {
-        int x;
-        int y;
-    } left_top, right_bottom;
-
-    if (selectedIndex.size() <= 0) return;
-
-    // first data
-    left_top.x = selectedIndex[0].column();
-    left_top.y = selectedIndex[0].row();
-    right_bottom.x = selectedIndex[0].column();
-    right_bottom.y = selectedIndex[0].row();
-
-    foreach(QModelIndex index, selectedIndex) {
-        left_top.x = MIN(index.column(), left_top.x);
-        left_top.y = MIN(index.row(), left_top.y);
-        right_bottom.x = MAX(index.column(), right_bottom.x);
-        right_bottom.y = MAX(index.row(), right_bottom.y);
-    }
-
-    int width = right_bottom.x - left_top.x + 1;
-    int height = right_bottom.y - left_top.y + 1;
-
-    QList<QList<QVariant> >  matrix;
-    QStringList header;
-    for (int i = 0; i < height; ++i) {
-        QList<QVariant> line;
-        for (int j = 0; j < width; ++j) {
-            line.append(QVariant());
-        }
-        matrix.append(line);
-    }
-
-    for (int i = 0; i < width; ++i) {
-        header.append(tableView->model()->headerData(i + left_top.x, Qt::Horizontal).toString());
-    }
-
-    foreach(QModelIndex index, selectedIndex) {
-        matrix[index.row() - left_top.y][index.column() - left_top.x] = tableView->model()->data(index, Qt::EditRole);
-    }
-
-    QString clipboard;
-
-    if (copyHeader) {
-        for (int i = 0; i < width; ++i) {
-            if (i != 0)
-                clipboard += "\t";
-            clipboard += header[i];
-        }
-        clipboard += "\n";
-    }
-
-    for (int i = 0; i < height; ++i) {
-        for (int j = 0; j < width; ++j) {
-            if (j != 0)
-                clipboard += "\t";
-            clipboard += matrix[i][j].toString();
-        }
-        if (i != height-1)
-            clipboard += "\n";
-    }
-    QClipboard *clip = QApplication::clipboard();
-    clip->setText(clipboard);
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -1154,7 +951,7 @@ void MainWindow::onCopyTriggered(bool withHeader)
         }
     }
 
-    copyFromTableView(tableView, withHeader);
+    SqlService::copyFromTableView(tableView, withHeader);
 }
 
 void MainWindow::on_actionAttach_Database_triggered()
@@ -1194,27 +991,6 @@ void MainWindow::on_actionR_code_to_import_triggered()
     if (m_databasename == ":memory:")
         return;
     QString str = SqlService::createRcodeToImportWithTable(m_database, m_tableModel->plainTableName(), ui->sqlLine->toPlainText());
-#if 0
-    QString tableName = m_tableModel->tableName();
-    QString tableName2 = m_tableModel->plainTableName();
-    if (m_tableModel->plainTableName().isEmpty())
-        return;
-    QFileInfo fileInfo(m_databasename);
-    QString filename = m_databasename;
-#ifdef Q_OS_WIN32
-    filename = filename.replace('\\', '/');
-#endif
-    QString basename = fileInfo.completeBaseName();
-    QString where;
-    if (!ui->sqlLine->toPlainText().isEmpty())
-        where = QString("WHERE %1").arg(ui->sqlLine->toPlainText());
-    QString str = QString("# install.packages(c(\"DBI\", \"RSQLite\")) to install SQLite library\n"
-                          "library(RSQLite)\n"
-                          "connection.%1 <- dbConnect(dbDriver(\"SQLite\"), dbname=\"%2\")\n"
-                          "table.%3 <- dbGetQuery(connection.%1, \"select * from %4 %5;\")\n"
-                          "dbDisconnect(connection.%1)\n").arg(normstr(basename), filename, tableName2,
-                                                               normstr(tableName), where);
-#endif
     QClipboard *clip = QApplication::clipboard();
     clip->setText(str);
 }
@@ -1428,20 +1204,10 @@ void MainWindow::on_actionDuplicate_Table_triggered()
 
         dialog.exec();
 
-        QString tablesql = dialog.createTableSql();
-        QStringList indexsqls = dialog.createIndexSqls();
-
-        QSqlQuery query = m_database.exec(tablesql);
-        if (query.lastError().type() != QSqlError::NoError) {
-            SheetMessageBox::critical(this, tr("Cannot create table"), query.lastError().text());
-            m_database.rollback();
-            return;
-        }
-
-        foreach(QString sql, indexsqls) {
-            query = m_database.exec(sql);
+        foreach(QString sql, SqlFileImporter::createSql(dialog.name(), dialog.fields(), dialog.useFts4())) {
+            QSqlQuery query = m_database.exec(sql);
             if (query.lastError().type() != QSqlError::NoError) {
-                SheetMessageBox::critical(this, tr("Cannot create index"), query.lastError().text());
+                SheetMessageBox::critical(this, tr("Cannot create table or index"), query.lastError().text());
                 m_database.rollback();
                 return;
             }
@@ -1461,7 +1227,7 @@ void MainWindow::on_actionDuplicate_Table_triggered()
             whereStatement = " WHERE " + where;
         }
 
-        query = m_database.exec(QString("INSERT INTO %1 SELECT %2 FROM %3 %4").arg(dialog.name(), commonFieldNames, m_tableModel->plainTableName(), whereStatement));
+        QSqlQuery query = m_database.exec(QString("INSERT INTO %1 SELECT %2 FROM %3 %4").arg(dialog.name(), commonFieldNames, m_tableModel->plainTableName(), whereStatement));
         if (query.lastError().type() != QSqlError::NoError) {
             SheetMessageBox::critical(this, tr("Cannot copy data"), query.lastError().text());
             m_database.rollback();

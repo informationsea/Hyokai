@@ -26,6 +26,8 @@ build-*
 ui_*.h
 windowsicon.res
 *.manifest
+.qmake.cache
+*.autosave
 
 .DS_Store
 *.swp

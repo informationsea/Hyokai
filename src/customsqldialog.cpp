@@ -4,6 +4,7 @@
 #include "sheetmessagebox.h"
 #include "jointabledialog.h"
 #include "sqlservice.h"
+#include "sqlfileexporter.h"
 #include "main.h"
 #include <QSqlQuery>
 #include <QSqlError>
@@ -218,42 +219,15 @@ void CustomSqlDialog::onExportTable()
 {
     QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
                                                       tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                      "Tab separated (*.txt);; CSV (*.csv)");
+                                                      "CSV (*.csv);; Tab separated (*.txt)");
     if (outputpath.isEmpty())
         return;
-    QFile outputfile(outputpath);
-    QFileInfo outputfileinfo(outputpath);
-    tableview_settings->setValue(LAST_EXPORT_DIRECTORY, outputfileinfo.dir().absolutePath());
-    outputfile.open(QIODevice::WriteOnly);
-
-    QString separator = "\t";
-    if (outputpath.endsWith(".csv"))
-        separator = ",";
-
-    if (!m_query.first()) {
-        SheetMessageBox::critical(this, tr("Something wrong"), tr("Something wrong with export"));
+    if (!m_query.isSelect())
         return;
-    }
 
-    QSqlRecord records = m_query.record();
-    for (int i = 0; i < records.count(); ++i) {
-        if (i != 0)
-            outputfile.write(separator.toUtf8());
-        outputfile.write(records.fieldName(i).toUtf8());
-    }
-    outputfile.write("\n");
-
-    do {
-        records = m_query.record();
-        for (int i = 0; i < records.count(); ++i) {
-            if (i != 0)
-                outputfile.write(separator.toUtf8());
-            outputfile.write(records.value(i).toString().toUtf8());
-        }
-        outputfile.write("\n");
-    } while (m_query.next());
-
-    outputfile.close();
+    SqlFileExporter exporter(NULL, this);
+    if (!exporter.exportTable(m_query, outputpath, outputpath.endsWith(".csv")))
+        SheetMessageBox::critical(this, tr("Cannot export table"), exporter.errorMessage());
 }
 
 void CustomSqlDialog::onCreateView()

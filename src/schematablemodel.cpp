@@ -2,22 +2,6 @@
 
 #include <QColor>
 
-SchemaField::SchemaField() :
-    m_name(""), m_type("INTEGER"), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
-{
-
-}
-
-
-SchemaField::SchemaField(QString name) :
-    m_name(name), m_type("INTEGER"), m_primary_key(false), m_indexed_field(false), m_logical_index(-1), m_maximum_length(0)
-{
-
-}
-
-
-SchemaField::~SchemaField(){}
-
 SchemaTableModel::SchemaTableModel(QObject *parent) :
     QAbstractTableModel(parent), m_show_logical_index(false)
 {

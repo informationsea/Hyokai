@@ -23,7 +23,7 @@ Requirements
 
 ### Build Requirements
 
-* Qt 4.8 or 5.0
+* Qt 5.2 or later (Qt 5.1 with QtMacExtra is also supported)
 * Qt Creator (Recommend)
 
 Supported Databases
@@ -40,7 +40,7 @@ How to build
 
 #### Mac OS X
 
-1. Build Qt with configure options `./configure -no-qt3support -no-declarative-debug -no-declarative -no-scripttools -no-script -no-javascript-jit -no-svg -no-phonon-backend -no-audio-backend -no-phonon -no-multimedia -no-webkit -system-sqlite -qt-sql-sqlite -nomake examples -nomake demos -nomake docs -opensource -prefix /usr/local/Trolltech/Qt-4.8.4-tableview && make`
+1. Build Qt with configure options `./configure -prefix /usr/local/Qt-5.1.1 -system-sqlite -qt-sql-sqlite -qt-sql-odbc -confirm-license -opensource`
 2. Install Qt with `sudo make install`
 3. move to `build-scripts/script-for-mac`
 4. run `build.sh`
@@ -49,7 +49,7 @@ How to build
 
 #### Windows
 
-1. Install pre-built Qt 4.8
+1. Install pre-built Qt 5.1
 2. Open Qt command prompt
 3. move to `build-scripts/script-for-windows`
 4. run `build.bat`

@@ -7,6 +7,7 @@
 #include <QWidget>
 #include <QSqlDatabase>
 #include "schematablemodel.h"
+#include "sqlfileimporter.h"
 
 namespace Ui {
 class SchemaDialog;
@@ -26,15 +27,13 @@ public:
     const QList<SchemaField> &fields() const;
     bool showImportOptions() const;
 
-    QString createTableSql() const;
-    QStringList createIndexSqls() const;
+    void setFileType(enum SqlFileImporter::FileType type);
+    enum SqlFileImporter::FileType fileType();
 
-    void setDelimiter(char ch);
     void setDuplicationMode(bool duplicate);
-    char delimiter() const;
     int skipLines() const;
     bool firstLineIsHeader() const;
-    QList<SchemaField> suggestSchema(QFile *file, char delimiter, int skipLines, bool firstLineIsHeader, int suggestLine, QWidget *progressParent);
+    bool useFts4() const;
 
 private slots:
     void on_addButton_clicked();

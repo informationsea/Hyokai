@@ -40,7 +40,9 @@ SOURCES += main.cpp\
     sheettextinputdialog.cpp \
     sqlservice.cpp \
     sqlplotchart.cpp \
-    customsqldialog.cpp
+    customsqldialog.cpp \
+    sqlfileimporter.cpp \
+    sqlfileexporter.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -62,7 +64,9 @@ HEADERS  += mainwindow.h \
     sheettextinputdialog.h \
     sqlservice.h \
     sqlplotchart.h \
-    customsqldialog.h
+    customsqldialog.h \
+    sqlfileimporter.h \
+    sqlfileexporter.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
@@ -97,4 +101,4 @@ OTHER_FILES += \
     keywords/mysql-keywords.txt \
     keywords/mysql-functions.txt
 
-cache()
+greaterThan(QT_MAJOR_VERSION, 4): cache()
