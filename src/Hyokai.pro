@@ -13,10 +13,7 @@ macx {
 
 TARGET = Hyokai
 TEMPLATE = app
-VERSION = 0.2
-
-INCLUDEPATH += /usr/local/include/filereader
-LIBS += -lfilereader -L/usr/local/lib
+INCLUDEPATH = filereader/src
 
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc
@@ -44,7 +41,13 @@ SOURCES += main.cpp\
     sqlfileimporter.cpp \
     sqlfileexporter.cpp \
     checkboxitemdelegate.cpp \
-    sqldatatypeitemdelegate.cpp
+    sqldatatypeitemdelegate.cpp \
+    filereader/src/tablereader.cpp \
+    filereader/src/filereader.cpp \
+    filereader/src/filereader_stdio.cpp \
+    filereader/src/filereader_mmap.cpp \
+    filereader/src/filereader_core.cpp \
+    filereader/src/csvreader.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -70,7 +73,13 @@ HEADERS  += mainwindow.h \
     sqlfileimporter.h \
     sqlfileexporter.h \
     checkboxitemdelegate.h \
-    sqldatatypeitemdelegate.h
+    sqldatatypeitemdelegate.h \
+    filereader/src/tablereader.hpp \
+    filereader/src/filereader.hpp \
+    filereader/src/filereader_stdio.hpp \
+    filereader/src/filereader_mmap.hpp \
+    filereader/src/filereader_core.hpp \
+    filereader/src/csvreader.hpp
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
