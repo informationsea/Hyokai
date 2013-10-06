@@ -8,6 +8,7 @@
 #include <QSqlDatabase>
 #include "schematablemodel.h"
 #include "sqlfileimporter.h"
+#include "checkboxitemdelegate.h"
 
 namespace Ui {
 class SchemaDialog;
@@ -35,6 +36,8 @@ public:
     bool firstLineIsHeader() const;
     bool useFts4() const;
 
+    virtual bool eventFilter(QObject * watched, QEvent * event);
+
 private slots:
     void on_addButton_clicked();
     void on_removeButton_clicked();
@@ -45,12 +48,16 @@ private slots:
     void on_notMakeIndexButton_clicked();
     void on_suggestColumnButton_clicked();
 
+    void tableClicked(const QModelIndex &index);
+
 private:
     Ui::SchemaDialog *ui;
     SchemaTableModel *model;
     QSqlDatabase *m_sql_database;
     bool m_duplication_mode;
     QFile *m_import_file;
+
+    CheckBoxItemDelegate *m_checkboxitem;
 };
 
 #endif // SCHEMADIALOG_H

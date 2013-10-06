@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QProgressDialog>
 #include <QRegExp>
+#include <QEvent>
+#include <QMouseEvent>
 
 #include <csvreader.hpp>
 #include <tablereader.hpp>
@@ -15,6 +17,7 @@
 
 #include "main.h"
 #include "sqlfileimporter.h"
+#include "sqldatatypeitemdelegate.h"
 
 SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidget *parent) :
     QDialog(parent),
@@ -30,6 +33,7 @@ SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidge
     connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), SLOT(tableChanged()));
     connect(model, SIGNAL(rowsRemoved (const QModelIndex &, int, int)), SLOT(tableChanged()));
     connect(ui->lineEdit, SIGNAL(textChanged(QString)), SLOT(tableChanged()));
+    ui->tableView->installEventFilter(this);
     tableChanged();
 
     if (!importFile) {
@@ -37,12 +41,17 @@ SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidge
     }
 
     ui->enableFTS4->setVisible(sql_database->driverName() == "QSQLITE");
+
+    m_checkboxitem = new CheckBoxItemDelegate(this);
+    connect(ui->tableView, SIGNAL(clicked(QModelIndex)), SLOT(tableClicked(QModelIndex)));
+    ui->tableView->setItemDelegateForColumn(1, new SqlDataTypeItemDelegate(this));
 }
 
 SchemaDialog::~SchemaDialog()
 {
     delete ui;
     delete model;
+    delete m_checkboxitem;
 }
 
 bool SchemaDialog::showImportOptions() const
@@ -179,6 +188,18 @@ bool SchemaDialog::useFts4() const
     return ui->enableFTS4->isChecked() && m_sql_database->driverName() == "QSQLITE";
 }
 
+bool SchemaDialog::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == ui->tableView && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = (QMouseEvent *)event;
+        QPoint pos = mouseEvent->pos();
+        pos -= QPoint(ui->tableView->verticalHeader()->width(), ui->tableView->horizontalHeader()->height());
+        QModelIndex index = ui->tableView->indexAt(pos);
+        qDebug() << index;
+    }
+    return false;
+}
+
 void SchemaDialog::on_makeIndexButton_clicked()
 {
     model->makeIndexForAll(true);
@@ -197,4 +218,11 @@ void SchemaDialog::on_suggestColumnButton_clicked()
         type = SqlFileImporter::FILETYPE_CSV;
 
     model->setFields(SqlFileImporter::suggestSchema(m_import_file->fileName(), type, skipLines(), firstLineIsHeader(), m_sql_database->driverName() == "QSQLITE"));
+}
+
+void SchemaDialog::tableClicked(const QModelIndex &index)
+{
+    if (index.data(Qt::EditRole).type() == QVariant::Bool) {
+        model->setData(index, !index.data(Qt::EditRole).toBool());
+    }
 }

@@ -8,9 +8,18 @@ SchemaTableModel::SchemaTableModel(QObject *parent) :
 }
 
 
-Qt::ItemFlags SchemaTableModel::flags ( const QModelIndex & /*index*/ ) const
+Qt::ItemFlags SchemaTableModel::flags ( const QModelIndex & index ) const
 {
-    return Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsEnabled;
+    switch (index.column()) {
+    case 0:
+    case 1:
+    case 4:
+    default:
+        return Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsEnabled;
+    case 2:
+    case 3:
+        return Qt::ItemIsSelectable|Qt::ItemIsEnabled;
+    }
 }
 
 QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation, int role) const

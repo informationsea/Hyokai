@@ -42,7 +42,9 @@ SOURCES += main.cpp\
     sqlplotchart.cpp \
     customsqldialog.cpp \
     sqlfileimporter.cpp \
-    sqlfileexporter.cpp
+    sqlfileexporter.cpp \
+    checkboxitemdelegate.cpp \
+    sqldatatypeitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -66,7 +68,9 @@ HEADERS  += mainwindow.h \
     sqlplotchart.h \
     customsqldialog.h \
     sqlfileimporter.h \
-    sqlfileexporter.h
+    sqlfileexporter.h \
+    checkboxitemdelegate.h \
+    sqldatatypeitemdelegate.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c

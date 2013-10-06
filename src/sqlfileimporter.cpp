@@ -78,7 +78,7 @@ QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, i
             const char *column = reader->readnext(&readlen, &islineend);
             if (column == NULL)
                 goto finishLineHeader;
-            fields.append(SchemaField(QString(QByteArray(column, readlen))));
+            fields.append(SchemaField(SqlService::suggestFieldName(QString(QByteArray(column, readlen)), fields)));
             fields[j].setLogicalIndex(j);
             fieldTypes.append(SchemaField::FIELD_INTEGER);
             j++;
@@ -94,7 +94,7 @@ QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, i
                 goto finishSuggestFile;
 
             if (fields.size() <= j) {
-                fields.append(SchemaField(QString("V%1").arg(QString::number(j))));
+                fields.append(SchemaField(SqlService::suggestFieldName(QString("V%1").arg(QString::number(j)), fields)));
                 fieldTypes.append(SchemaField::FIELD_INTEGER);
             }
 

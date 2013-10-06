@@ -57,6 +57,24 @@ QString SqlService::suggestTableName(const QString &templateName, const QSqlData
     return newname;
 }
 
+QString SqlService::suggestFieldName(const QString &fieldName, const QList<SchemaField> &currentSchema)
+{
+    QString basename = normstr(fieldName);
+    QString newname = basename;
+
+    bool nameChanged = false;
+    int i = 1;
+    do {
+        foreach (SchemaField onefield, currentSchema) {
+            if (onefield.name() == newname) {
+                newname = QString("%1_%2").arg(basename, QString::number(i++));
+                nameChanged = true;
+            }
+        }
+    } while (nameChanged);
+    return newname;
+}
+
 QString SqlService::createRcodeToImport(const QSqlDatabase &database, const QString &query, const QString &variableName)
 {
     QString driver = database.driverName();

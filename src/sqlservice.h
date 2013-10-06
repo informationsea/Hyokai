@@ -5,6 +5,7 @@
 #include <QSqlDriver>
 #include <QSqlTableModel>
 #include <QTableView>
+#include <QList>
 
 class SchemaField
 {
@@ -47,6 +48,7 @@ public:
     static bool isVaildTableName(const QString &name);
     static bool isVaildTableName(const QString &name, const QSqlDatabase *database); // check names in database
     static QString suggestTableName(const QString &templateName, const QSqlDatabase *database);
+    static QString suggestFieldName(const QString &fieldName, const QList<SchemaField> &currentSchema);
     static QString createRcodeToImport(const QSqlDatabase &database, const QString &query, const QString &variableName);
     static QString createRcodeToImportWithTable(const QSqlDatabase &database, const QString &tableName, const QString &whereStatement);
     static void copyFromTableView(const QTableView *tableView, bool copyHeader);

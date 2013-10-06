@@ -11,6 +11,7 @@
 #include <QList>
 
 #include "sqlquerymodelalternativebackground.h"
+#include "checkboxitemdelegate.h"
 
 #define CUSTOM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
 
