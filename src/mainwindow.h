@@ -26,9 +26,9 @@ public:
     ~MainWindow();
 
     QString databaseName() { return m_databasename; }
-    const QSqlDatabase &database() {return m_database;}
+    QSqlDatabase &database() {return m_database;}
     void refresh();
-    void importOneFile(const QString &path);
+//    void importOneFile(const QString &path);
     bool isDirty() { return m_isDirty; }
 
 protected:
@@ -54,7 +54,7 @@ private:
 
     void open(QString path);
     bool confirmDuty(); // return false if canceled
-    QString importFile(QString path, bool autoimport);
+//    QString importFile(QString path, bool autoimport);
     void setupTableModel();
 
     QWidgetList m_windowList;
@@ -83,6 +83,7 @@ private slots:
     void onCopyTriggered(bool withHeader);
     void showCell();
     void cleanupDatabase();
+    void importFinished(QStringList importedTables, bool withError, QString errorMessage);
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();

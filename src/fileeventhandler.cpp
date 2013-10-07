@@ -5,6 +5,7 @@
 #include "main.h"
 #include "mainwindow.h"
 #include <QDebug>
+#include "sqlfileimporter.h"
 
 FileEventHandler::FileEventHandler(QObject *parent) :
     QObject(parent)
@@ -57,7 +58,9 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
 
             opened:
 
-            w->importOneFile(openevent->file());
+            SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&w->database(), w);
+            importer->executeImport(QStringList(openevent->file()));
+            connect(importer, SIGNAL(finish(QStringList,bool,QString)), w, SLOT(importFinished(QStringList,bool,QString)));
             w->refresh();
 
             return true;

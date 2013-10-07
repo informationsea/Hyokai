@@ -19,14 +19,14 @@
 #include "sqlfileimporter.h"
 #include "sqldatatypeitemdelegate.h"
 
-SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidget *parent) :
+SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, const QString &file, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::SchemaDialog), m_sql_database(sql_database), m_import_file(importFile)
+    ui(new Ui::SchemaDialog), m_sql_database(sql_database), m_import_file(file)
 {
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
     model = new SchemaTableModel(this);
-    model->setShowLogicalIndex(importFile);
+    model->setShowLogicalIndex(!file.isEmpty());
     ui->tableView->setModel(model);
     ui->tableView->setDragEnabled(true);
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableChanged()));
@@ -36,7 +36,7 @@ SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, QFile *importFile, QWidge
     ui->tableView->installEventFilter(this);
     tableChanged();
 
-    if (!importFile) {
+    if (!file.isEmpty()) {
         ui->importWidget->setVisible(false);
     }
 
@@ -56,7 +56,7 @@ SchemaDialog::~SchemaDialog()
 
 bool SchemaDialog::showImportOptions() const
 {
-    return m_import_file ? true : false;
+    return !m_import_file.isEmpty() ? true : false;
 }
 
 void SchemaDialog::on_addButton_clicked()
@@ -217,7 +217,7 @@ void SchemaDialog::on_suggestColumnButton_clicked()
     if (ui->cammaDelimiter->isChecked())
         type = SqlFileImporter::FILETYPE_CSV;
 
-    model->setFields(SqlFileImporter::suggestSchema(m_import_file->fileName(), type, skipLines(), firstLineIsHeader(), m_sql_database->driverName() == "QSQLITE"));
+    model->setFields(SqlFileImporter::suggestSchema(m_import_file, type, skipLines(), firstLineIsHeader(), m_sql_database->driverName() == "QSQLITE"));
 }
 
 void SchemaDialog::tableClicked(const QModelIndex &index)

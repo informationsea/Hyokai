@@ -19,11 +19,12 @@ class SchemaDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit SchemaDialog(QSqlDatabase *sql_database, QFile *importFile = 0, QWidget *parent = 0);
+    explicit SchemaDialog(QSqlDatabase *sql_database, const QString &file = QString(), QWidget *parent = 0);
     ~SchemaDialog();
 
     void setName(const QString &name);
     QString name() const;
+    QString fileName() const {return m_import_file;}
     void setFields(const QList<SchemaField> &fields);
     const QList<SchemaField> &fields() const;
     bool showImportOptions() const;
@@ -55,7 +56,7 @@ private:
     SchemaTableModel *model;
     QSqlDatabase *m_sql_database;
     bool m_duplication_mode;
-    QFile *m_import_file;
+    QString m_import_file;
 
     CheckBoxItemDelegate *m_checkboxitem;
 };

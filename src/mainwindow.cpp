@@ -249,16 +249,6 @@ void MainWindow::cleanupDatabase()
     m_database.close(); //qDebug() << "close;";
 }
 
-void MainWindow::importOneFile(const QString &path)
-{
-    QString importedTable = importFile(path, false);
-
-    updateDatabase();
-    filterFinished();
-    if (!importedTable.isEmpty())
-        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(importedTable));
-}
-
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
     if (obj == ui->tableView->horizontalHeader() && ev->type() == QEvent::ContextMenu) {
@@ -683,7 +673,9 @@ void MainWindow::on_actionOpen_triggered()
     if (path.endsWith(".sqlite3")) {
         open(path);
     } else {
-        importOneFile(path);
+        SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&m_database, this);
+        connect(importer, SIGNAL(finish(QStringList,bool,QString)), SLOT(importFinished(QStringList,bool,QString)));
+        importer->executeImport(QStringList(path));
     }
     QFileInfo fileInfo(path);
     tableview_settings->setValue(LAST_SQLITE_DIRECTORY, fileInfo.dir().absolutePath());
@@ -747,60 +739,6 @@ void MainWindow::on_actionQuit_triggered()
     qApp->closeAllWindows();
 }
 
-QString MainWindow::importFile(QString import, bool autoimport)
-{
-    if (import.isEmpty())
-        return QString();
-    QFile file(import);
-    if (!file.open(QIODevice::ReadOnly|QIODevice::Text)) {
-        SheetMessageBox::critical(this, tr("Cannot open file"), tr("Cannot open import file."));
-        return QString();
-    }
-    QFileInfo fileInfo(import);
-    tableview_settings->setValue(LAST_IMPORT_DIRECTORY, fileInfo.dir().absolutePath());
-    SchemaDialog dialog(&m_database, &file, this);
-
-
-    dialog.setName(SqlService::suggestTableName(fileInfo.completeBaseName(), &m_database));
-
-    //QList<SchemaField> fields = dialog.suggestSchema(&file, delimiter, 0, true, 20, this);
-    SqlFileImporter::FileType filetype;
-    if (import.endsWith(".csv"))
-        filetype = SqlFileImporter::FILETYPE_CSV;
-    else
-        filetype = SqlFileImporter::FILETYPE_TVS;
-
-    QList<SchemaField> fields = SqlFileImporter::suggestSchema(file.fileName(), filetype, 0, true, m_database.driverName() == "QSQLITE");
-
-    dialog.setFileType(filetype);
-    dialog.setFields(fields);
-    if (!autoimport) {
-        if (dialog.exec() != QDialog::Accepted)
-            return QString();
-    }
-
-    // creat table
-    fields = dialog.fields();
-
-    m_database.transaction();
-
-    foreach (const QString sql, SqlFileImporter::createSql(dialog.name(), fields, dialog.useFts4())) {
-        m_database.exec(sql);
-
-        if (m_database.lastError().type() != QSqlError::NoError) {
-            SheetMessageBox::warning(this, tr("Cannot make table"), m_database.lastError().text()+"\n\n"+sql);
-            return QString();
-        }
-    }
-
-    SqlFileImporter importer(&m_database);
-    if (!importer.importFile(import, dialog.name(), fields, dialog.fileType(), dialog.skipLines(), dialog.firstLineIsHeader()))
-        return QString();
-
-    m_database.commit();
-    return dialog.name();
-}
-
 void MainWindow::on_actionImportTable_triggered()
 {
     if (!confirmDuty())
@@ -813,25 +751,24 @@ void MainWindow::on_actionImportTable_triggered()
     if (import.isEmpty())
         return;
 
-    QMessageBox::StandardButton button;
-    if (import.size() > 1) {
-        button = SheetMessageBox::question(this, tr("Multiple files are selected"), tr("Do you want to import with default options?"),
-                                           QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+    SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&m_database, this);
+    connect(importer, SIGNAL(finish(QStringList,bool,QString)), SLOT(importFinished(QStringList,bool,QString)));
+    importer->executeImport(import);
+}
+
+void MainWindow::importFinished(QStringList importedTables, bool withError, QString errorMessage)
+{
+    qDebug() << "importFinished" << withError << errorMessage;
+    if (withError) {
+        SheetMessageBox::critical(this, tr("Cannot import file"), errorMessage);
+        qDebug() << "Error";
     } else {
-        button = QMessageBox::No;
-    }
+        updateDatabase();
+        filterFinished();
 
-    QString importedTable;
-    foreach(QString path, import) {
-        importedTable = importFile(path, button == QMessageBox::Yes);
-        if (importedTable.isEmpty())
-            break;
+        if (!importedTables.isEmpty())
+            ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(importedTables.last()));
     }
-
-    updateDatabase();
-    filterFinished();
-    if (!importedTable.isEmpty())
-        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(importedTable));
 }
 
 void MainWindow::on_actionAbout_Qt_triggered()
@@ -847,7 +784,7 @@ void MainWindow::on_actionAbout_Table_View_triggered()
     about.setTextFormat(Qt::RichText);
     about.setText(tr("Hyokai 0.3<br /><br />"
                      "Simple SQLite Viewer<br /><br />"
-                     "Copyright (C) 2013 Yasunobu Okamura<br /><br />"
+                     "Copyright (C) 2013 Yasunobu OKAMURA<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/Hyokai\">Github</a><hr />"
                      "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
                      "Build at " __DATE__));

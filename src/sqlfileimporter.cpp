@@ -1,14 +1,21 @@
 #include "sqlfileimporter.h"
 
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QMap>
 #include <QVariant>
 #include <QByteArray>
+#include <QMessageBox>
+#include <QDebug>
+#include <QFile>
+#include <QFileInfo>
 
 #include <memory>
 #include <ctype.h>
 #include "tablereader.hpp"
 #include "csvreader.hpp"
+#include "sheetmessagebox.h"
+#include "schemadialog.h"
 
 #define SUGGEST_LINE 20
 
@@ -209,8 +216,24 @@ QStringList SqlFileImporter::createSql(const QString &name, const QList<SchemaFi
     return sqllist;
 }
 
-bool SqlFileImporter::importFile(QString path, const QString &name, const QList<SchemaField> &fields, FileType type, int skipLines, bool firstLineIsHeader)
+bool SqlFileImporter::createTablesAndIndexes(const QString &name, const QList<SchemaField> &fields, bool useFts4)
 {
+    m_errorMessage = "";
+
+    QStringList sqls(createSql(name, fields, useFts4));
+    foreach (QString onesql, sqls) {
+        QSqlQuery query = m_database->exec(onesql);
+        if (query.lastError().type() != QSqlError::NoError) {
+            m_errorMessage = query.lastError().text();
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SqlFileImporter::importFile(QString path, const QString &name, const QList<SchemaField> &fields, FileType type, int skipLines, bool firstLineIsHeader, volatile bool *canceledFlag)
+{
+    m_errorMessage = "";
     m_canceled = false;
     if (firstLineIsHeader)
         skipLines++;
@@ -233,8 +256,10 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
         break;
     }
     std::auto_ptr<TableReader> reader(reader_raw);
-    if (!reader->open_path(path.toUtf8().data()))
+    if (!reader->open_path(path.toUtf8().data())) {
+        m_errorMessage = "Cannot open file.";
         return false;
+    }
 
     bool islineend;
     size_t readlen;
@@ -259,6 +284,7 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
         logical2sqlindex[fields[i].logicalIndex()] = placeholders[i];
     }
 
+    int currentLine = 0;
     do {
         islineend = false;
         for (int columnNumber = 0; !islineend; columnNumber++) {
@@ -269,7 +295,152 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
             query.bindValue(logical2sqlindex[columnNumber], data);
         }
         query.exec();
+        if (query.lastError().type() != QSqlError::NoError) {
+            m_errorMessage = query.lastError().text();
+            return false;
+        }
+
+        if ((currentLine % 1000) == 0) {
+            if (canceledFlag && *canceledFlag) {
+                m_errorMessage = tr("Canceled by user");
+                return false;
+            }
+            emit progress(reader->tell());
+        }
+
+        currentLine++;
     } while(1);
   finishImport:
     return true;
+}
+
+QString SqlFileImporter::errorMessage()
+{
+    return m_errorMessage;
+}
+
+
+SqlAsynchronousFileImporter::SqlAsynchronousFileImporter(QSqlDatabase *database, QWidget *parent) :
+    QThread(parent), m_database(database), m_parent(parent), m_progress(parent)
+{
+    m_withError = false;
+    connect(this, SIGNAL(updateProgressLabelText(QString)), &m_progress, SLOT(setLabelText(QString)));
+    connect(this, SIGNAL(updateProgressValue(int)), &m_progress, SLOT(setValue(int)));
+}
+
+SqlAsynchronousFileImporter::~SqlAsynchronousFileImporter()
+{
+    foreach(SchemaDialog *dialog, m_schemaList) {
+        delete dialog;
+    }
+}
+
+void SqlAsynchronousFileImporter::executeImport(QStringList files)
+{
+    QMessageBox::StandardButton button;
+    if (files.size() > 1) {
+        button = SheetMessageBox::question(m_parent, tr("Multiple files are selected"), tr("Do you want to import with default options?"),
+                                           QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+    } else {
+        button = QMessageBox::No;
+    }
+
+    qint64 sumsize = 0;
+    foreach(QString path, files) {
+        QFileInfo onefileinfo(path);
+        m_schemaList << new SchemaDialog(m_database, path, m_parent);
+        m_filesizes << onefileinfo.size();
+        sumsize += m_filesizes.last();
+        m_schemaList.last()->setName(SqlService::suggestTableName(onefileinfo.completeBaseName(), m_database));
+        m_schemaList.last()->setFileType(path.endsWith(".csv") ? SqlFileImporter::FILETYPE_CSV : SqlFileImporter::FILETYPE_TVS);
+        m_schemaList.last()->setFields(SqlFileImporter::suggestSchema(path, SqlFileImporter::FILETYPE_SUGGEST, 0, true, m_database->driverName() == "QSQLITE"));
+        if (button == QMessageBox::No && m_schemaList.last()->exec() != QDialog::Accepted)
+            return;
+    }
+
+    //connect(this, SIGNAL(finish(QStringList,bool,QString)), SLOT(finishThread()), Qt::QueuedConnection);
+    connect(this, SIGNAL(finished()), SLOT(finishThread()));
+
+    m_progress.open(this, SLOT(canceled()));
+    m_progress.setMaximum(sumsize);
+    m_progress.setValue(0);
+    //connect(&m_progress, SIGNAL(canceled()), SLOT(canceled()));
+
+    start();
+}
+
+void SqlAsynchronousFileImporter::run()
+{
+    qDebug() << "Async file importer started";
+    m_prossingIndex = 0;
+    m_importedTables.clear();
+    m_errorMessage.clear();
+    m_canceled = false;
+    m_withError = false;
+    m_database->transaction();
+    foreach (SchemaDialog *dialog, m_schemaList) {
+        emit updateProgressLabelText(QString("Importing %1...").arg(dialog->name()));
+        SqlFileImporter importer(m_database);
+        connect(&importer, SIGNAL(progress(long)), this, SLOT(importProgressUpdate(long)));
+
+        if (!importer.createTablesAndIndexes(dialog->name(), dialog->fields(), dialog->useFts4())) {
+            m_errorMessage = importer.errorMessage();
+            goto onerror;
+        }
+        if (!importer.importFile(dialog->fileName(), dialog->name(), dialog->fields(), dialog->fileType(), dialog->skipLines(), dialog->firstLineIsHeader(), &m_canceled)) {
+            m_errorMessage = importer.errorMessage();
+            goto onerror;
+        }
+        m_importedTables << dialog->name();
+        m_prossingIndex += 1;
+        if (m_canceled) {
+            m_errorMessage = tr("Canceled by user");
+            goto onerror;
+        }
+
+        off_t processedSize = 0;
+        for (int i = 0; i < m_prossingIndex; ++i)
+            processedSize += m_filesizes[i];
+        if (!m_canceled)
+            emit updateProgressValue(processedSize);
+    }
+    qDebug() << "imported" << m_importedTables;
+    //emit finish(m_importedTables, false, "");
+    m_database->commit();
+    m_withError = false;
+    exit(0);
+    return;
+  onerror:
+    qDebug() << "Error" << m_errorMessage;
+    //emit finish(QStringList(), true, m_errorMessage);
+    m_database->rollback();
+    m_withError = true;
+    exit(1);
+    return;
+}
+
+void SqlAsynchronousFileImporter::finishThread()
+{
+    qDebug() << "finish thread";
+    //m_progress.setValue(m_progress.maximum());
+    if (m_progress.isVisible())
+        m_progress.close();
+    emit finish(m_importedTables, m_withError, m_errorMessage);
+}
+
+void SqlAsynchronousFileImporter::canceled()
+{
+    qDebug() << "Canceled";
+    m_canceled = true;
+}
+
+void SqlAsynchronousFileImporter::importProgressUpdate(long value)
+{
+    if (m_canceled)
+        return;
+    off_t processedSize = 0;
+    for (int i = 0; i < m_prossingIndex; ++i)
+        processedSize += m_filesizes[i];
+    processedSize += value;
+    emit updateProgressValue(processedSize);
 }
