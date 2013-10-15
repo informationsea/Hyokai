@@ -3,3 +3,4 @@ debug
 release
 ui*.h
 *.exe
+*_plugin_import.cpp
