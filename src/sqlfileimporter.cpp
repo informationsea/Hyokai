@@ -291,7 +291,8 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
             const char *column = reader->readnext(&readlen, &islineend);
             if (column == NULL) goto finishImport;
             if (!logical2sqlindex.contains(columnNumber)) continue;
-            QVariant data(QByteArray(column, readlen));
+
+            QVariant data(QString(QByteArray(column, readlen)));
             query.bindValue(logical2sqlindex[columnNumber], data);
         }
         query.exec();

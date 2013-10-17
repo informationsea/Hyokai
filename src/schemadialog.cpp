@@ -36,7 +36,7 @@ SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, const QString &file, QWid
     ui->tableView->installEventFilter(this);
     tableChanged();
 
-    if (!file.isEmpty()) {
+    if (file.isEmpty()) {
         ui->importWidget->setVisible(false);
     }
 
