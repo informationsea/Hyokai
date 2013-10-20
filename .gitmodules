@@ -1,3 +1,0 @@
-[submodule "src/filereader"]
-	path = src/filereader
-	url = git@github.com:informationsea/filereader.git
