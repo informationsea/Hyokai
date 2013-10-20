@@ -1,0 +1,3 @@
+[submodule "src/filereader"]
+	path = src/filereader
+	url = https://github.com/informationsea/filereader.git
