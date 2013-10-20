@@ -38,6 +38,8 @@ SchemaDialog::SchemaDialog(QSqlDatabase *sql_database, const QString &file, QWid
 
     if (file.isEmpty()) {
         ui->importWidget->setVisible(false);
+    } else {
+        setWindowTitle(tr("Import file"));
     }
 
     ui->enableFTS4->setVisible(sql_database->driverName() == "QSQLITE");
