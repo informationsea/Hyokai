@@ -102,6 +102,7 @@ QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, i
 
             if (fields.size() <= j) {
                 fields.append(SchemaField(SqlService::suggestFieldName(QString("V%1").arg(QString::number(j)), fields)));
+                fields[j].setLogicalIndex(j);
                 fieldTypes.append(SchemaField::FIELD_INTEGER);
             }
 
