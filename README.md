@@ -7,7 +7,7 @@ About
 Hyokai is database viewer for big data analysis.
 Easy to import from tab-separated values or CSV and export to them.
 
-![Screen Shot](http://informationsea.info/apps/tableview/img/screenshot2.png)
+![Screen Shot](http://hyokai.info/assets/img/screenshots/w8-mainwindow.PNG)
 
 Downloads
 ---------
