@@ -48,6 +48,9 @@
          <property name="spacing">
           <number>12</number>
          </property>
+         <property name="rightMargin">
+          <number>24</number>
+         </property>
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
@@ -56,22 +59,15 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>40</width>
-             <height>20</height>
+             <height>5</height>
             </size>
            </property>
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="buttonCopyFull">
-           <property name="text">
-            <string>Copy full R code</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="buttonCopyImport">
            <property name="text">
-            <string>R Import code</string>
+            <string>Copy R code</string>
            </property>
           </widget>
          </item>
@@ -99,6 +95,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="margin">
+      <number>12</number>
+     </property>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="orientation">

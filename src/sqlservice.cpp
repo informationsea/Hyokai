@@ -183,3 +183,38 @@ void SqlService::copyFromTableView(const QTableView *tableView, bool copyHeader)
     QClipboard *clip = QApplication::clipboard();
     clip->setText(clipboard);
 }
+
+QTemporaryFile *SqlService::writeTableToBinary(QSqlQuery query, WriteType type, QObject *parent)
+{
+    if (!query.isActive())
+        return NULL;
+    if (!query.isSelect())
+        return NULL;
+
+    QTemporaryFile *tempfile = new QTemporaryFile(parent);
+
+    int recordnum = query.record().count();
+    while (query.next()) {
+        for (int i = 0; i < recordnum; i++) {
+            switch (type) {
+            case BIN_DOUBLE: {
+                double value = query.value(i).toDouble();
+                tempfile->write((char *)&value, sizeof(value));
+                break;
+            }
+            case BIN_INT32: {
+                int value = query.value(i).toInt();
+                tempfile->write((char *)&value, sizeof(value));
+                break;
+            }
+            case BIN_INT64: {
+                qlonglong value = query.value(i).toLongLong();
+                tempfile->write((char *)&value, sizeof(value));
+                break;
+            }
+            }
+        }
+    }
+
+    return tempfile;
+}

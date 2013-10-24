@@ -23,8 +23,6 @@ protected:
     void closeEvent ( QCloseEvent * event );
     
 private slots:
-    void on_buttonCopyFull_clicked();
-
     void on_buttonCopyImport_clicked();
 
 private:
@@ -34,8 +32,7 @@ private:
     QString m_columnName;
     QString m_rName;
 
-    QString m_fullRScript;
-    QString m_importRScript;
+    QString m_drawRScript;
 
     QTemporaryFile *m_rdata_file;
     QTemporaryFile *m_rdraw_file;

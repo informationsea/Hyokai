@@ -98,29 +98,26 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
 
     ui->summaryText->setPlainText(summaryText);
 
-    m_fullRScript = QString("data.%1 <- c(").arg(m_rName);
-    bool first = true;
-    int count = 0;
-    foreach(double v, m_values) {
-        if (first)
-            m_fullRScript.append(QString::number(v));
-        else
-            m_fullRScript.append(QString(",%1").arg(QString::number(v)));
-        if ((count % 100) == 0)
-            m_fullRScript.append("\n");
-        first = false;
-    }
-    m_fullRScript.append(")\n");
-
     m_rdata_file->open();
-    m_rdata_file->write(m_fullRScript.toUtf8());
+    m_rdata_file->seek(0);
+    foreach (double oneValue, values) {
+        m_rdata_file->write((const char *)&oneValue, sizeof(oneValue));
+    }
     m_rdata_file->flush();
+    qDebug() << m_rdata_file->fileName();
 
     m_rdraw_file->open();
     m_rdraw_png->open();
-    m_rdraw_file->write(QString("library(lattice)\nsource(\"%1\")\npng(\"%2\", width=400, height=400)\n"
-                                "densityplot(data.%3, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\ndev.off()").
-                        arg(m_rdata_file->fileName(), m_rdraw_png->fileName(), m_rName).toUtf8());
+    m_drawRScript = QString("library(lattice)\n"
+                            "file.%3 <- file(\"%1\", \"rb\")\n"
+                            "data.%3 <- readBin(file.%3, \"double\", %4, 8)\n"
+                            "png(\"%2\", width=400, height=400)\n"
+                            "densityplot(data.%3, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\n"
+                            "close.connection(file.%3)\n"
+                            "dev.off()").
+                    arg(m_rdata_file->fileName(), m_rdraw_png->fileName(), m_rName, QString::number(values.length()));
+
+    m_rdraw_file->write(m_drawRScript.toUtf8());
     m_rdraw_file->flush();
 
     QStringList args;
@@ -150,14 +147,13 @@ void SummaryDialog::closeEvent(QCloseEvent * /*event*/)
         delete m_histogram_brush;
 }
 
-void SummaryDialog::on_buttonCopyFull_clicked()
-{
-    QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(m_fullRScript);
-}
-
 void SummaryDialog::on_buttonCopyImport_clicked()
 {
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(QString("source(\"%1\")\n\n# Loaded to data.%2\n").arg(m_rdata_file->fileName(), m_rName));
+    clipboard->setText(QString("library(lattice)\n"
+                               "file.%3 <- file(\"%1\", \"rb\")\n"
+                               "data.%3 <- readBin(file.%3, \"double\", %4, 8)\n"
+                               "densityplot(data.%3, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\n"
+                               "close.connection(file.%3)\n").
+                       arg(m_rdata_file->fileName(), m_rdraw_png->fileName(), m_rName, QString::number(m_values.length())));
 }

@@ -4,8 +4,11 @@
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QSqlTableModel>
+#include <QSqlQuery>
+#include <QSqlRecord>
 #include <QTableView>
 #include <QList>
+#include <QTemporaryFile>
 
 class SchemaField
 {
@@ -45,6 +48,8 @@ private:
     SqlService();
 
 public:
+    enum WriteType { BIN_INT32, BIN_INT64, BIN_DOUBLE};
+
     static bool isVaildTableName(const QString &name);
     static bool isVaildTableName(const QString &name, const QSqlDatabase *database); // check names in database
     static QString suggestTableName(const QString &templateName, const QSqlDatabase *database);
@@ -52,6 +57,7 @@ public:
     static QString createRcodeToImport(const QSqlDatabase &database, const QString &query, const QString &variableName);
     static QString createRcodeToImportWithTable(const QSqlDatabase &database, const QString &tableName, const QString &whereStatement);
     static void copyFromTableView(const QTableView *tableView, bool copyHeader);
+    static QTemporaryFile *writeTableToBinary(QSqlQuery query, WriteType type, QObject *parent = 0);
 };
 
 #endif // SQLSERVICE_H

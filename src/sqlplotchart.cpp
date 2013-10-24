@@ -9,6 +9,7 @@
 #include <QSqlResult>
 #include <QBuffer>
 #include <QProcess>
+#include <QClipboard>
 
 #include "main.h"
 #include "sheetmessagebox.h"
@@ -17,7 +18,7 @@
 
 SqlPlotChart::SqlPlotChart(QSqlDatabase *database, QWidget *parent, const QString &defaultName) :
     QDialog(parent),
-    ui(new Ui::SqlPlotChart), m_database(database), m_rcode(0), m_rpng(0)
+    ui(new Ui::SqlPlotChart), m_database(database), m_rcode(0), m_rpng(0), m_rdata(0)
 {
     ui->setupUi(this);
     ui->tableComboBox->lineEdit()->setText(defaultName);
@@ -38,6 +39,7 @@ SqlPlotChart::~SqlPlotChart()
     delete ui;
     SAFE_DELETE(m_rcode);
     SAFE_DELETE(m_rpng);
+    SAFE_DELETE(m_rdata);
 }
 
 void SqlPlotChart::setFilter(const QString &filter)
@@ -57,60 +59,24 @@ void SqlPlotChart::changeEvent(QEvent *event)
 
 QString SqlPlotChart::generateRcode(const QString &device)
 {
-    QList<QVariant> axis[2];
+    if (m_rdata == 0)
+        return "";
+
     QString rcode;
 
     rcode += "library(lattice)\n";
-
-    if (ui->axis1ComboBox->currentText().isEmpty())
-        return "";
-
-    QSqlQuery query = m_database->exec(QString("SELECT %1, %2 FROM %3 %4").arg(ui->axis1ComboBox->currentText(),
-                                                                               ui->axis2ComboBox->currentText(),
-                                                                               ui->tableComboBox->currentText(),
-                                                                               ui->sqlFilter->toPlainText().isEmpty() ? "" : QString("WHERE %1").arg(ui->sqlFilter->toPlainText())));
-    if (query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::critical(this, tr("Cannot select table"), query.lastError().text());
-        return "";
-    }
-
-    if (query.first()) {
-        do {
-            axis[0] << query.record().value(0);
-            axis[1] << query.record().value(1);
-        } while (query.next());
-    }
-
     rcode += QString("axis.name <- list(\"%1\", \"%2\")\n").arg(ui->axis1ComboBox->currentText().replace("\"","\\\""), ui->axis2ComboBox->currentText().replace("\"","\\\""));
-    rcode += "table.data <- list(";
+
+    rcode += QString("table.data.raw <- scan(\"%1\", list(%2, %3))\n").arg(m_rdata->fileName(),
+                                                                           m_fields_type[0] == FIELD_NUMERIC ? "double()" : "character()",
+                                                                           m_fields_type[1] == FIELD_NUMERIC ? "double()" : "character()");
+    rcode += "table.data <- list(NA, NA)\n";
     for (int i = 0; i < 2; i++) {
-        bool first = true;
-        rcode += "c(";
-        foreach (QVariant value, axis[i]) {
-            if (!first) {
-                rcode += ",";
-            }
-            first = false;
-            switch(value.type()) {
-            case QVariant::Int:
-            case QVariant::Double:
-            case QVariant::LongLong:
-                rcode += value.toString();
-                break;
-            default:
-                qDebug() << value.type();
-            case QVariant::String:
-                rcode += "\"";
-                rcode += value.toString().replace("\"","\\\"");
-                rcode += "\"";
-                break;
-            }
-        }
-        rcode += ")";
-        if (i != 1)
-            rcode += ",";
+        if (m_fields_type[i] == FIELD_NUMERIC)
+            rcode += QString("table.data[[%1]] <- table.data.raw[[%1]]\n").arg(QString::number(i+1));
+        else
+            rcode += QString("table.data[[%1]] <- as.factor(table.data.raw[[%1]])\n").arg(QString::number(i+1));
     }
-    rcode += ")\n\n";
 
     rcode += device + "\n";
 
@@ -146,8 +112,12 @@ QString SqlPlotChart::generateRcode(const QString &device)
 
         rcode += "alpha <- "+QString::number(ui->alphaSpin->value())+"\n";
 
-        rcode += "cor.result <- cor.test(table.data[[1]], table.data[[2]])\n"
-                "xyplot(table.data[[2]] ~ table.data[[1]], alpha=alpha, pch=pch, grid=T, xlab=axis.name[[1]], ylab=axis.name[[2]], main=sprintf(\"Correlation: %f   p-value: %f\", cor.result[[4]], cor.result[[3]]))\n";
+        if (m_fields_type[0] == FIELD_NUMERIC && m_fields_type[1] == FIELD_NUMERIC) {
+            rcode += "cor.result <- cor.test(table.data[[1]], table.data[[2]])\n"
+                    "xyplot(table.data[[2]] ~ table.data[[1]], alpha=alpha, pch=pch, grid=T, xlab=axis.name[[1]], ylab=axis.name[[2]], main=sprintf(\"Correlation: %f   p-value: %f\", cor.result[[4]], cor.result[[3]]))\n";
+        } else {
+            rcode += "xyplot(table.data[[2]] ~ table.data[[1]], alpha=alpha, pch=pch, grid=T, xlab=axis.name[[1]], ylab=axis.name[[2]])\n";
+        }
         break;
     }
     case 1: { // heatmap
@@ -168,8 +138,64 @@ QString SqlPlotChart::generateRcode(const QString &device)
     }
     }
 
-    rcode += "dev.off()\n";
+    if (!device.isEmpty())
+        rcode += "dev.off()\n";
     return rcode;
+}
+
+void SqlPlotChart::writeTable()
+{
+    if (m_rdata == 0) {
+        m_rdata = new QTemporaryFile();
+        m_rdata->open();
+    }
+    m_rdata->seek(0);
+    m_rdata->resize(0);
+
+    m_fields_type[0] = FIELD_NUMERIC;
+    m_fields_type[1] = FIELD_NUMERIC;
+
+    if (ui->axis1ComboBox->currentText().isEmpty())
+        return;
+
+    QSqlQuery query = m_database->exec(QString("SELECT %1, %2 FROM %3 %4").arg(ui->axis1ComboBox->currentText(),
+                                                                               ui->axis2ComboBox->currentText(),
+                                                                               ui->tableComboBox->currentText(),
+                                                                               ui->sqlFilter->toPlainText().isEmpty() ? "" : QString("WHERE %1").arg(ui->sqlFilter->toPlainText())));
+    if (query.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::critical(this, tr("Cannot select table"), query.lastError().text());
+        return;
+    }
+
+    if (query.first()) {
+        do {
+            for (int i = 0; i < 2; i++) {
+                QVariant value = query.value(i);
+                switch(value.type()) {
+                case QVariant::Int:
+                case QVariant::Double:
+                case QVariant::LongLong:
+                    m_rdata->write(value.toByteArray());
+                    break;
+                default: {
+                    QByteArray data = value.toByteArray();
+                    data.replace("\"", "\"\"");
+                    m_rdata->write("\"");
+                    m_rdata->write(data);
+                    m_rdata->write("\"");
+                    m_fields_type[i] = FIELD_STRING;
+                    break;
+                }
+                }
+                if (i == 0)
+                    m_rdata->write("\t");
+            }
+            m_rdata->write("\n");
+        } while (query.next());
+    }
+
+    m_rdata->flush();
+    qDebug() << m_rdata->fileName();
 }
 
 void SqlPlotChart::refreshTables()
@@ -203,6 +229,8 @@ void SqlPlotChart::on_plotButton_clicked()
 {
     SAFE_DELETE(m_rcode);
     SAFE_DELETE(m_rpng);
+
+    writeTable();
 
     m_rcode = new QTemporaryFile(this);
     m_rpng = new QTemporaryFile(this);
@@ -241,4 +269,11 @@ void SqlPlotChart::on_tableComboBox_editTextChanged(const QString &arg1)
     ui->axis1ComboBox->addItems(columns);
     ui->axis2ComboBox->addItems(columns);
     ui->sqlFilter->setTable(arg1);
+}
+
+void SqlPlotChart::on_exportButton_clicked()
+{
+    writeTable();
+    QString code = generateRcode("");
+    QApplication::clipboard()->setText(code.left(code.size()-1));
 }

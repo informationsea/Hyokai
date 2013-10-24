@@ -16,6 +16,7 @@ void ImageView::setImage(const QImage &img)
 void ImageView::paintEvent(QPaintEvent * /*event*/)
 {
     QPainter painter(this);
-    painter.drawText(20, 20, "No Image");
+    painter.drawText(20, 20, "R is required to plot data.\n");
+    painter.drawText(20, 40, "If you already installed R, but cannot plot, please set \"Rscript\" path at Edit -> Preference");
     painter.drawImage(0, 0, m_img);
 }

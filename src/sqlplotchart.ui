@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>918</width>
+    <width>944</width>
     <height>504</height>
    </rect>
   </property>
@@ -262,11 +262,8 @@
        </item>
        <item>
         <widget class="QPushButton" name="exportButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
          <property name="text">
-          <string>Export R code</string>
+          <string>Copy R code</string>
          </property>
         </widget>
        </item>
@@ -304,15 +301,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SQLTextEdit</class>
-   <extends>QPlainTextEdit</extends>
-   <header>sqltextedit.h</header>
-  </customwidget>
-  <customwidget>
    <class>ImageView</class>
    <extends>QWidget</extends>
    <header>imageview.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SQLTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>sqltextedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
