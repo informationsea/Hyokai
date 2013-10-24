@@ -46,6 +46,8 @@
 #include <QProgressDialog>
 #include <QSqlField>
 #include <QTimer>
+#include <QValidator>
+#include <QIntValidator>
 
 #include <tablereader.hpp>
 #include <csvreader.hpp>
@@ -60,6 +62,9 @@
 
 #define RECENT_FILES "RECENT_FILES"
 #define RECENT_FILES_MAX 10
+
+#define CHANGE_SIZE_COLUMN 1
+#define CHANGE_SIZE_ROW    2
 
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 static int open_count = 0;
@@ -276,8 +281,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
                 connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
             }
             popup.addSeparator();
-            QAction *resizeColumns = popup.addAction(tr("Resize columns to fit contents"));
-            connect(resizeColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeColumnsToContents()));
+            QAction *fitColumns = popup.addAction(tr("Resize columns to fit contents"));
+            connect(fitColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeColumnsToContents()));
+            QAction *resizeColumns = popup.addAction(tr("Resize columns"));
+            resizeColumns->setData(CHANGE_SIZE_COLUMN);
+            connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
             popup.exec();
         }
         return true;
@@ -285,8 +293,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
         QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
         QMenu popup(this);
         popup.move(cev->globalPos());
-        QAction *resizeColumns = popup.addAction(tr("Resize rows to fit contents"));
-        connect(resizeColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeRowsToContents()));
+        QAction *fitColumns = popup.addAction(tr("Resize rows to fit contents"));
+        connect(fitColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeRowsToContents()));
+        QAction *resizeColumns = popup.addAction(tr("Resize rows"));
+        resizeColumns->setData(CHANGE_SIZE_ROW);
+        connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
         popup.exec();
         return true;
     } else if (obj == ui->tableView && ev->type() == QEvent::ContextMenu) {
@@ -309,6 +320,37 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
         }
     }
     return false;
+}
+
+void MainWindow::onChangeColumnOrRowSize()
+{
+    QAction *action = (QAction *)sender();
+    int type = action->data().toInt();
+    int defaultsize = 100;
+    QString title = tr("Change size of columns");
+    if (type == CHANGE_SIZE_ROW) {
+        defaultsize = 30;
+        title = tr("Change size of rows");
+    }
+
+    QIntValidator intValidator;
+    intValidator.setRange(0, 1000);
+    QString result = SheetTextInputDialog::textInput(title, "", this, QString::number(defaultsize), false, &intValidator);
+    if (result.isEmpty())
+        return;
+
+    int resultSize = result.toInt();
+    if (type == CHANGE_SIZE_ROW) {
+        int rows = m_tableModel->rowCount();
+        for (int i = 0; i < rows; i++) {
+            ui->tableView->setRowHeight(i, resultSize);
+        }
+    } else {
+        int columns = m_tableModel->columnCount();
+        for (int i = 0; i < columns; i++) {
+            ui->tableView->setColumnWidth(i, resultSize);
+        }
+    }
 }
 
 void MainWindow::onWindowMenuShow()

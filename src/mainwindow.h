@@ -63,6 +63,7 @@ public slots:
     virtual void closeEvent(QCloseEvent *event);
 
 private slots:
+    void onChangeColumnOrRowSize();
     void filterFinished();
     void filterChainging();
     void tableChanged(const QString &name);

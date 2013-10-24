@@ -43,10 +43,21 @@ QString SheetTextInputDialog::text()
     return ui->lineEdit->text();
 }
 
-QString SheetTextInputDialog::textInput(const QString &title, const QString &text, QWidget *parent, const QString defaultValue, bool multiline)
+void SheetTextInputDialog::setValidator(const QValidator *validator)
+{
+    ui->lineEdit->setValidator(validator);
+}
+
+const QValidator *SheetTextInputDialog::validator()
+{
+    return ui->lineEdit->validator();
+}
+
+QString SheetTextInputDialog::textInput(const QString &title, const QString &text, QWidget *parent, const QString defaultValue, bool multiline, const QValidator *validator)
 {
     SheetTextInputDialog dialog(title, text, QDialogButtonBox::Ok|QDialogButtonBox::Cancel, parent, multiline);
     dialog.setText(defaultValue);
+    dialog.setValidator(validator);
     int status = dialog.exec();
     switch(status) {
     case QDialog::Accepted:
