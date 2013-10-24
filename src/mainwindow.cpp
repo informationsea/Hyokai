@@ -53,7 +53,9 @@
 #include <csvreader.hpp>
 
 #ifdef Q_OS_MACX
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050200
+#include <QtMacExtras>
+#elif QT_VERSION >= 0x050000
 #include <QMacNativeToolBar>
 #endif
 #endif
@@ -167,7 +169,9 @@ void MainWindow::initialize()
     filterFinished();
 
 #ifdef Q_OS_MACX
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050200
+    setUnifiedTitleAndToolBarOnMac(true);
+#elif QT_VERSION >= 0x050000
     nativeToolbar = QtMacExtras::setNativeToolBar(ui->mainToolBar, true);
     nativeToolbar->setIconSize(QSize(32,32));
     nativeToolbar->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(0));

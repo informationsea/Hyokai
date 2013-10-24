@@ -11,7 +11,9 @@
 #include "main.h"
 
 #ifdef Q_OS_MACX
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050200
+#include <QtMacExtras>
+#elif QT_VERSION >= 0x050000
 #include <QMacNativeToolBar>
 #endif
 #endif
@@ -38,7 +40,9 @@ PreferenceWindow::PreferenceWindow(QWidget *parent) :
     m_group.addAction(ui->actionSQL_Templates);
 
 #ifdef Q_OS_MACX
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050200
+    setUnifiedTitleAndToolBarOnMac(true);
+#elif QT_VERSION >= 0x050000
     QMacNativeToolBar *nativeToolbar = QtMacExtras::setNativeToolBar(ui->toolBar, true);
     nativeToolbar->setIconSize(QSize(32,32));
 #endif
