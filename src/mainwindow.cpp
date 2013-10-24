@@ -45,6 +45,7 @@
 #include <QAction>
 #include <QProgressDialog>
 #include <QSqlField>
+#include <QTimer>
 
 #include <tablereader.hpp>
 #include <csvreader.hpp>
@@ -147,6 +148,7 @@ void MainWindow::initialize()
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     connect(ui->menuShowHiddenColumn, SIGNAL(aboutToShow()), SLOT(onShowHiddenColumnShow()));
     ui->tableView->horizontalHeader()->installEventFilter(this);
+    ui->tableView->verticalHeader()->installEventFilter(this);
     ui->tableView->installEventFilter(this);
     ui->sqlLine->setDatabase(&m_database);
 
@@ -273,8 +275,19 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
                 createIndex->setData(logical_index);
                 connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
             }
+            popup.addSeparator();
+            QAction *resizeColumns = popup.addAction(tr("Resize columns to fit contents"));
+            connect(resizeColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeColumnsToContents()));
             popup.exec();
         }
+        return true;
+    } else if (obj == ui->tableView->verticalHeader() && ev->type() == QEvent::ContextMenu) {
+        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
+        QMenu popup(this);
+        popup.move(cev->globalPos());
+        QAction *resizeColumns = popup.addAction(tr("Resize rows to fit contents"));
+        connect(resizeColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeRowsToContents()));
+        popup.exec();
         return true;
     } else if (obj == ui->tableView && ev->type() == QEvent::ContextMenu) {
         QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
@@ -667,10 +680,10 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "All (*.sqlite3 *.txt *.csv);;SQLite3 (*.sqlite3);; Text (*.txt);; CSV (*.csv);; All (*)");
+                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv);; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; All (*)");
     if (path.isEmpty())
         return;
-    if (path.endsWith(".sqlite3")) {
+    if (path.endsWith(".sqlite3") || path.endsWith(".sqlite")) {
         open(path);
     } else {
         SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&m_database, this);
@@ -746,7 +759,7 @@ void MainWindow::on_actionImportTable_triggered()
 
     QStringList import = QFileDialog::getOpenFileNames(this, tr("Select import file"),
                                                   tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                  tr("Text (*.txt *.csv);; All (*)"));
+                                                  tr("Text (*.txt *.csv *.tsv);; All (*)"));
 
     if (import.isEmpty())
         return;
