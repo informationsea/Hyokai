@@ -1,0 +1,6 @@
+*.tar.gz
+*.txt
+*.dmp
+*.prt
+*.sqlite3
+*.zip
