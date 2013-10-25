@@ -10,6 +10,7 @@
 #include <QBuffer>
 #include <QProcess>
 #include <QClipboard>
+#include <QFileDialog>
 
 #include "main.h"
 #include "sheetmessagebox.h"
@@ -276,4 +277,44 @@ void SqlPlotChart::on_exportButton_clicked()
     writeTable();
     QString code = generateRcode("");
     QApplication::clipboard()->setText(code.left(code.size()-1));
+}
+
+void SqlPlotChart::on_exportImageButton_clicked()
+{
+    QString file = QFileDialog::getSaveFileName(this, tr("Save plot image"), QDir::homePath(), tr("PNG (*.png);;PDF (*.pdf);;Post Script (*.ps);;SVG (*.svg)"));
+    if (file.isEmpty())
+        return;
+
+    SAFE_DELETE(m_rcode);
+
+    writeTable();
+
+    m_rcode = new QTemporaryFile(this);
+    m_rcode->open();
+
+    QString device;
+    if (file.endsWith(".png")) {
+        device = QString("png(\"%1\")").arg(file);
+    } else if (file.endsWith(".pdf")) {
+        device = QString("cairo_pdf(\"%1\")").arg(file);
+    } else if (file.endsWith(".svg")) {
+        device = QString("svg(\"%1\")").arg(file);
+    } else if (file.endsWith(".ps")) {
+        device = QString("cairo_ps(\"%1\")").arg(file);
+    } else {
+        device = QString("png(\"%1.png\")").arg(file);;
+    }
+
+    QString code = generateRcode(device);
+
+    m_rcode->write(code.toUtf8());
+    m_rcode->flush();
+
+    QStringList args;
+    args << m_rcode->fileName();
+    int retcode = QProcess::execute(tableview_settings->value(PATH_R, suggestRPath()).toString(), args);
+
+    if (retcode) {
+        SheetMessageBox::warning(this, tr("Cannot plot"), tr("Something wrong with R. If you are ploting heatmap, please confirm \"gregmisc\" package is installed."));
+    }
 }

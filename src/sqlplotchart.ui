@@ -261,6 +261,13 @@
         </spacer>
        </item>
        <item>
+        <widget class="QPushButton" name="exportImageButton">
+         <property name="text">
+          <string>Export Image</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="exportButton">
          <property name="text">
           <string>Copy R code</string>

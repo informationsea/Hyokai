@@ -48,6 +48,7 @@ private slots:
     void on_plotButton_clicked();
     void on_tableComboBox_editTextChanged(const QString &arg1);
     void on_exportButton_clicked();
+    void on_exportImageButton_clicked();
 };
 
 #endif // SQLPLOTCHART_H
