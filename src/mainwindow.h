@@ -9,8 +9,11 @@
 #include "sqltablemodelalternativebackground.h"
 #include "customsqldialog.h"
 #include "sqlplotchart.h"
+#include "hyokaiconfig.h"
 
+#ifdef ENABLE_MAC_NATIVE_TOOLBAR
 class QMacNativeToolBar;
+#endif
 
 namespace Ui {
 class MainWindow;
@@ -36,9 +39,11 @@ protected:
     
 private:
     Ui::MainWindow *ui;
+#ifdef ENABLE_MAC_NATIVE_TOOLBAR
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050000
     QMacNativeToolBar *nativeToolbar;
+#endif
 #endif
 #endif
 

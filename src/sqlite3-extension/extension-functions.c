@@ -107,6 +107,9 @@ Original code 2006 June 05 by relicoder.
 */
 
 //#include "config.h"
+#include "hyokaiconfig.h"
+
+#ifdef ENABLE_SQLITE_EXTENSION
 
 //#define COMPILE_SQLITE_EXTENSIONS_AS_LOADABLE_MODULE 1
 #ifndef WIN32
@@ -1947,3 +1950,4 @@ void print_elem(void *e, int64_t c, void* p){
   printf("%d => %lld\n", ee,c);
 }
 
+#endif

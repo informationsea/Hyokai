@@ -18,6 +18,9 @@
 #ifndef _SQLITE3EXT_H_
 #define _SQLITE3EXT_H_
 #include "sqlite3.h"
+#include "hyokaiconfig.h"
+
+#ifdef ENABLE_SQLITE_EXTENSION
 
 typedef struct sqlite3_api_routines sqlite3_api_routines;
 
@@ -444,4 +447,5 @@ struct sqlite3_api_routines {
 #define SQLITE_EXTENSION_INIT1     const sqlite3_api_routines *sqlite3_api = 0;
 #define SQLITE_EXTENSION_INIT2(v)  sqlite3_api = v;
 
+#endif
 #endif /* _SQLITE3EXT_H_ */

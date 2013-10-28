@@ -79,7 +79,8 @@ HEADERS  += mainwindow.h \
     filereader/src/filereader_stdio.hpp \
     filereader/src/filereader_mmap.hpp \
     filereader/src/filereader_core.hpp \
-    filereader/src/csvreader.hpp
+    filereader/src/csvreader.hpp \
+    hyokaiconfig.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c

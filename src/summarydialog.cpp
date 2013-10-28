@@ -108,6 +108,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
 
     m_rdraw_file->open();
     m_rdraw_png->open();
+    qDebug() << m_rName;
     m_drawRScript = QString("library(lattice)\n"
                             "file.%3 <- file(\"%1\", \"rb\")\n"
                             "data.%3 <- readBin(file.%3, \"double\", %4, 8)\n"
@@ -116,6 +117,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
                             "close.connection(file.%3)\n"
                             "dev.off()").
                     arg(m_rdata_file->fileName(), m_rdraw_png->fileName(), m_rName, QString::number(values.length()));
+    qDebug() << m_drawRScript;
 
     m_rdraw_file->write(m_drawRScript.toUtf8());
     m_rdraw_file->flush();
@@ -151,9 +153,9 @@ void SummaryDialog::on_buttonCopyImport_clicked()
 {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(QString("library(lattice)\n"
-                               "file.%3 <- file(\"%1\", \"rb\")\n"
-                               "data.%3 <- readBin(file.%3, \"double\", %4, 8)\n"
-                               "densityplot(data.%3, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\n"
-                               "close.connection(file.%3)\n").
-                       arg(m_rdata_file->fileName(), m_rdraw_png->fileName(), m_rName, QString::number(m_values.length())));
+                               "file.%2 <- file(\"%1\", \"rb\")\n"
+                               "data.%2 <- readBin(file.%2, \"double\", %3, 8)\n"
+                               "densityplot(data.%2, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\n"
+                               "close.connection(file.%2)\n").
+                       arg(m_rdata_file->fileName(), m_rName, QString::number(m_values.length())));
 }

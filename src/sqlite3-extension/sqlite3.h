@@ -33,6 +33,9 @@
 #ifndef _SQLITE3_H_
 #define _SQLITE3_H_
 #include <stdarg.h>     /* Needed for the definition of va_list */
+#include "hyokaiconfig.h"
+
+#ifdef ENABLE_SQLITE_EXTENSION
 
 /*
 ** Make sure we can call this stuff from C++.
@@ -7091,6 +7094,8 @@ struct sqlite3_rtree_geometry {
 
 #ifdef __cplusplus
 }  /* end of the 'extern "C"' block */
+#endif
+
 #endif
 
 #endif  /* ifndef _SQLITE3RTREE_H_ */

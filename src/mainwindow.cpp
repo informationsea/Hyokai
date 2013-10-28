@@ -52,11 +52,13 @@
 #include <tablereader.hpp>
 #include <csvreader.hpp>
 
+#ifdef ENABLE_MAC_NATIVE_TOOLBAR
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050200
 #include <QtMacExtras>
 #elif QT_VERSION >= 0x050000
 #include <QMacNativeToolBar>
+#endif
 #endif
 #endif
 
@@ -120,6 +122,7 @@ void MainWindow::initialize()
 
     move(nextWindowPosition());
 
+#ifdef ENABLE_SQLITE_EXTENSION
 #if !defined(Q_OS_WIN32)
     QVariant v = m_database.driver()->handle();
     if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*") == 0) {
@@ -130,6 +133,7 @@ void MainWindow::initialize()
             RegisterExtensionFunctions(handle);
         }
     }
+#endif
 #endif
 
     ui->actionAbout_Qt->setMenuRole(QAction::AboutQtRole);
@@ -168,6 +172,7 @@ void MainWindow::initialize()
 
     filterFinished();
 
+#ifdef ENABLE_MAC_NATIVE_TOOLBAR
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050200
     setUnifiedTitleAndToolBarOnMac(true);
@@ -176,6 +181,7 @@ void MainWindow::initialize()
     nativeToolbar->setIconSize(QSize(32,32));
     nativeToolbar->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(0));
     ui->menuEdit->addAction(tr("Customize Toolbar"), nativeToolbar, SLOT(showCustomizationSheet()));
+#endif
 #endif
 #endif
 
