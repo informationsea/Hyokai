@@ -11,16 +11,6 @@ SqlTableModelAlternativeBackground::SqlTableModelAlternativeBackground(QObject *
 QVariant SqlTableModelAlternativeBackground::data(const QModelIndex & index, int role) const
 {
     switch (role) {
-    case Qt::BackgroundRole:
-        if (isDirty(index)) {
-            if (index.row() %2)
-                return QVariant(QColor("#FFF4CF"));
-            else
-                return QVariant(QColor("#FFFAE9"));
-        }
-        if (index.row() % 2)
-            return QVariant(QColor("#E8EDF5"));
-        break;
     case Qt::DisplayRole: {
         QVariant d = QSqlTableModel::data(index, role);
         if (d.type() == QVariant::String)

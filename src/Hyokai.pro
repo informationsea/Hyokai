@@ -47,7 +47,8 @@ SOURCES += main.cpp\
     filereader/src/filereader_stdio.cpp \
     filereader/src/filereader_mmap.cpp \
     filereader/src/filereader_core.cpp \
-    filereader/src/csvreader.cpp
+    filereader/src/csvreader.cpp \
+    tableviewstyleditemdelegate.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -80,7 +81,8 @@ HEADERS  += mainwindow.h \
     filereader/src/filereader_mmap.hpp \
     filereader/src/filereader_core.hpp \
     filereader/src/csvreader.hpp \
-    hyokaiconfig.h
+    hyokaiconfig.h \
+    tableviewstyleditemdelegate.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
