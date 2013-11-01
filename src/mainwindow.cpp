@@ -116,6 +116,8 @@ MainWindow::MainWindow(const QSqlDatabase &database, QWidget *parent) :
 void MainWindow::initialize()
 {
     ui->setupUi(this);
+    m_tableViewItemDelegate = new TableViewStyledItemDelegate(ui->tableView);
+    ui->tableView->setItemDelegate(m_tableViewItemDelegate);
     m_rowcountlabel = new QLabel(ui->statusBar);
     //ui->statusBar->addWidget(sqlLineCount);
     ui->statusBar->addPermanentWidget(m_rowcountlabel);
