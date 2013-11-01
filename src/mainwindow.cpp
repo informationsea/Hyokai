@@ -296,6 +296,14 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
             QAction *resizeColumns = popup.addAction(tr("Resize columns"));
             resizeColumns->setData(CHANGE_SIZE_COLUMN);
             connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
+            popup.addSeparator();
+            QAction *setNumDecimalPlaces = popup.addAction(tr("Set number of decimal places"));
+            setNumDecimalPlaces->setData(logical_index);
+            connect(setNumDecimalPlaces, SIGNAL(triggered()), SLOT(setNumDecimalPlaces()));
+            QAction *resetNumDecimalPlaces = popup.addAction(tr("Reset number of decimal places"));
+            resetNumDecimalPlaces->setEnabled(m_tableViewItemDelegate->numDecimalPlaces(logical_index) != TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
+            resetNumDecimalPlaces->setData(logical_index);
+            connect(resetNumDecimalPlaces, SIGNAL(triggered()), SLOT(resetNumDecimalPlaces()));
             popup.exec();
         }
         return true;
@@ -1284,4 +1292,38 @@ void MainWindow::on_actionClose_triggered()
     }
     // no active dialog is found.
     close();
+}
+
+void MainWindow::setNumDecimalPlaces()
+{
+    const QAction *action = static_cast<QAction *>(sender());
+    if (action == 0) return;
+
+    int logicalIndex = action->data().toInt();
+    if (logicalIndex < 0) return;
+
+    int currentNumDecimalPlaces = m_tableViewItemDelegate->numDecimalPlaces(logicalIndex);
+    if (currentNumDecimalPlaces == TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET) {
+        currentNumDecimalPlaces = 4;
+    }
+
+    QIntValidator intValidator(0, 8);
+    QString result = SheetTextInputDialog::textInput(
+                tr("Set number of decimal places"), "", this, QString::number(currentNumDecimalPlaces), false, &intValidator);
+    if (result.isEmpty()) return;
+
+    m_tableViewItemDelegate->setRoundingPrecision(logicalIndex, result.toInt());
+    update();
+}
+
+void MainWindow::resetNumDecimalPlaces()
+{
+    const QAction *action = static_cast<QAction *>(sender());
+    if (action == 0) return;
+
+    int logicalIndex = action->data().toInt();
+    if (logicalIndex < 0) return;
+
+    m_tableViewItemDelegate->setRoundingPrecision(logicalIndex, TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
+    update();
 }
