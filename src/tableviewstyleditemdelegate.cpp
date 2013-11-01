@@ -50,7 +50,10 @@ int TableViewStyledItemDelegate::numDecimalPlaces(int column) const
 void TableViewStyledItemDelegate::setRoundingPrecision(int column, int precision)
 {
     if (column >= 0) {
-        if (precision < 0) precision = NUM_DECIMAL_PLACES_NOT_SET;
-        m_numDecimalPlacesMap[column] = precision;
+        if (precision >= 0) {
+            m_numDecimalPlacesMap[column] = precision;
+        } else if (m_numDecimalPlacesMap.contains(column)) {
+            m_numDecimalPlacesMap.remove(column);
+        }
     }
 }
