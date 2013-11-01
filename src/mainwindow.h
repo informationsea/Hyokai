@@ -10,6 +10,7 @@
 #include "customsqldialog.h"
 #include "sqlplotchart.h"
 #include "hyokaiconfig.h"
+#include "tableviewstyleditemdelegate.h"
 
 #ifdef ENABLE_MAC_NATIVE_TOOLBAR
 class QMacNativeToolBar;
@@ -54,6 +55,7 @@ private:
     bool m_isDirty;
     QList<QDialog *> m_dialogs;
     QMenu m_assistPopup;
+    TableViewStyledItemDelegate *m_tableViewItemDelegate;
 
     void initialize();
 
@@ -90,6 +92,8 @@ private slots:
     void showCell();
     void cleanupDatabase();
     void importFinished(QStringList importedTables, bool withError, QString errorMessage);
+    void setNumDecimalPlaces();
+    void resetNumDecimalPlaces();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
