@@ -21,21 +21,18 @@
 
 static bool isdigitstr(const char *str, size_t length)
 {
-    for (size_t i = 0; i < length; ++i) {
-        if (!isdigit(*str++))
-            return false;
-    }
-    return true;
+    bool isOk = false;
+    QString::fromLocal8Bit(str, length).toInt(&isOk);
+
+    return isOk;
 }
 
 static bool isrealstr(const char *str, size_t length)
 {
-    for (size_t i = 0; i < length; ++i) {
-        char ch = *str++;
-        if (!isdigit(ch) && ch != '.')
-            return false;
-    }
-    return true;
+    bool isOk = false;
+    QString::fromLocal8Bit(str, length).toDouble(&isOk);
+
+    return isOk;
 }
 
 SqlFileImporter::SqlFileImporter(QSqlDatabase *database, QObject *parent) :
