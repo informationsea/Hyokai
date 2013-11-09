@@ -22,7 +22,7 @@
 static bool isdigitstr(const char *str, size_t length)
 {
     bool isOk = false;
-    QString::fromLocal8Bit(str, length).toInt(&isOk);
+    QString::fromUtf8(str, length).toInt(&isOk);
 
     return isOk;
 }
@@ -30,7 +30,7 @@ static bool isdigitstr(const char *str, size_t length)
 static bool isrealstr(const char *str, size_t length)
 {
     bool isOk = false;
-    QString::fromLocal8Bit(str, length).toDouble(&isOk);
+    QString::fromUtf8(str, length).toDouble(&isOk);
 
     return isOk;
 }
