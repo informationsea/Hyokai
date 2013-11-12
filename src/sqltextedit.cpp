@@ -48,11 +48,9 @@ QStringList SQLTextEdit::loadFunctionList(const QString &driver)
     QString line;
 
     while (!(line = listfile.readLine()).isEmpty()) {
-        if (line.startsWith(">"))
-            continue;
-        int pos = line.indexOf('(');
-        if (pos != -1)
-            line = line.mid(0, pos);
+        //int pos = line.indexOf('(');
+        //if (pos != -1)
+        //    line = line.mid(0, pos);
         list << line.trimmed();
     }
     return list;
@@ -178,9 +176,13 @@ void SQLSyntaxHighligter::setDatabase(QSqlDatabase *database)
 
     m_keyword_list = SQLTextEdit::loadKeywords(m_database->driverName());
 
-    foreach (const QString line, SQLTextEdit::loadFunctionList(m_database->driverName())) {
-        if (!line.startsWith(">"))
-            m_function_list << line;
+    foreach (QString line, SQLTextEdit::loadFunctionList(m_database->driverName())) {
+        if (line.startsWith(">"))
+            continue;
+        int pos = line.indexOf('(');
+        if (pos != -1)
+            line = line.mid(0, pos);
+           m_function_list << line;
     }
 }
 
