@@ -202,6 +202,8 @@ void MainWindow::initialize()
     } else {
         ui->actionR_code_to_import->setEnabled(false);
     }
+
+    move(nextWindowPosition());
 }
 
 void MainWindow::setupTableModel()
