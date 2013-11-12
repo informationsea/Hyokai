@@ -129,6 +129,7 @@ private slots:
     void on_actionPlot_triggered();
     void on_actionClose_triggered();
     void on_actionGo_to_Hyokai_info_triggered();
+    void on_actionUse_fixed_width_font_triggered(bool checked);
 };
 
 #endif // MAINWINDOW_H

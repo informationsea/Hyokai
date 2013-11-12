@@ -50,6 +50,7 @@ private slots:
     void onExportTable();
     void onCreateView();
     void onExportToR();
+    void onFixedFontToggled(bool);
     void showCell();
 
     void on_sql_textChanged();

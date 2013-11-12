@@ -48,6 +48,7 @@
 #include <QTimer>
 #include <QValidator>
 #include <QIntValidator>
+#include <QFont>
 
 #include <tablereader.hpp>
 #include <csvreader.hpp>
@@ -182,7 +183,7 @@ void MainWindow::initialize()
     nativeToolbar = QtMacExtras::setNativeToolBar(ui->mainToolBar, true);
     nativeToolbar->setIconSize(QSize(32,32));
     nativeToolbar->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(0));
-    ui->menuEdit->addAction(tr("Customize Toolbar"), nativeToolbar, SLOT(showCustomizationSheet()));
+    ui->menuView->addAction(tr("Customize Toolbar"), nativeToolbar, SLOT(showCustomizationSheet()));
 #endif
 #endif
 #endif
@@ -1335,4 +1336,17 @@ void MainWindow::resetNumDecimalPlaces()
 void MainWindow::on_actionGo_to_Hyokai_info_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://hyokai.info"));
+}
+
+void MainWindow::on_actionUse_fixed_width_font_triggered(bool checked)
+{
+    QFont font;
+    if (checked) {
+        font.setFamily("Monaco");
+        font.setStyleHint(QFont::Monospace);
+    } else {
+        font.setFamily("System");
+        font.setStyleHint(QFont::System);
+    }
+    ui->tableView->setFont(font);
 }

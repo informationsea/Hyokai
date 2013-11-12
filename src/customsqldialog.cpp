@@ -243,6 +243,19 @@ void CustomSqlDialog::onExportToR()
     clip->setText(SqlService::createRcodeToImport(*m_database, ui->sql->toPlainText(), "custom.table"));
 }
 
+void CustomSqlDialog::onFixedFontToggled(bool checked)
+{
+    QFont font;
+    if (checked) {
+        font.setFamily("Monaco");
+        font.setStyleHint(QFont::Monospace);
+    } else {
+        font.setFamily("System");
+        font.setStyleHint(QFont::System);
+    }
+    ui->tableView->setFont(font);
+}
+
 
 void CustomSqlDialog::createMenus()
 {
@@ -369,6 +382,10 @@ void CustomSqlDialog::createMenus()
 
     // Other Menu
     menu = new QMenu(this);
+
+    QAction *fixedfont = menu->addAction(tr("Use fixed width font"));
+    connect(fixedfont, SIGNAL(triggered(bool)), SLOT(onFixedFontToggled(bool)));
+    fixedfont->setCheckable(true);
 
     QAction* exportTable = menu->addAction(tr("Export Table"));
     connect(exportTable, SIGNAL(triggered()), SLOT(onExportTable()));

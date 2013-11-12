@@ -1,6 +1,7 @@
 #include "sqltablemodelalternativebackground.h"
 
 #include <QColor>
+#include <QFont>
 #include "main.h"
 
 SqlTableModelAlternativeBackground::SqlTableModelAlternativeBackground(QObject *parent, QSqlDatabase db) :
@@ -16,6 +17,9 @@ QVariant SqlTableModelAlternativeBackground::data(const QModelIndex & index, int
         if (d.type() == QVariant::String)
             return d.toString().split("\n").at(0);
         return d;
+    }
+    case Qt::FontRole: {
+        //return QFont("monaco");
     }
     }
 
