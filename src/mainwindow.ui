@@ -173,6 +173,7 @@
     <addaction name="separator"/>
     <addaction name="actionGo_github"/>
     <addaction name="actionGo_to_SQLite3_webpage"/>
+    <addaction name="actionGo_to_Hyokai_info"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -572,6 +573,11 @@
   <action name="actionDummy">
    <property name="text">
     <string>Dummy</string>
+   </property>
+  </action>
+  <action name="actionGo_to_Hyokai_info">
+   <property name="text">
+    <string>Go to Hyokai.info</string>
    </property>
   </action>
  </widget>

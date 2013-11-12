@@ -1331,3 +1331,8 @@ void MainWindow::resetNumDecimalPlaces()
     m_tableViewItemDelegate->setRoundingPrecision(logicalIndex, TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
     update();
 }
+
+void MainWindow::on_actionGo_to_Hyokai_info_triggered()
+{
+    QDesktopServices::openUrl(QUrl("http://hyokai.info"));
+}
