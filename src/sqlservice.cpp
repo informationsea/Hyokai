@@ -65,6 +65,7 @@ QString SqlService::suggestFieldName(const QString &fieldName, const QList<Schem
     bool nameChanged = false;
     int i = 1;
     do {
+        nameChanged = false;
         foreach (SchemaField onefield, currentSchema) {
             if (onefield.name() == newname) {
                 newname = QString("%1_%2").arg(basename, QString::number(i++));
