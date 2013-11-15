@@ -250,8 +250,7 @@ void CustomSqlDialog::onFixedFontToggled(bool checked)
         font.setFamily("Monaco");
         font.setStyleHint(QFont::Monospace);
     } else {
-        font.setFamily("System");
-        font.setStyleHint(QFont::System);
+        font = QApplication::font();
     }
     ui->tableView->setFont(font);
 }

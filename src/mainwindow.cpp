@@ -707,7 +707,9 @@ void MainWindow::on_actionCreateTable_triggered()
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    QStringList sqls = SqlFileImporter::createSql(dialog.name(), dialog.fields(), dialog.useFts4());
+    QStringList sqls;
+    sqls << SqlFileImporter::generateCreateTableSql(dialog.name(), dialog.fields(), dialog.useFts4());
+    sqls << SqlFileImporter::generateCreateIndexSql(dialog.name(), dialog.fields());
 
     foreach (const QString sql, sqls) {
         m_database.exec(sql);
@@ -824,7 +826,7 @@ void MainWindow::on_actionImportTable_triggered()
 
     QStringList import = QFileDialog::getOpenFileNames(this, tr("Select import file"),
                                                   tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                  tr("Text (*.txt *.csv *.tsv);; All (*)"));
+                                                  tr("Text (*.txt *.csv *.tsv *.txt.gz *.csv.gz *.tsv.gz);; All (*)"));
 
     if (import.isEmpty())
         return;
@@ -1219,7 +1221,7 @@ void MainWindow::on_actionDuplicate_Table_triggered()
 
         dialog.exec();
 
-        foreach(QString sql, SqlFileImporter::createSql(dialog.name(), dialog.fields(), dialog.useFts4())) {
+        foreach(QString sql, SqlFileImporter::generateCreateTableSql(dialog.name(), dialog.fields(), dialog.useFts4())) {
             QSqlQuery query = m_database.exec(sql);
             if (query.lastError().type() != QSqlError::NoError) {
                 SheetMessageBox::critical(this, tr("Cannot create table or index"), query.lastError().text());
@@ -1345,8 +1347,7 @@ void MainWindow::on_actionUse_fixed_width_font_triggered(bool checked)
         font.setFamily("Monaco");
         font.setStyleHint(QFont::Monospace);
     } else {
-        font.setFamily("System");
-        font.setStyleHint(QFont::System);
+        font = QApplication::font();
     }
     ui->tableView->setFont(font);
 }

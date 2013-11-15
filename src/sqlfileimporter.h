@@ -26,8 +26,10 @@ public:
     explicit SqlFileImporter(QSqlDatabase *database, QObject *parent = 0);
 
     static QList<SchemaField> suggestSchema(QString path, enum FileType type, int skipLines, bool firstLineIsHeader, bool preferText);
-    static QStringList createSql(const QString &name, const QList<SchemaField> &fields, bool useFts4);
-    bool createTablesAndIndexes(const QString &name, const QList<SchemaField> &fields, bool useFts4);
+    static QString generateCreateTableSql(const QString &name, const QList<SchemaField> &fields, bool useFts4);
+    static QStringList generateCreateIndexSql(const QString &name, const QList<SchemaField> &fields);
+    bool createTables(const QString &name, const QList<SchemaField> &fields, bool useFts4);
+    bool createIndexes(const QString &name, const QList<SchemaField> &fields);
     bool importFile(QString path, const QString &name, const QList<SchemaField> &fields, enum FileType type, int skipLines, bool firstLineIsHeader, volatile bool *canceledFlag = 0);
     QString errorMessage();
     

@@ -43,7 +43,7 @@ SqlFileImporter::SqlFileImporter(QSqlDatabase *database, QObject *parent) :
 QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, int skipLines, bool firstLineIsHeader, bool preferText)
 {
     if (type == FILETYPE_SUGGEST) {
-        if (path.toLower().endsWith(".csv"))
+        if (path.toLower().endsWith(".csv") || path.toLower().endsWith(".csv.gz"))
             type = FILETYPE_CSV;
         else
             type = FILETYPE_TVS;
@@ -156,9 +156,8 @@ QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, i
     return fields;
 }
 
-QStringList SqlFileImporter::createSql(const QString &name, const QList<SchemaField> &fields, bool usingFTS4)
+QString SqlFileImporter::generateCreateTableSql(const QString &name, const QList<SchemaField> &fields, bool usingFTS4)
 {
-    QStringList sqllist;
     QString createSql("CREATE TABLE ");
     bool isFirstIteration = true;
     bool hasPrimaryKey = false;
@@ -203,8 +202,12 @@ QStringList SqlFileImporter::createSql(const QString &name, const QList<SchemaFi
     }
     createSql += ");";
 
-    sqllist << createSql;
+    return createSql;
+}
 
+QStringList SqlFileImporter::generateCreateIndexSql(const QString &name, const QList<SchemaField> &fields)
+{
+    QStringList sqllist;
 
     foreach (const SchemaField oneField, fields) {
         if (!oneField.indexedField()) continue;
@@ -214,11 +217,24 @@ QStringList SqlFileImporter::createSql(const QString &name, const QList<SchemaFi
     return sqllist;
 }
 
-bool SqlFileImporter::createTablesAndIndexes(const QString &name, const QList<SchemaField> &fields, bool useFts4)
+bool SqlFileImporter::createTables(const QString &name, const QList<SchemaField> &fields, bool useFts4)
 {
     m_errorMessage = "";
 
-    QStringList sqls(createSql(name, fields, useFts4));
+    QSqlQuery query = m_database->exec(generateCreateTableSql(name, fields, useFts4));
+    if (query.lastError().type() != QSqlError::NoError) {
+        m_errorMessage = query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+bool SqlFileImporter::createIndexes(const QString &name, const QList<SchemaField> &fields)
+{
+    m_errorMessage = "";
+
+    QStringList sqls(generateCreateIndexSql(name, fields));
     foreach (QString onesql, sqls) {
         QSqlQuery query = m_database->exec(onesql);
         if (query.lastError().type() != QSqlError::NoError) {
@@ -237,7 +253,7 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
         skipLines++;
 
     if (type == FILETYPE_SUGGEST) {
-        if (path.toLower().endsWith(".csv"))
+        if (path.toLower().endsWith(".csv") || path.toLower().endsWith(".csv.gz"))
             type = FILETYPE_CSV;
         else
             type = FILETYPE_TVS;
@@ -351,7 +367,7 @@ void SqlAsynchronousFileImporter::executeImport(QStringList files)
         m_filesizes << onefileinfo.size();
         sumsize += m_filesizes.last();
         m_schemaList.last()->setName(SqlService::suggestTableName(onefileinfo.completeBaseName(), m_database));
-        m_schemaList.last()->setFileType(path.endsWith(".csv") ? SqlFileImporter::FILETYPE_CSV : SqlFileImporter::FILETYPE_TVS);
+        m_schemaList.last()->setFileType((path.endsWith(".csv") || path.endsWith(".csv.gz")) ? SqlFileImporter::FILETYPE_CSV : SqlFileImporter::FILETYPE_TVS);
         m_schemaList.last()->setFields(SqlFileImporter::suggestSchema(path, SqlFileImporter::FILETYPE_SUGGEST, 0, true, m_database->driverName() == "QSQLITE"));
         if (button == QMessageBox::No && m_schemaList.last()->exec() != QDialog::Accepted)
             return;
@@ -382,11 +398,16 @@ void SqlAsynchronousFileImporter::run()
         SqlFileImporter importer(m_database);
         connect(&importer, SIGNAL(progress(long)), this, SLOT(importProgressUpdate(long)));
 
-        if (!importer.createTablesAndIndexes(dialog->name(), dialog->fields(), dialog->useFts4())) {
+        if (!importer.createTables(dialog->name(), dialog->fields(), dialog->useFts4())) {
             m_errorMessage = importer.errorMessage();
             goto onerror;
         }
         if (!importer.importFile(dialog->fileName(), dialog->name(), dialog->fields(), dialog->fileType(), dialog->skipLines(), dialog->firstLineIsHeader(), &m_canceled)) {
+            m_errorMessage = importer.errorMessage();
+            goto onerror;
+        }
+        emit updateProgressLabelText(QString("Creating indexes for %1...").arg(dialog->name()));
+        if (!importer.createIndexes(dialog->name(), dialog->fields())) {
             m_errorMessage = importer.errorMessage();
             goto onerror;
         }
