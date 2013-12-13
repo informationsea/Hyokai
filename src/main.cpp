@@ -9,7 +9,7 @@
 #include <QFileInfo>
 
 #ifdef Q_OS_MACX
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 && QT_VERSION < 0x050200
 #include <QMacFunctions>
 #endif
 #endif
