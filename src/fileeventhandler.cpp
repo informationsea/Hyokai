@@ -53,6 +53,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
                 }
             }
 
+            ::tableviewCleanupWindows();
             w = new MainWindow(NULL, ":memory:");
             w->show();
             ::windowList.append(w);
@@ -62,7 +63,7 @@ opened:
             SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&w->database(), w);
             importer->executeImport(QStringList(openevent->file()));
             connect(importer, SIGNAL(finish(QStringList,bool,QString)), w, SLOT(importFinished(QStringList,bool,QString)));
-            w->refresh();
+            //w->refresh();
 
             return true;
         }
