@@ -767,7 +767,7 @@ void MainWindow::on_actionNew_triggered()
     QString defaultpath = QFileInfo(tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(), "Untitled.sqlite3").absoluteFilePath();
     QString path = QFileDialog::getSaveFileName(NULL, "New SQLite3 Database",
                                                 defaultpath,
-                                                "SQLite3 (*.sqlite3);; All (*)");
+                                                "SQLite3 (*.sqlite3; *.sqlite);; All (*)");
     if (path.isEmpty())
         return;
     open(path);

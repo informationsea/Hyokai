@@ -41,7 +41,8 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
         }
 
         if (openevent->file().endsWith(".txt") ||
-                   openevent->file().endsWith(".csv")) {
+                openevent->file().endsWith(".csv") ||
+                openevent->file().endsWith(".tsv")) {
 
             MainWindow *w;
             foreach (MainWindow *window, ::windowList) {
@@ -56,7 +57,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
             w->show();
             ::windowList.append(w);
 
-            opened:
+opened:
 
             SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&w->database(), w);
             importer->executeImport(QStringList(openevent->file()));
