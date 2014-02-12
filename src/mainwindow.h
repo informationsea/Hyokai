@@ -94,6 +94,7 @@ private slots:
     void importFinished(QStringList importedTables, bool withError, QString errorMessage);
     void setNumDecimalPlaces();
     void resetNumDecimalPlaces();
+    void onToolbarVisibiltyChanged();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
@@ -130,6 +131,7 @@ private slots:
     void on_actionClose_triggered();
     void on_actionGo_to_Hyokai_info_triggered();
     void on_actionUse_fixed_width_font_triggered(bool checked);
+    void on_actionShow_Toolbar_triggered(bool checked);
 };
 
 #endif // MAINWINDOW_H

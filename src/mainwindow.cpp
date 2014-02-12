@@ -53,16 +53,6 @@
 #include <tablereader.hpp>
 #include <csvreader.hpp>
 
-#ifdef ENABLE_MAC_NATIVE_TOOLBAR
-#ifdef Q_OS_MACX
-#if QT_VERSION >= 0x050200
-#include <QtMacExtras>
-#elif QT_VERSION >= 0x050000
-#include <QMacNativeToolBar>
-#endif
-#endif
-#endif
-
 #include "sqlite3-extension/sqlite3.h"
 
 #define RECENT_FILES "RECENT_FILES"
@@ -161,6 +151,7 @@ void MainWindow::initialize()
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     connect(ui->menuShowHiddenColumn, SIGNAL(aboutToShow()), SLOT(onShowHiddenColumnShow()));
+    connect(ui->mainToolBar, SIGNAL(visibilityChanged(bool)), SLOT(onToolbarVisibiltyChanged()));
     ui->tableView->horizontalHeader()->installEventFilter(this);
     ui->tableView->verticalHeader()->installEventFilter(this);
     ui->tableView->installEventFilter(this);
@@ -174,19 +165,6 @@ void MainWindow::initialize()
     }
 
     filterFinished();
-
-#ifdef ENABLE_MAC_NATIVE_TOOLBAR
-#ifdef Q_OS_MACX
-#if QT_VERSION >= 0x050200
-    setUnifiedTitleAndToolBarOnMac(true);
-#elif QT_VERSION >= 0x050000
-    nativeToolbar = QtMacExtras::setNativeToolBar(ui->mainToolBar, true);
-    nativeToolbar->setIconSize(QSize(32,32));
-    nativeToolbar->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(0));
-    ui->menuView->addAction(tr("Customize Toolbar"), nativeToolbar, SLOT(showCustomizationSheet()));
-#endif
-#endif
-#endif
 
     if (m_databasename.compare(":memory:") != 0 && m_database.driverName() == "QSQLITE") {
         setWindowFilePath(m_databasename);
@@ -1337,6 +1315,11 @@ void MainWindow::resetNumDecimalPlaces()
     update();
 }
 
+void MainWindow::onToolbarVisibiltyChanged()
+{
+    ui->actionShow_Toolbar->setChecked(ui->mainToolBar->isVisible());
+}
+
 void MainWindow::on_actionGo_to_Hyokai_info_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://hyokai.info"));
@@ -1352,4 +1335,9 @@ void MainWindow::on_actionUse_fixed_width_font_triggered(bool checked)
         font = QApplication::font();
     }
     ui->tableView->setFont(font);
+}
+
+void MainWindow::on_actionShow_Toolbar_triggered(bool checked)
+{
+    ui->mainToolBar->setVisible(checked);
 }
