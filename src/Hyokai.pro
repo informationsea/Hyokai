@@ -90,8 +90,7 @@ win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
     HEADERS -= sqlite3-extension/sqlite3ext.h \
         sqlite3-extension/sqlite3.h
-    QMAKE_CC = cl /FS
-    QMAKE_CXX = cl /FS
+    DEFINES += DISABLE_GZIP
 }
 
 FORMS    += mainwindow.ui \
