@@ -27,6 +27,7 @@ ui_*.h
 windowsicon.res
 *.manifest
 .qmake.cache
+.qmake.stash
 *.autosave
 
 .DS_Store
