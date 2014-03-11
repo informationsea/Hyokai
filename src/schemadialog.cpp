@@ -147,26 +147,34 @@ const QList<SchemaField> &SchemaDialog::fields() const
     return model->fields();
 }
 
-void SchemaDialog::setFileType(SqlFileImporter::FileType type)
+void SchemaDialog::setFileType(enum FileType type)
 {
+    m_fileType = type;
+
     switch (type) {
-    case SqlFileImporter::FILETYPE_CSV:
+    case FILETYPE_CSV:
         ui->cammaDelimiter->setChecked(true);
         ui->tabDelimiter->setChecked(false);
         break;
-    case SqlFileImporter::FILETYPE_TVS:
-    default:
+    case FILETYPE_TVS:
         ui->cammaDelimiter->setChecked(false);
         ui->tabDelimiter->setChecked(true);
+        break;
+    case FILETYPE_XLSX:
+        ui->label_3->hide();
+        ui->cammaDelimiter->hide();
+        ui->tabDelimiter->hide();
+        break;
+
+    default:
+        // TODO
         break;
     }
 }
 
-SqlFileImporter::FileType SchemaDialog::fileType()
+enum FileType SchemaDialog::fileType()
 {
-    if (ui->cammaDelimiter->isChecked())
-        return SqlFileImporter::FILETYPE_CSV;
-    return SqlFileImporter::FILETYPE_TVS;
+    return m_fileType;
 }
 
 void SchemaDialog::setDuplicationMode(bool duplicate)
@@ -215,11 +223,8 @@ void SchemaDialog::on_notMakeIndexButton_clicked()
 void SchemaDialog::on_suggestColumnButton_clicked()
 {
     //model->setFields(suggestSchema(m_import_file, delimiter(), skipLines(), firstLineIsHeader(), ui->scanAllLine->isChecked() ? -1 : 20, this));
-    SqlFileImporter::FileType type = SqlFileImporter::FILETYPE_TVS;
-    if (ui->cammaDelimiter->isChecked())
-        type = SqlFileImporter::FILETYPE_CSV;
 
-    model->setFields(SqlFileImporter::suggestSchema(m_import_file, type, skipLines(), firstLineIsHeader(), m_sql_database->driverName() == "QSQLITE"));
+    model->setFields(SqlFileImporter::suggestSchema(m_import_file, m_fileType, skipLines(), firstLineIsHeader(), m_sql_database->driverName() == "QSQLITE"));
 }
 
 void SchemaDialog::tableClicked(const QModelIndex &index)

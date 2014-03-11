@@ -725,7 +725,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv);; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; All (*)");
+                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv *.xlsx);; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Excel (*.xlsx);; All (*)");
     if (path.isEmpty())
         return;
     if (path.endsWith(".sqlite3") || path.endsWith(".sqlite")) {
@@ -804,7 +804,7 @@ void MainWindow::on_actionImportTable_triggered()
 
     QStringList import = QFileDialog::getOpenFileNames(this, tr("Select import file"),
                                                   tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                  tr("Text (*.txt *.csv *.tsv *.txt.gz *.csv.gz *.tsv.gz);; All (*)"));
+                                                  tr("Text (*.txt *.csv *.tsv *.txt.gz *.csv.gz *.tsv.gz *.xlsx);; Excel (*.xlsx);; All (*)"));
 
     if (import.isEmpty())
         return;
@@ -893,14 +893,14 @@ void MainWindow::on_actionExport_Table_triggered()
     //qDebug() << "defaultpath: " << defaultpath;
     QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
                                                       defaultpath,
-                                                      "CSV (*.csv);; Tab separated (*.txt)");
+                                                      "CSV (*.csv);; Tab separated (*.txt);; Excel (*.xlsx)");
     if (outputpath.isEmpty())
         return;
     QFileInfo outputfileinfo(outputpath);
     tableview_settings->setValue(LAST_EXPORT_DIRECTORY, outputfileinfo.dir().absolutePath());
 
     SqlFileExporter exporter(&m_database, this);
-    if (!exporter.exportTable(query, outputpath, outputpath.endsWith(".csv"))) {
+    if (!exporter.exportTable(query, outputpath, FileTypeUtil::getFileTypeFromPath(outputpath))) {
         SheetMessageBox::critical(this, tr("Cannot export table"), exporter.errorMessage());
     }
 }

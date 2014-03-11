@@ -1,3 +1,6 @@
 [submodule "src/filereader"]
 	path = src/filereader
 	url = https://github.com/informationsea/filereader.git
+[submodule "src/qtxlsx"]
+	path = src/qtxlsx
+	url = https://github.com/dbzhang800/QtXlsxWriter.git
