@@ -74,3 +74,8 @@ License
 
 GPL version 3 or later
 
+Special thanks
+--------------
+
+* Hyokai uses [Qt Xlsx module](http://qtxlsx.debao.me/) distributed under MIT license
+
