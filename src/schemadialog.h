@@ -9,6 +9,7 @@
 #include "schematablemodel.h"
 #include "sqlfileimporter.h"
 #include "checkboxitemdelegate.h"
+#include "filetype.h"
 
 namespace Ui {
 class SchemaDialog;
@@ -29,8 +30,8 @@ public:
     const QList<SchemaField> &fields() const;
     bool showImportOptions() const;
 
-    void setFileType(enum SqlFileImporter::FileType type);
-    enum SqlFileImporter::FileType fileType();
+    void setFileType(enum FileType type);
+    enum FileType fileType();
 
     void setDuplicationMode(bool duplicate);
     int skipLines() const;
@@ -59,6 +60,8 @@ private:
     QString m_import_file;
 
     CheckBoxItemDelegate *m_checkboxitem;
+
+    FileType m_fileType;
 };
 
 #endif // SCHEMADIALOG_H

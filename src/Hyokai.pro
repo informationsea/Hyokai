@@ -18,6 +18,8 @@ INCLUDEPATH = filereader/src
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc
 
+include(qtxlsx/src/xlsx/qtxlsx.pri)
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     schemadialog.cpp \
@@ -49,7 +51,8 @@ SOURCES += main.cpp\
     filereader/src/filereader_core.cpp \
     filereader/src/csvreader.cpp \
     tableviewstyleditemdelegate.cpp \
-    filereader/src/filereader_gzip.cpp
+    filereader/src/filereader_gzip.cpp \
+    filetype.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -84,7 +87,8 @@ HEADERS  += mainwindow.h \
     filereader/src/csvreader.hpp \
     hyokaiconfig.h \
     tableviewstyleditemdelegate.h \
-    filereader/src/filereader_gzip.hpp
+    filereader/src/filereader_gzip.hpp \
+    filetype.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c

@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include "filetype.h"
 
 class SqlFileExporter : public QObject
 {
@@ -13,7 +14,7 @@ class SqlFileExporter : public QObject
 public:
     explicit SqlFileExporter(QSqlDatabase *database, QWidget *parent = 0);
 
-    bool exportTable(QSqlQuery query, const QString &outputpath, bool csv);
+    bool exportTable(QSqlQuery query, const QString &outputpath, enum FileType fileType);
     QString errorMessage() {return m_errorMessage;}
     
 signals:
@@ -23,6 +24,9 @@ signals:
 public slots:
 
 private:
+    bool exportTableAsCSV(QSqlQuery query, const QString &outputpath, bool csv);
+    bool exportTableAsXLSX(QSqlQuery query, const QString &outputpath);
+
     QString quoteCSVColumn(QString column);
 
     QSqlDatabase *m_database;
