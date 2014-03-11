@@ -161,7 +161,7 @@ void SchemaDialog::setFileType(enum FileType type)
         ui->tabDelimiter->setChecked(true);
         break;
     case FILETYPE_XLSX:
-        ui->label_3->hide();
+        ui->fileTypeSelectLabel->hide();
         ui->cammaDelimiter->hide();
         ui->tabDelimiter->hide();
         break;
