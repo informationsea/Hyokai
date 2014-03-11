@@ -17,6 +17,8 @@
 #include "sheetmessagebox.h"
 #include "schemadialog.h"
 
+#include "qtxlsx/src/xlsx/xlsxdocument.h"
+
 #define SUGGEST_LINE 20
 
 static bool isdigitstr(const char *str, size_t length)
@@ -35,6 +37,12 @@ static bool isrealstr(const char *str, size_t length)
     return isOk;
 }
 
+static QVariant getValueFromXLSXDocument(const QXlsx::Document &doc, int row, int col)
+{
+    const QXlsx::Cell *cell = doc.cellAt(row, col);
+    return cell != 0 ? cell->value() : QVariant();
+}
+
 SqlFileImporter::SqlFileImporter(QSqlDatabase *database, QObject *parent) :
     QObject(parent), m_database(database), m_canceled(false)
 {
@@ -42,24 +50,26 @@ SqlFileImporter::SqlFileImporter(QSqlDatabase *database, QObject *parent) :
 
 QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, int skipLines, bool firstLineIsHeader, bool preferText)
 {
-    if (type == FILETYPE_SUGGEST) {
-        if (path.toLower().endsWith(".csv") || path.toLower().endsWith(".csv.gz"))
-            type = FILETYPE_CSV;
-        else
-            type = FILETYPE_TVS;
-    }
+    if (type == FILETYPE_SUGGEST)
+        type = FileTypeUtil::getFileTypeFromPath(path);
 
-    TableReader *reader_raw;
     switch (type) {
     case FILETYPE_CSV:
-        reader_raw = new CSVReader();
-        break;
     case FILETYPE_TVS:
+        return suggestSchemaFromCSV(path, type == FILETYPE_CSV, skipLines, firstLineIsHeader, preferText);
+
+    case FILETYPE_XLSX:
+        return suggestSchemaFromXLSX(path, skipLines, firstLineIsHeader, preferText);
+
     default:
-        reader_raw = new TableReader();
-        break;
+        return QList<SchemaField>();
     }
-    std::auto_ptr<TableReader> reader(reader_raw);
+
+}
+
+QList<SchemaField> SqlFileImporter::suggestSchemaFromCSV(QString path, bool isCSV, int skipLines, bool firstLineIsHeader, bool preferText)
+{
+    std::auto_ptr<TableReader> reader(isCSV ? new CSVReader() : new TableReader());
     if (!reader->open_path(path.toUtf8().data()))
         return QList<SchemaField>();
 
@@ -150,6 +160,112 @@ QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, i
                 fields[i].setIndexedField(true);
             break;
         }
+        }
+    }
+
+    return fields;
+}
+
+QList<SchemaField> SqlFileImporter::suggestSchemaFromXLSX(QString path, int skipLines, bool firstLineIsHeader, bool preferText)
+{
+    //
+    QXlsx::Document doc(path);
+
+    //
+    int row = skipLines;    // `row` and `col` uses zero-origin index,
+                            // however, QXlsx::Document.cellAt uses one-origin index
+
+    //
+    QList<SchemaField> fields;
+    QList<SchemaField::FieldType> currentFieldTypes;
+
+    if (firstLineIsHeader) {
+        for (int col = 0; ; col++) {
+            const QVariant value = getValueFromXLSXDocument(doc, row + 1, col + 1);
+            const QString stringValue = value.toString();
+            if (value.isNull() || stringValue.isNull() || stringValue.isEmpty())
+                break;
+
+            qDebug() << col << value;
+
+            SchemaField field;
+            field.setName(SqlService::suggestFieldName(stringValue, fields));
+            field.setLogicalIndex(col);
+
+            fields.append(field);
+            currentFieldTypes.append(SchemaField::FIELD_INTEGER);
+        }
+
+        row++;
+    }
+
+    //
+    for (int i = 0; i < SUGGEST_LINE; i++, row++) {
+        for (int col = 0; ; col++) {
+            //
+            const QVariant value = getValueFromXLSXDocument(doc, row + 1, col + 1);
+            if (value.isNull()) break;
+
+            if (col >= fields.size()) {
+                SchemaField field;
+                field.setName(SqlService::suggestFieldName(QString("V%1").arg(col), fields));
+                field.setLogicalIndex(col);
+
+                fields.append(field);
+                currentFieldTypes.append(SchemaField::FIELD_INTEGER);
+            }
+
+            //
+            const QVariant::Type valueType = value.type();
+
+            switch (currentFieldTypes[col]) {
+            case SchemaField::FIELD_INTEGER:
+                if (valueType == QVariant::Int) break;
+                currentFieldTypes[col] = SchemaField::FIELD_REAL;
+                // no break
+
+            case SchemaField::FIELD_REAL:
+                if (valueType == QVariant::Double) break;
+                currentFieldTypes[col] = SchemaField::FIELD_TEXT;
+                // no break
+
+            case SchemaField::FIELD_TEXT:
+            default:
+                break;
+            }
+
+            //
+            const QString stringValue = value.toString();
+            fields[col].setMaximumLength(qMax(fields[col].maximumLength(), stringValue.toUtf8().length()));
+        }
+    }
+
+    // TODO: remove duplicate code
+    for (int i = 0; i < fields.size(); i++) {
+        switch (currentFieldTypes[i]) {
+        case SchemaField::FIELD_INTEGER:
+            fields[i].setFieldType("INTEGER");
+            fields[i].setIndexedField(true);
+            break;
+
+        case SchemaField::FIELD_REAL:
+            fields[i].setFieldType("REAL");
+            fields[i].setIndexedField(true);
+            break;
+
+        case SchemaField::FIELD_TEXT:
+        default:
+            if (preferText) {
+                fields[i].setFieldType("TEXT");
+            } else {
+                int round = ((int)(fields[i].maximumLength()*1.5/10))*10+10;
+                fields[i].setFieldType(QString("varchar(%1)").arg(round));
+            }
+
+            if (fields[i].maximumLength() < 20)
+                fields[i].setIndexedField(true);
+
+            break;
         }
     }
 
@@ -249,27 +365,31 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
 {
     m_errorMessage = "";
     m_canceled = false;
+
     if (firstLineIsHeader)
         skipLines++;
 
-    if (type == FILETYPE_SUGGEST) {
-        if (path.toLower().endsWith(".csv") || path.toLower().endsWith(".csv.gz"))
-            type = FILETYPE_CSV;
-        else
-            type = FILETYPE_TVS;
-    }
+    if (type == FILETYPE_SUGGEST)
+        type = FileTypeUtil::getFileTypeFromPath(path);
 
-    TableReader *reader_raw;
     switch (type) {
     case FILETYPE_CSV:
-        reader_raw = new CSVReader();
-        break;
     case FILETYPE_TVS:
+        return importCSVFile(path, name, fields, type == FILETYPE_CSV, skipLines, canceledFlag);
+
+    case FILETYPE_XLSX:
+        return importXLSXFile(path, name, fields, skipLines, canceledFlag);
+
     default:
-        reader_raw = new TableReader();
-        break;
+        m_errorMessage = tr("Unsupported file type is specified. (%1)").arg(type);
+        return false;
     }
-    std::auto_ptr<TableReader> reader(reader_raw);
+
+}
+
+bool SqlFileImporter::importCSVFile(QString path, const QString &name, const QList<SchemaField> &fields, bool isCSV, int skipLines, volatile bool *canceledFlag)
+{
+    std::auto_ptr<TableReader> reader(isCSV ? new CSVReader : new TableReader);
     if (!reader->open_path(path.toUtf8().data())) {
         m_errorMessage = "Cannot open file.";
         return false;
@@ -329,6 +449,56 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
     return true;
 }
 
+bool SqlFileImporter::importXLSXFile(QString path, const QString &name, const QList<SchemaField> &fields, int skipLines, volatile bool *canceledFlag)
+{
+    //
+    QStringList placeHolders;
+    for (int i = 0; i < fields.size(); i++)
+        placeHolders << QString(":V%1").arg(i);
+
+    QSqlQuery query(*m_database);
+    query.prepare(QString("INSERT INTO %1 VALUES(%2)").arg(name, placeHolders.join(",")));
+
+    QMap<int, QString> logical2sqlindex;
+    for (int i = 0; i < fields.size(); ++i)
+        logical2sqlindex[fields[i].logicalIndex()] = placeHolders[i];
+
+    //
+    QXlsx::Document doc(path);
+
+    //
+    for (int row = skipLines; ; row++) {
+        //
+        bool allInvalidFlag = true;
+        for (int col = 0; col < fields.size(); col++) {
+            const QVariant value = getValueFromXLSXDocument(doc, row + 1, col + 1);
+            query.bindValue(logical2sqlindex[col], value);
+            allInvalidFlag &= !value.isValid();
+        }
+
+        if (allInvalidFlag) break;
+
+        //
+        query.exec();
+        if (query.lastError().type() != QSqlError::NoError) {
+            m_errorMessage = query.lastError().text();
+            return false;
+        }
+
+        //
+        if (row % 1000 == 0) {
+            if (canceledFlag && *canceledFlag) {
+                m_errorMessage = tr("Canceled by user");
+                return false;
+            }
+
+            // TODO: tell progress
+        }
+    }
+
+    return true;
+}
+
 QString SqlFileImporter::errorMessage()
 {
     return m_errorMessage;
@@ -367,8 +537,8 @@ void SqlAsynchronousFileImporter::executeImport(QStringList files)
         m_filesizes << onefileinfo.size();
         sumsize += m_filesizes.last();
         m_schemaList.last()->setName(SqlService::suggestTableName(onefileinfo.completeBaseName(), m_database));
-        m_schemaList.last()->setFileType((path.endsWith(".csv") || path.endsWith(".csv.gz")) ? SqlFileImporter::FILETYPE_CSV : SqlFileImporter::FILETYPE_TVS);
-        m_schemaList.last()->setFields(SqlFileImporter::suggestSchema(path, SqlFileImporter::FILETYPE_SUGGEST, 0, true, m_database->driverName() == "QSQLITE"));
+        m_schemaList.last()->setFileType(FileTypeUtil::getFileTypeFromPath(path));
+        m_schemaList.last()->setFields(SqlFileImporter::suggestSchema(path, FILETYPE_SUGGEST, 0, true, m_database->driverName() == "QSQLITE"));
         if (button == QMessageBox::No && m_schemaList.last()->exec() != QDialog::Accepted)
             return;
     }
