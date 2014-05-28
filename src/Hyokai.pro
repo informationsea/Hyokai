@@ -13,7 +13,7 @@ macx {
 
 TARGET = Hyokai
 TEMPLATE = app
-INCLUDEPATH = filereader/src
+INCLUDEPATH += filereader/src
 
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc
