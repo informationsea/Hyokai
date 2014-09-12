@@ -4,3 +4,6 @@
 [submodule "src/qtxlsx"]
 	path = src/qtxlsx
 	url = https://github.com/dbzhang800/QtXlsxWriter.git
+[submodule "src/zlib"]
+	path = src/zlib
+	url = https://github.com/madler/zlib.git

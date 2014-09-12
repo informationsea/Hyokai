@@ -7,10 +7,6 @@
 QT       += core gui sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-macx {
-    greaterThan(QT_MAJOR_VERSION, 4): QT += macextras
-}
-
 TARGET = Hyokai
 TEMPLATE = app
 INCLUDEPATH += filereader/src
@@ -52,7 +48,22 @@ SOURCES += main.cpp\
     filereader/src/csvreader.cpp \
     tableviewstyleditemdelegate.cpp \
     filereader/src/filereader_gzip.cpp \
-    filetype.cpp
+    filetype.cpp \
+    zlib/adler32.c \
+    zlib/compress.c \
+    zlib/crc32.c \
+    zlib/deflate.c \
+    zlib/gzclose.c \
+    zlib/gzlib.c \
+    zlib/gzread.c \
+    zlib/gzwrite.c \
+    zlib/infback.c \
+    zlib/inffast.c \
+    zlib/inflate.c \
+    zlib/inftrees.c \
+    zlib/trees.c \
+    zlib/uncompr.c \
+    zlib/zutil.c
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -88,7 +99,18 @@ HEADERS  += mainwindow.h \
     hyokaiconfig.h \
     tableviewstyleditemdelegate.h \
     filereader/src/filereader_gzip.hpp \
-    filetype.h
+    filetype.h \
+    zlib/crc32.h \
+    zlib/deflate.h \
+    zlib/gzguts.h \
+    zlib/inffast.h \
+    zlib/inffixed.h \
+    zlib/inflate.h \
+    zlib/inftrees.h \
+    zlib/trees.h \
+    zlib/zconf.h \
+    zlib/zlib.h \
+    zlib/zutil.h
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
