@@ -725,7 +725,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv *.xlsx);; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Excel (*.xlsx);; All (*)");
+                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv *.xlsx);; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Excel (*.xlsx);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
     if (path.isEmpty())
         return;
     if (path.endsWith(".sqlite3") || path.endsWith(".sqlite")) {
@@ -804,7 +804,7 @@ void MainWindow::on_actionImportTable_triggered()
 
     QStringList import = QFileDialog::getOpenFileNames(this, tr("Select import file"),
                                                   tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                  tr("Text (*.txt *.csv *.tsv *.txt.gz *.csv.gz *.tsv.gz *.xlsx);; Excel (*.xlsx);; All (*)"));
+                                                  tr("All (*.txt *.csv *.tsv *.txt.gz *.csv.gz *.tsv.gz *.xlsx *.bed *.gff *.gtf);; Excel (*.xlsx);; Gene Annotations (*.bed *.gff *.gtf *.bed.gz *.gff.gz *.gtf.gz);; All (*)"));
 
     if (import.isEmpty())
         return;
