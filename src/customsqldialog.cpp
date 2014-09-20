@@ -6,6 +6,7 @@
 #include "sqlservice.h"
 #include "sqlfileexporter.h"
 #include "main.h"
+#include "summarydialog.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFileInfo>
@@ -16,6 +17,7 @@
 #include <QStringList>
 #include <QFileDialog>
 #include <QClipboard>
+#include <QDebug>
 
 CustomSqlDialog::CustomSqlDialog(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
@@ -30,6 +32,7 @@ CustomSqlDialog::CustomSqlDialog(QSqlDatabase *database, QWidget *parent) :
     ui->tableView->horizontalHeader()->setMovable(true);
 #endif
     ui->tableView->installEventFilter(this);
+    ui->tableView->horizontalHeader()->installEventFilter(this);
     setWindowTitle("Custom SQL "+QFileInfo(database->databaseName()).completeBaseName());
     if (database->driverName() == "QSQLITE") {
         setWindowFilePath(database->databaseName());
@@ -79,6 +82,21 @@ bool CustomSqlDialog::eventFilter(QObject *obj, QEvent *ev)
             popup.exec();
             return true;
         }
+    } else if (obj == ui->tableView->horizontalHeader() && ev->type() == QEvent::ContextMenu) {
+        if (!m_query.isSelect())
+            return false;
+
+        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
+        cev->accept();
+        int logical_index = ui->tableView->horizontalHeader()->logicalIndexAt(cev->pos());
+        if (logical_index >= 0) {
+            QMenu popup(this);
+            popup.move(cev->globalPos());
+            QAction *showSummary = popup.addAction(tr("Summary"), this, SLOT(onShowSummary()));
+            showSummary->setData(logical_index);
+            popup.exec();
+        }
+        return true;
     }
     return false;
 }
@@ -89,6 +107,38 @@ void CustomSqlDialog::showCell()
     QModelIndex index = action->data().toModelIndex();
     QString header = m_querymodel.headerData(index.column(), Qt::Horizontal).toString();
     SheetMessageBox::information(this, tr("%1, #%2").arg(header, QString::number(index.row()+1)), m_querymodel.data(index).toString());
+}
+
+void CustomSqlDialog::onShowSummary()
+{
+    QAction *action = (QAction *)sender();
+    int logicalIndex = action->data().toInt();
+
+    QSqlRecord record = m_query.record();
+    QString newQueryText = QString("SELECT %1 FROM (%2)").arg(record.fieldName(logicalIndex), m_query.lastQuery());
+    qDebug() << newQueryText;
+
+    QSqlQuery newquery = m_database->exec(newQueryText);
+
+    if  (newquery.lastError().isValid()) {
+        SheetMessageBox::critical(this, tr("SQL Error"), newquery.lastError().text());
+        return;
+    }
+
+    QList<double> data;
+    while (newquery.next()) {
+        bool ok;
+        double d = newquery.record().value(0).toDouble(&ok);
+        if (ok) {
+            data.append(d);
+        } else {
+            SheetMessageBox::critical(this, tr("Cannot show summary"), tr("This field contains non number values."));
+            return;
+        }
+    }
+
+    SummaryDialog *summary = new SummaryDialog(data, record.fieldName(logicalIndex), parentWidget());
+    summary->show();
 }
 
 void CustomSqlDialog::selectTableAll()

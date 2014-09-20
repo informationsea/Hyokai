@@ -53,6 +53,8 @@ private slots:
     void onFixedFontToggled(bool);
     void showCell();
 
+    void onShowSummary();
+
     void on_sql_textChanged();
 
 private:
