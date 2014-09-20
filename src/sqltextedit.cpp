@@ -6,10 +6,11 @@
 #include <QSqlRecord>
 #include <QChar>
 #include <QRegExp>
+#include <QMenu>
 #include "main.h"
 
 SQLTextEdit::SQLTextEdit(QWidget *parent) :
-    QPlainTextEdit(parent)
+    QPlainTextEdit(parent), m_popup(0)
 {
     m_syntaxHilighter = new SQLSyntaxHighligter(document());
 
@@ -86,17 +87,59 @@ void SQLTextEdit::keyPressEvent(QKeyEvent *event)
         emit returnPressed();;
         event->accept();
     } else if (event->key() == Qt::Key_Tab) {
-        event->ignore();
+        if (m_popup)
+            delete m_popup;
+
+        QTextCursor cursor = textCursor();
+        QString textBlock = cursor.block().text();
+        int seppos = textBlock.lastIndexOf(QRegExp("[\\W]"), cursor.positionInBlock()-1);
+        seppos += 1;
+        int length = cursor.positionInBlock()-seppos;
+        QStringList suggest = m_syntaxHilighter->completeCandidates(textBlock.mid(seppos, length), textBlock);
+
+        m_popup = new QMenu(this);
+        foreach (QString one, suggest) {
+            QAction *action = new QAction(m_popup);
+            QMap<QString, QVariant> data;
+            data["text"] = one;
+            data["length"] = length;
+            action->setData(data);
+            action->setText(one);
+            connect(action, SIGNAL(triggered()), this, SLOT(autoComplete()));
+            m_popup->addAction(action);
+        }
+
+        if (suggest.isEmpty()) {
+            QAction *action = new QAction(m_popup);
+            action->setDisabled(true);
+            action->setText(tr("No candidate"));
+            m_popup->addAction(action);
+        } else {
+            m_popup->setActiveAction(m_popup->actions()[0]);
+            m_popup->setFocus();
+        }
+
+        m_popup->popup(mapToGlobal(cursorRect().topLeft()));
     } else {
         QPlainTextEdit::keyPressEvent(event);
     }
+}
+
+void SQLTextEdit::autoComplete()
+{
+    QAction *action = (QAction *)sender();
+
+    QMap<QString, QVariant> insertData = action->data().toMap();
+    QString insertText = insertData["text"].toString();
+    int length = insertData["length"].toInt();
+    textCursor().insertText(insertText.right(insertText.length() - length));
 }
 
 
 SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
     QSyntaxHighlighter(parent), m_database(0)
 {
-    m_commant_list << "ALTER TABLE"
+    m_command_list << "ALTER TABLE"
                    << "ANALYZE"
                    << "ATTACH DATABASE"
                    << "CREATE INDEX"
@@ -137,7 +180,7 @@ void SQLSyntaxHighligter::highlightBlock(const QString &text)
     highlightBlockHelper(text, m_keyword_list, m_sql_keyword_format);
     highlightBlockHelper(text, m_function_list, m_sql_function_format);
 
-    foreach(QString command, m_commant_list) {
+    foreach(QString command, m_command_list) {
         if(text.startsWith(command, Qt::CaseInsensitive))
             setFormat(0, command.length(), m_sql_command_format);
     }
@@ -216,4 +259,51 @@ QStringList SQLSyntaxHighligter::highlightBlockHelper(const QString & text, cons
         }
     }
     return found;
+}
+
+QStringList SQLSyntaxHighligter::completeCandidates(const QString &prefix, const QString &blockText)
+{
+    QStringList list;
+    //qDebug() << "completeCandidates" << prefix << blockText;
+
+    if (m_database) {
+        QStringList textlist;
+        textlist << m_keyword_list;
+
+        QStringList tables = m_database->tables(QSql::AllTables);
+        textlist << tables;
+
+        QStringList foundTables;
+        if (m_table.isEmpty()) {
+            foreach(QString oneTable, tables) {
+                int pos = blockText.indexOf(oneTable);
+                if (pos < 0) continue;
+                if ((pos == 0 || !isPartOfName(blockText.at(pos-1))) &&
+                        (pos+oneTable.length() >= blockText.length() || !isPartOfName(blockText.at(pos+oneTable.length())))) {
+                    foundTables << oneTable;
+                }
+            }
+
+            if (foundTables.isEmpty()) {
+                foundTables << tables;
+            }
+        } else {
+            foundTables << m_table;
+        }
+
+        foreach(QString oneTable, foundTables) {
+            QSqlRecord record = m_database->record(oneTable);
+            for (int i = 0; i < record.count(); ++i) {
+                textlist << record.fieldName(i);
+            }
+        }
+
+        foreach(QString one, textlist) {
+            if (one.startsWith(prefix)) {
+                list << one;
+            }
+        }
+    }
+
+    return list;
 }

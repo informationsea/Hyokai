@@ -842,7 +842,12 @@ void MainWindow::on_actionAbout_Table_View_triggered()
     about.setWindowTitle(tr("Hyokai"));
     about.setIconPixmap(QPixmap(":rc/images/icon128.png"));
     about.setTextFormat(Qt::RichText);
-    about.setText(tr("Hyokai 0.3<br /><br />"
+    about.setText(tr("Hyokai 0.3 "
+                 #if defined(__amd64__) || defined(_M_AMD64)
+                     "(64 bit)<br /><br />"
+                 #else
+                     "(32 bit)<br /><br />"
+                 #endif
                      "Simple SQLite Viewer<br /><br />"
                      "Copyright (C) 2013 Yasunobu OKAMURA<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/Hyokai\">Github</a><hr />"

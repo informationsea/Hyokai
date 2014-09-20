@@ -14,6 +14,7 @@ public:
     virtual void highlightBlock ( const QString & text );
     void setDatabase(QSqlDatabase *database);
     void setTable(const QString &table);
+    QStringList completeCandidates(const QString &prefix, const QString &blockText);
 
 private:
     QTextCharFormat m_base_format;
@@ -24,7 +25,7 @@ private:
     QTextCharFormat m_sql_column_format;
     QTextCharFormat m_sql_function_format;
 
-    QStringList m_commant_list;
+    QStringList m_command_list;
     QStringList m_keyword_list;
     QStringList m_function_list;
 
@@ -52,12 +53,14 @@ protected:
 
 private:
     SQLSyntaxHighligter *m_syntaxHilighter;
+    QMenu *m_popup;
     
 signals:
     void returnPressed();
     
 public slots:
-    
+private slots:
+    void autoComplete();
 };
 
 #endif // SQLTEXTEDIT_H
