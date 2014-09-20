@@ -7,10 +7,6 @@
 QT       += core gui sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-macx {
-    greaterThan(QT_MAJOR_VERSION, 4): QT += macextras
-}
-
 TARGET = Hyokai
 TEMPLATE = app
 INCLUDEPATH += filereader/src
@@ -113,6 +109,7 @@ HEADERS  += mainwindow.h \
     zlib/inftrees.h \
     zlib/trees.h \
     zlib/zconf.h \
+    zlib/zlib.h \
     zlib/zutil.h
 
 win32 {
