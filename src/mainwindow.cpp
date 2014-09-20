@@ -1050,9 +1050,9 @@ void MainWindow::on_buttonAssist_clicked()
         connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
     }
 
-    QPoint point = ui->buttonAssist->pos();
-    point.setY(point.y() + ui->buttonAssist->height());
-    m_assistPopup.popup(mapToGlobal(point));
+    QPoint p = ui->buttonAssist->mapToGlobal(QPoint(0, 0));
+    p += QPoint(0, ui->buttonAssist->height());
+    m_assistPopup.popup(p);
 }
 
 void MainWindow::insertSqlFilter()
