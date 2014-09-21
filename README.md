@@ -40,7 +40,7 @@ How to build
 
 #### Mac OS X
 
-1. Build Qt with configure options `./configure -prefix /usr/local/Qt-5.1.1 -system-sqlite -qt-sql-sqlite -qt-sql-odbc -confirm-license -opensource`
+1. Build Qt with configure options `./configure -prefix /usr/local/Qt-5.3.2 -system-sqlite -qt-sql-sqlite -qt-sql-odbc -confirm-license -opensource`
 2. Install Qt with `sudo make install`
 3. move to `build-scripts/script-for-mac`
 4. run `build.sh`
@@ -49,7 +49,7 @@ How to build
 
 #### Windows
 
-1. Install pre-built Qt 5.1
+1. Install pre-built Qt 5.3
 2. Open Qt command prompt
 3. move to `build-scripts/script-for-windows`
 4. run `build.bat`
@@ -72,7 +72,19 @@ Authors
 License
 -------
 
-GPL version 3 or later
+Copyright (C) 2014 Yasunobu OKAMURA, S.T
+
+Source code of Hyokai is licensed under GPL version 3 or later.
+
+### Binary Distribution License
+
+The binary package distributed by Y.Okamura is NOT licensed under GPL
+version 3, because the package is signed with Apple Developer ID. The
+binary package provided "AS IS", without warranty of any kind. Qt
+libraries are still licensed under LGPL version 2.1. You can obtain
+source code of Hyokai at
+[Github](https://github.com/informationsea/Hyokai), but we cannot
+provide certificates to sign.
 
 Special thanks
 --------------

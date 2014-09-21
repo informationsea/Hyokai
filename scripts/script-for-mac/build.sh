@@ -1,5 +1,14 @@
 #!/bin/sh
 
+if [ -f setenv.sh ];then
+    source setenv.sh
+fi
+
+export PATH=${QTPATH}/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X11/bin
+unset PKG_CONFIG_PATH
+unset DYLD_FALLBACK_LIBRARY_PATH
+unset LD_LIBRARY_PATH
+
 DISTDIR="Hyokai"
 APPNAME="Hyokai.app"
 
