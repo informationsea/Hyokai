@@ -27,6 +27,7 @@ public:
     QString name() const;
     QString fileName() const {return m_import_file;}
     void setFields(const QList<SchemaField> &fields);
+    void setFirstLineIsHeader(bool enable);
     const QList<SchemaField> &fields() const;
     bool showImportOptions() const;
 

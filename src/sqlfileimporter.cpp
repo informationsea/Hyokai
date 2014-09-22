@@ -536,7 +536,39 @@ void SqlAsynchronousFileImporter::executeImport(QStringList files)
         sumsize += m_filesizes.last();
         m_schemaList.last()->setName(SqlService::suggestTableName(onefileinfo.completeBaseName(), m_database));
         m_schemaList.last()->setFileType(FileTypeUtil::getFileTypeFromPath(path));
-        m_schemaList.last()->setFields(SqlFileImporter::suggestSchema(path, FILETYPE_SUGGEST, 0, true, m_database->driverName() == "QSQLITE"));
+
+        QList<SchemaField> schema;
+        if (path.endsWith(".bed") || path.endsWith(".bed.gz")) {
+            schema = SqlFileImporter::suggestSchema(path, FILETYPE_SUGGEST, 0, false, m_database->driverName() == "QSQLITE");
+            m_schemaList.last()->setFirstLineIsHeader(false);
+
+            for (int i = 0; i < 6 && i < schema.length(); i++) {
+                switch (i) {
+                case 0:
+                    schema[i].setName("chr");
+                    break;
+                case 1:
+                    schema[i].setName("start");
+                    break;
+                case 2:
+                    schema[i].setName("end");
+                    break;
+                case 3:
+                    schema[i].setName("name");
+                    break;
+                case 4:
+                    schema[i].setName("score");
+                    break;
+                case 5:
+                    schema[i].setName("strand");
+                    break;
+                }
+            }
+        } else {
+            schema = SqlFileImporter::suggestSchema(path, FILETYPE_SUGGEST, 0, true, m_database->driverName() == "QSQLITE");
+        }
+
+        m_schemaList.last()->setFields(schema);
         if (button == QMessageBox::No && m_schemaList.last()->exec() != QDialog::Accepted)
             return;
     }

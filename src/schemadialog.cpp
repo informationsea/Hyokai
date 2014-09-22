@@ -142,6 +142,11 @@ void SchemaDialog::setFields(const QList<SchemaField> &fields)
     tableChanged();
 }
 
+void SchemaDialog::setFirstLineIsHeader(bool enable)
+{
+    ui->headerLineCheckbox->setChecked(enable);
+}
+
 const QList<SchemaField> &SchemaDialog::fields() const
 {
     return model->fields();
