@@ -1,5 +1,5 @@
+nmake distclean
 qmake -config release ..\..\src
-nmake clean
 nmake
 
 if defined FrameworkVersion64 move release\Hyokai.exe release\Hyokai_x64.exe

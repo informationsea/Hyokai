@@ -38,6 +38,17 @@
                   <Verb Id='open3' Command='Open' TargetFile='HyokaiEXE' Argument='"%1"' />
                 </Extension>
               </ProgId>
+              <ProgId Id='Hyokai.TSV' Description='Tab Separated Values' Icon="HyokaiEXE" IconIndex="2" Advertise="no">
+                <Extension Id='tsv' ContentType='text/csv'>
+                  <Verb Id='open4' Command='Open' TargetFile='HyokaiEXE' Argument='"%1"' />
+                </Extension>
+                <Extension Id='bed' ContentType='text/csv'>
+                  <Verb Id='open5' Command='Open' TargetFile='HyokaiEXE' Argument='"%1"' />
+                </Extension>
+                <Extension Id='gft' ContentType='text/csv'>
+                  <Verb Id='open6' Command='Open' TargetFile='HyokaiEXE' Argument='"%1"' />
+                </Extension>
+              </ProgId>
             </Component>
             <Component Id='Manual' Guid='E8E81A15-683A-422B-BB27-77ECE26E0E3D'>
               <File Id='Manual' Name='README.txt' DiskId='1' Source='..\dist-README.txt' KeyPath='yes'>
