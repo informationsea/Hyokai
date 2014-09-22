@@ -849,10 +849,11 @@ void MainWindow::on_actionAbout_Table_View_triggered()
                      "(32 bit)<br /><br />"
                  #endif
                      "Simple SQLite Viewer<br /><br />"
-                     "Copyright (C) 2013 Yasunobu OKAMURA<br /><br />"
+                     "Copyright (C) 2014 Yasunobu OKAMURA<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/Hyokai\">Github</a><hr />"
+                     "Excel support powered by <a href=\"http://qtxlsx.debao.me/\">Qt Xlsx module</a><br />"
                      "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
-                     "Build at " __DATE__));
+                     "Build at " __DATE__ " " __TIME__));
     about.exec();
 }
 
