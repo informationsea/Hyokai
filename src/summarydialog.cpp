@@ -38,12 +38,12 @@ static QList<double> quantile(const QList<double> &values, const QList<double> &
     return result;
 }
 
-SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnName, QWidget *parent) :
+SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAndcolumnName, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SummaryDialog),
     m_values(values),
-    m_columnName(columnName),
-    m_rName(columnName),
+    m_tableAndColumnName(tableAndcolumnName),
+    m_rName(tableAndcolumnName),
     m_rdata_file(new QTemporaryFile()),
     m_rdraw_file(new QTemporaryFile()),
     m_rdraw_png(new QTemporaryFile()), m_histogram(0), m_histogram_brush(0)
@@ -51,7 +51,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
     ui->setupUi(this);
 
     setWindowModality(Qt::NonModal);
-    setWindowTitle(QString(tr("Summary of %1")).arg(columnName));
+    setWindowTitle(QString(tr("Summary of %1")).arg(tableAndcolumnName));
 
     m_rName.replace(QRegExp("[^a-zA-Z0-9\\._]"), "_");
 
@@ -91,7 +91,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &columnN
         }
     }
 
-    QString summaryText = tr("Summary of %1\n\nMean: %2\nSD:   %3\n\n%4").arg(columnName,
+    QString summaryText = tr("Summary of %1\n\nMean: %2\nSD:   %3\n\n%4").arg(tableAndcolumnName,
                                                                           QString::number(meanValue),
                                                                           QString::number(sdValue),
                                                                           quantile_text);

@@ -490,7 +490,7 @@ void MainWindow::showColumnSummary()
         sumValue += value;
     }
 
-    SummaryDialog *summary = new SummaryDialog(doubleList, column_name, this);
+    SummaryDialog *summary = new SummaryDialog(doubleList, QString("%1/%2").arg(removeQuote(m_tableModel->tableName()), column_name), this);
     summary->show();
     m_dialogs.append(summary);
 }
@@ -1115,14 +1115,14 @@ void MainWindow::on_actionSelect_All_triggered()
     }
 
     int count = 0;
-    ui->tableView->scrollToBottom();
-    while (m_tableModel->sqlRowCount() != m_tableModel->rowCount()) {
-        if (count == 10) {
+    while (m_tableModel->canFetchMore()) {
+        if (count == 100) {
             if (SheetMessageBox::warning(this, tr("Select All"), tr("This operation tooks long time. Do you want to continue?"), QMessageBox::Yes|QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
                 return;
             }
+            count = 0;
         }
-        ui->tableView->scrollToBottom();
+        m_tableModel->fetchMore();
         count += 1;
     }
     ui->tableView->selectAll();

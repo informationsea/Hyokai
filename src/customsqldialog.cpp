@@ -33,7 +33,7 @@ CustomSqlDialog::CustomSqlDialog(QSqlDatabase *database, QWidget *parent) :
 #endif
     ui->tableView->installEventFilter(this);
     ui->tableView->horizontalHeader()->installEventFilter(this);
-    setWindowTitle("Custom SQL "+QFileInfo(database->databaseName()).completeBaseName());
+    setWindowTitle("SQL "+QFileInfo(database->databaseName()).completeBaseName());
     if (database->driverName() == "QSQLITE") {
         setWindowFilePath(database->databaseName());
     }
@@ -94,6 +94,10 @@ bool CustomSqlDialog::eventFilter(QObject *obj, QEvent *ev)
             popup.move(cev->globalPos());
             QAction *showSummary = popup.addAction(tr("Summary"), this, SLOT(onShowSummary()));
             showSummary->setData(logical_index);
+            QAction *sortAscending = popup.addAction(tr("Sort in ascending"), this, SLOT(onSortAscending()));
+            sortAscending->setData(logical_index);
+            QAction *sortDescending = popup.addAction(tr("Sort in descending"), this, SLOT(onSortDescending()));
+            sortDescending->setData(logical_index);
             popup.exec();
         }
         return true;
@@ -137,8 +141,46 @@ void CustomSqlDialog::onShowSummary()
         }
     }
 
-    SummaryDialog *summary = new SummaryDialog(data, record.fieldName(logicalIndex), parentWidget());
+    SummaryDialog *summary = new SummaryDialog(data, QString("Sql/%1").arg(record.fieldName(logicalIndex)), parentWidget());
     summary->show();
+}
+
+void CustomSqlDialog::onSortAscending()
+{
+    QAction *action = (QAction *)sender();
+    int logicalIndex = action->data().toInt();
+
+    QSqlRecord record = m_query.record();
+    QString newQueryText = QString("SELECT * FROM (%2) ORDER BY %1").arg(record.fieldName(logicalIndex), m_query.lastQuery());
+    qDebug() << newQueryText;
+
+    QSqlQuery newquery = m_database->exec(newQueryText);
+
+    if  (newquery.lastError().isValid()) {
+        SheetMessageBox::critical(this, tr("SQL Error"), newquery.lastError().text());
+        return;
+    }
+
+    m_querymodel.setQuery(newquery);
+}
+
+void CustomSqlDialog::onSortDescending()
+{
+    QAction *action = (QAction *)sender();
+    int logicalIndex = action->data().toInt();
+
+    QSqlRecord record = m_query.record();
+    QString newQueryText = QString("SELECT * FROM (%2) ORDER BY %1 DESC").arg(record.fieldName(logicalIndex), m_query.lastQuery());
+    qDebug() << newQueryText;
+
+    QSqlQuery newquery = m_database->exec(newQueryText);
+
+    if  (newquery.lastError().isValid()) {
+        SheetMessageBox::critical(this, tr("SQL Error"), newquery.lastError().text());
+        return;
+    }
+
+    m_querymodel.setQuery(newquery);
 }
 
 void CustomSqlDialog::selectTableAll()

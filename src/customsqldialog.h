@@ -54,6 +54,8 @@ private slots:
     void showCell();
 
     void onShowSummary();
+    void onSortAscending();
+    void onSortDescending();
 
     void on_sql_textChanged();
 
