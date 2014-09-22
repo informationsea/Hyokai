@@ -1,33 +1,61 @@
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
 
-  <Product Name='Hyokai 0.3' Id='1137E8A7-AA67-49EA-9E15-2AA364C92DEA' UpgradeCode='94562E03-3E5F-4D74-B671-D319EAD8EAAA'
+  <Product Name='Hyokai 0.3' Id='1137E8A7-AA67-49EA-9E15-2AA364C92DEA' UpgradeCode='E290DB6B-4C8C-409E-9F8A-DEE942D359B8'
     Language='1033' Codepage='1252' Version='1.0.0' Manufacturer='Yasunobu OKAMURA'>
 
     <Package Id='*' Keywords='Installer' Description="Hyokai Installer"
       Comments='Install Hyokai' Manufacturer='Yasunobu OKAMURA'
       InstallerVersion='405' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
 
+    <Icon Id="Hyokai_x86.exe" SourceFile="..\release\Hyokai_x86.exe" />
+
+
     <Media Id='1' Cabinet='Hyokai.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
     <Property Id='DiskPrompt' Value="Hyokai 0.3 Installation [1]" />
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
-        <Directory Id='OKAMURA' Name='Acme'>
+        <Directory Id='OKAMURA' Name='Y-OKAMURA'>
           <Directory Id='INSTALLDIR' Name='Hyokai'>
-            <Component Id='MainExecutable' Guid='A9ABBFA9-DF40-45DD-86F4-D116D2C85AED'>
+            <Component Id='MainExecutable' Guid='032DD655-1100-4046-A5BD-4917584B43B1'>
               <File Id='HyokaiEXE' Name='Hyokai_x86.exe' DiskId='1' Source='..\release\Hyokai_x86.exe' KeyPath='yes'>
                 <Shortcut Id="startmenuHyokai03" Directory="ProgramMenuDir" Name="Hyokai (32 bit)"
                           WorkingDirectory='INSTALLDIR' Icon="Hyokai_x86.exe" IconIndex="0" Advertise="yes" />
                 <Shortcut Id="desktopHyokai03" Directory="DesktopFolder" Name="Hyokai"
                           WorkingDirectory='INSTALLDIR' Icon="Hyokai_x86.exe" IconIndex="0" Advertise="yes" />
               </File>
+              <ProgId Id='Hyokai.SQLiteFile' Description='SQLite3 Database' Icon="HyokaiEXE" IconIndex="1" Advertise="no">
+                <Extension Id='sqlite3' ContentType='application/sqlite3'>
+                  <Verb Id='open' Command='Open' TargetFile='HyokaiEXE' Argument='"%1"' />
+                </Extension>
+                <Extension Id='sqlite' ContentType='application/sqlite3'>
+                  <Verb Id='open2' Command='Open' TargetFile='HyokaiEXE' Argument='"%1"' />
+                </Extension>
+              </ProgId>
+              <ProgId Id='Hyokai.CSV' Description='Comma Separated Values' Icon="HyokaiEXE" IconIndex="2" Advertise="no">
+                <Extension Id='csv' ContentType='text/csv'>
+                  <Verb Id='open3' Command='Open' TargetFile='HyokaiEXE' Argument='"%1"' />
+                </Extension>
+              </ProgId>
             </Component>
             <Component Id='Manual' Guid='E8E81A15-683A-422B-BB27-77ECE26E0E3D'>
               <File Id='Manual' Name='README.txt' DiskId='1' Source='..\dist-README.txt' KeyPath='yes'>
                 <Shortcut Id='startmenuManual' Directory='ProgramMenuDir' Name='README' Advertise='yes' />
               </File>
             </Component>
+
+            <Directory Id='SAMPLE' Name='sample'>
+              <Component Id='SampleDb' Guid='AC348E11-52AA-4948-9965-0A6ABFC7BE35'>
+                <File Id='SampleDb' Name='iris.data.sqlite3' DiskId='1' Source='..\..\..\sampledata\iris.data.sqlite3' KeyPath='yes'>
+                  <Shortcut Id='startmenuSampleDb' Directory='ProgramMenuDir' Name='iris.data' Advertise='yes' Icon="Hyokai_x86.exe" IconIndex="1" />
+                </File>
+              </Component>
+              <Component Id='SampleCsv' Guid='743EA553-5B16-4B05-94A7-094E28651724'>
+                <File Id='SampleCsv' Name='iris.data.csv' DiskId='1' Source='..\..\..\sampledata\iris.data.csv' KeyPath='yes'>
+                </File>
+              </Component>
+            </Directory>
 
             <Merge Id="vsr_x86" DiskId="1" Language='1033' SourceFile="C:\Program Files (x86)\Common Files\Merge Modules\Microsoft_VC120_CRT_x86.msm" />
 
@@ -50,6 +78,8 @@
     <Feature Id='Complete' Title="Hyokai" Description="The complete package" Level='1'>
       <ComponentRef Id='MainExecutable' />
       <ComponentRef Id='Manual' />
+      <ComponentRef Id='SampleDb' />
+      <ComponentRef Id='SampleCsv' />
       <ComponentRef Id='ProgramMenuDir' />
       <MergeRef Id='vsr_x86' />
     </Feature>
@@ -59,6 +89,9 @@
     <UIRef Id="WixUI_Minimal" />
     <UIRef Id="WixUI_ErrorProgressText" />
 
-    <Icon Id="Hyokai_x86.exe" SourceFile="..\release\Hyokai_x86.exe" />
+
+    <Condition Message="This application is only supported on Windows Vista, Windows Server 2008, or higher.">
+      <![CDATA[Installed OR (VersionNT >= 600)]]>
+    </Condition>
   </Product>
 </Wix>
