@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QIcon>
 #include <QFileInfo>
+#include "sqlfileimporter.h"
 
 #ifdef Q_OS_MACX
 #if QT_VERSION >= 0x050000 && QT_VERSION < 0x050200
@@ -33,26 +34,44 @@ int main(int argc, char *argv[])
 #endif
 
     QStringList filelist;
+    QStringList importlist;
     if (argc > 1) {
         for (int i = 0; i < argc-1; ++i) {
-            filelist << argv[i+1];
+            QString path(argv[i+1]);
+            if (path.endsWith(".sqlite") || path.endsWith(".sqlite3"))
+                filelist << path;
+            else
+                importlist << path;
         }
+
     } else {
         filelist << ":memory:";
     }
+
 
     handler = new FileEventHandler(&a);
     a.installEventFilter(handler);
 
     tableview_settings = new QSettings(&a);
+/*
     MainWindow *w = new MainWindow(NULL, filelist[0]);
     w->show();
     windowList.append(w);
+*/
 
-    for (int i = 1; i < filelist.length(); ++i) {
+    for (int i = 0; i < filelist.length(); ++i) {
         MainWindow *w2 = new MainWindow(NULL, filelist[i]);
         w2->show();
         windowList.append(w2);
+    }
+
+    if (!importlist.isEmpty()) {
+        MainWindow *w2 = new MainWindow(NULL, ":memory:");
+        w2->show();
+        windowList.append(w2);
+        SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&w2->database(), w2);
+        importer->executeImport(importlist);
+        QObject::connect(importer, SIGNAL(finish(QStringList,bool,QString)), w2, SLOT(importFinished(QStringList,bool,QString)));
     }
 
     int value = a.exec();
