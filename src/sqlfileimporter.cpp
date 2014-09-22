@@ -56,13 +56,11 @@ QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, i
     switch (type) {
     case FILETYPE_CSV:
     case FILETYPE_TVS:
+    default:
         return suggestSchemaFromCSV(path, type == FILETYPE_CSV, skipLines, firstLineIsHeader, preferText);
-
     case FILETYPE_XLSX:
         return suggestSchemaFromXLSX(path, skipLines, firstLineIsHeader, preferText);
 
-    default:
-        return QList<SchemaField>();
     }
 
 }

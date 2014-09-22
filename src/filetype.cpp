@@ -22,6 +22,6 @@ enum FileType FileTypeUtil::getFileTypeFromPath(const QString &path)
                 return FILETYPE_TVS;
         }
 
-        return FILETYPE_SUGGEST;
+        return FILETYPE_TVS;
     }
 }

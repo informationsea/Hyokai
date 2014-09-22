@@ -38,11 +38,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
             ::windowList.append(w);
             event->accept();
             return true;
-        }
-
-        if (openevent->file().endsWith(".txt") ||
-                openevent->file().endsWith(".csv") ||
-                openevent->file().endsWith(".tsv")) {
+        } else {
 
             MainWindow *w;
             foreach (MainWindow *window, ::windowList) {
