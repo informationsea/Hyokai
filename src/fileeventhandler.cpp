@@ -30,7 +30,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
                 MainWindow *onlyWindow = ::windowList.at(0);
                 if (onlyWindow->isVisible() &&
                         onlyWindow->databaseName() == ":memory:" &&
-                        !onlyWindow->isDirty()) {
+                        !onlyWindow->isDirty() && onlyWindow->database().tables().size() == 0) {
                     onlyWindow->close();
                 }
             }
