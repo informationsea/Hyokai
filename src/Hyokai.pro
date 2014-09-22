@@ -12,7 +12,7 @@ TEMPLATE = app
 INCLUDEPATH += filereader/src
 
 ICON = images/icon.icns
-#RC_FILE = windowsicon.rc
+RC_FILE = windowsicon.rc
 
 include(qtxlsx/src/xlsx/qtxlsx.pri)
 
