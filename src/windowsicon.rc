@@ -1,2 +1,3 @@
 IDI_ICON1               ICON    DISCARDABLE     "images/icon.ico"
 IDI_ICON2               ICON    DISCARDABLE     "images/fileicon/sqlite.ico"
+IDI_ICON3               ICON    DISCARDABLE     "images/fileicon/table.ico"
