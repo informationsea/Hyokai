@@ -91,10 +91,11 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAn
         }
     }
 
-    QString summaryText = tr("Summary of %1\n\nMean: %2\nSD:   %3\n\n%4").arg(tableAndcolumnName,
-                                                                          QString::number(meanValue),
-                                                                          QString::number(sdValue),
-                                                                          quantile_text);
+    QString summaryText = tr("Summary of %1\n\nSum:  %5\nMean: %2\nSD:   %3\n\n%4").arg(tableAndcolumnName,
+                                                                                        QString::number(meanValue),
+                                                                                        QString::number(sdValue),
+                                                                                        quantile_text,
+                                                                                        QString::number(sumValue));
 
     ui->summaryText->setPlainText(summaryText);
 
