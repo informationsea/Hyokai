@@ -105,8 +105,9 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAn
         m_rdata_file->write((const char *)&oneValue, sizeof(oneValue));
     }
     m_rdata_file->flush();
-    qDebug() << m_rdata_file->fileName();
+    //qDebug() << m_rdata_file->fileName();
 
+    /*
     m_rdraw_file->open();
     m_rdraw_png->open();
     qDebug() << m_rName;
@@ -122,7 +123,13 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAn
 
     m_rdraw_file->write(m_drawRScript.toUtf8());
     m_rdraw_file->flush();
+    */
 
+    m_histogramPlotter.setData(values);
+    m_histogramPlotter.setXLabel(tableAndcolumnName);
+    ui->plotWidget->setPlotter(&m_histogramPlotter);
+
+    /*
     QStringList args;
     args << m_rdraw_file->fileName();
     int rt = QProcess::execute(tableview_settings->value(PATH_R, suggestRPath()).toString(), args);
@@ -132,6 +139,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAn
         ui->histogram->setImage(histogram);
         ui->histogram->repaint();
     }
+    */
 }
 
 SummaryDialog::~SummaryDialog()
@@ -156,7 +164,9 @@ void SummaryDialog::on_buttonCopyImport_clicked()
     clipboard->setText(QString("library(lattice)\n"
                                "file.%2 <- file(\"%1\", \"rb\")\n"
                                "data.%2 <- readBin(file.%2, \"double\", %3, 8)\n"
-                               "densityplot(data.%2, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\n"
+                               "histogram(data.%2, panel=function(...){panel.grid(h=-1, v=-1);panel.histogram(...)}, endpoints=c(%4,%5), nint=%6)\n"
                                "close.connection(file.%2)\n").
-                       arg(m_rdata_file->fileName(), m_rName, QString::number(m_values.length())));
+                       arg(m_rdata_file->fileName(), m_rName, QString::number(m_values.length()),
+                           QString::number(m_histogramPlotter.plotMinimumValue()), QString::number(m_histogramPlotter.plotMaximumValue()),
+                           QString::number((m_histogramPlotter.plotMaximumValue() - m_histogramPlotter.plotMinimumValue())/ m_histogramPlotter.plotInterval())));
 }

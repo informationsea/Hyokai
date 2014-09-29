@@ -7,3 +7,6 @@
 [submodule "src/zlib"]
 	path = src/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "src/QtSimplePlot"]
+	path = src/QtSimplePlot
+	url = https://github.com/informationsea/QtSimplePlot.git

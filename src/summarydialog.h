@@ -7,6 +7,8 @@
 #include <QImage>
 #include <QBrush>
 
+#include "sphistogramplotter.h"
+
 namespace Ui {
 class SummaryDialog;
 }
@@ -40,6 +42,8 @@ private:
 
     QImage *m_histogram;
     QBrush *m_histogram_brush;
+
+    SPHistogramPlotter m_histogramPlotter;
 };
 
 #endif // SUMMARYDIALOG_H
