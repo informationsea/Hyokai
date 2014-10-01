@@ -127,19 +127,6 @@ QString removeQuote(QString name) {
     return name;
 }
 
-QString suggestRPath()
-{
-#define R_CHECK_AND_RETURN(path) \
-    if (QFileInfo(path).isExecutable())\
-        return path;
-
-    R_CHECK_AND_RETURN("/usr/bin/Rscript");
-    R_CHECK_AND_RETURN("/usr/local/bin/Rscript");
-    R_CHECK_AND_RETURN("/opt/local/bin/Rscript");
-
-    return "Rscript";
-}
-
 QString normstr(QString str, bool shoudStartWithAlpha)
 {
     str = str.trimmed();

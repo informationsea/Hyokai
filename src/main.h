@@ -29,7 +29,6 @@ QList<int> selectedRowsFromSelection(QItemSelectionModel *selection);
 QPoint nextWindowPosition();
 QString addQuote(QString name);
 QString removeQuote(QString name);
-QString suggestRPath();
 QString normstr(QString str, bool shoudStartWithAlpha = true);
 
 #endif // MAIN_H

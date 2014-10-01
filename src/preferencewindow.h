@@ -89,10 +89,6 @@ private slots:
 
     void on_removeSqlTemplate_clicked();
 
-    void on_lineRPath_textChanged(const QString &arg1);
-
-    void on_buttonRPath_clicked();
-
     void on_pushButtonClearFilterHistory_clicked();
 
 private:

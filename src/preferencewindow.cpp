@@ -25,9 +25,6 @@ PreferenceWindow::PreferenceWindow(QWidget *parent) :
     ui->tableAttachDB->setModel(m_attachmodel);
     ui->tableSqlTemplate->setModel(m_sqlmodel);
 
-    ui->lineRPath->setText(tableview_settings->value(PATH_R, suggestRPath()).toString());
-
-
     m_group.addAction(ui->actionAttach_DB);
     m_group.addAction(ui->actionGeneral);
     m_group.addAction(ui->actionSQL_Templates);
@@ -265,21 +262,6 @@ void PreferenceWindow::on_removeSqlTemplate_clicked()
     }
 }
 
-void PreferenceWindow::on_lineRPath_textChanged(const QString &arg1)
-{
-    if (arg1.endsWith("Rscript") || arg1.endsWith("Rscript.exe")) {
-        tableview_settings->setValue(PATH_R, arg1);
-    }
-}
-
-void PreferenceWindow::on_buttonRPath_clicked()
-{
-    QString path = QFileDialog::getOpenFileName(this, tr("Select Rscript"), ui->lineRPath->text(), "Rscript (Rscript Rscript.exe)");
-    if (path.isEmpty())
-        return;
-    tableview_settings->setValue(PATH_R, path);
-    ui->lineRPath->setText(path);
-}
 
 void PreferenceWindow::on_pushButtonClearFilterHistory_clicked()
 {
