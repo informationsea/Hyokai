@@ -9,6 +9,9 @@
 #include <QTemporaryFile>
 #include <QList>
 
+#include "spscatterplotter.h"
+#include "sphistogramplotter.h"
+
 namespace Ui {
 class SqlPlotChart;
 }
@@ -34,20 +37,17 @@ protected:
 private:
     Ui::SqlPlotChart *ui;
     QSqlDatabase *m_database;
-    QTemporaryFile *m_rcode;
-    QTemporaryFile *m_rpng;
-    QTemporaryFile *m_rdata;
     FieldType m_fields_type[2];
 
-    QString generateRcode(const QString &device);
-    void writeTable();
+    SPHistogramPlotter m_histogramPlotter;
+    SPScatterPlotter m_scatterPlotter;
+
 
 private slots:
     void refreshTables();
     void on_chartTypeComboBox_currentIndexChanged(int index);
     void on_plotButton_clicked();
     void on_tableComboBox_editTextChanged(const QString &arg1);
-    void on_exportButton_clicked();
     void on_exportImageButton_clicked();
 };
 

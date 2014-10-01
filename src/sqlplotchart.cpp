@@ -11,6 +11,7 @@
 #include <QProcess>
 #include <QClipboard>
 #include <QFileDialog>
+#include <QPainter>
 
 #include "main.h"
 #include "sheetmessagebox.h"
@@ -19,7 +20,7 @@
 
 SqlPlotChart::SqlPlotChart(QSqlDatabase *database, QWidget *parent, const QString &defaultName) :
     QDialog(parent),
-    ui(new Ui::SqlPlotChart), m_database(database), m_rcode(0), m_rpng(0), m_rdata(0)
+    ui(new Ui::SqlPlotChart), m_database(database)
 {
     ui->setupUi(this);
     ui->tableComboBox->lineEdit()->setText(defaultName);
@@ -31,16 +32,14 @@ SqlPlotChart::SqlPlotChart(QSqlDatabase *database, QWidget *parent, const QStrin
     }
     ui->sqlFilter->setDatabase(m_database);
     connect(ui->sqlFilter, SIGNAL(returnPressed()), ui->plotButton, SLOT(click()));
-    setMaximumSize(size());
+    //setMaximumSize(size());
+    //ui->groupBox->setMaximumWidth(ui->groupBox->previousInFocusChain());
     refreshTables();
 }
 
 SqlPlotChart::~SqlPlotChart()
 {
     delete ui;
-    SAFE_DELETE(m_rcode);
-    SAFE_DELETE(m_rpng);
-    SAFE_DELETE(m_rdata);
 }
 
 void SqlPlotChart::setFilter(const QString &filter)
@@ -58,147 +57,6 @@ void SqlPlotChart::changeEvent(QEvent *event)
     //    refreshTables();
 }
 
-QString SqlPlotChart::generateRcode(const QString &device)
-{
-    if (m_rdata == 0)
-        return "";
-
-    QString rcode;
-
-    rcode += "library(lattice)\n";
-    rcode += QString("axis.name <- list(\"%1\", \"%2\")\n").arg(ui->axis1ComboBox->currentText().replace("\"","\\\""), ui->axis2ComboBox->currentText().replace("\"","\\\""));
-
-    rcode += QString("table.data.raw <- scan(\"%1\", list(%2, %3))\n").arg(m_rdata->fileName(),
-                                                                           m_fields_type[0] == FIELD_NUMERIC ? "double()" : "character()",
-                                                                           m_fields_type[1] == FIELD_NUMERIC ? "double()" : "character()");
-    rcode += "table.data <- list(NA, NA)\n";
-    for (int i = 0; i < 2; i++) {
-        if (m_fields_type[i] == FIELD_NUMERIC)
-            rcode += QString("table.data[[%1]] <- table.data.raw[[%1]]\n").arg(QString::number(i+1));
-        else
-            rcode += QString("table.data[[%1]] <- as.factor(table.data.raw[[%1]])\n").arg(QString::number(i+1));
-    }
-
-    rcode += device + "\n";
-
-    switch (ui->chartTypeComboBox->currentIndex()) {
-    case 0: { // scatter plot
-        switch(ui->pchComboBox->currentIndex()) {
-        case 0:
-        default:
-            rcode += "pch <- 1\n";
-             break;
-        case 1:
-            rcode += "pch <- 20\n";
-            break;
-        case 2:
-            rcode += "pch <- 4\n";
-            break;
-        case 3:
-            rcode += "pch <- 3\n";
-            break;
-        case 4:
-            rcode += "pch <- 2\n";
-            break;
-        case 5:
-            rcode += "pch <- 17\n";
-            break;
-        case 6:
-            rcode += "pch <- 0\n";
-            break;
-        case 7:
-            rcode += "pch <- 15\n";
-            break;
-        }
-
-        rcode += "alpha <- "+QString::number(ui->alphaSpin->value())+"\n";
-
-        if (m_fields_type[0] == FIELD_NUMERIC && m_fields_type[1] == FIELD_NUMERIC) {
-            rcode += "cor.result <- cor.test(table.data[[1]], table.data[[2]])\n"
-                    "xyplot(table.data[[2]] ~ table.data[[1]], alpha=alpha, pch=pch, grid=T, xlab=axis.name[[1]], ylab=axis.name[[2]], main=sprintf(\"Correlation: %f   p-value: %f\", cor.result[[4]], cor.result[[3]]))\n";
-        } else {
-            rcode += "xyplot(table.data[[2]] ~ table.data[[1]], alpha=alpha, pch=pch, grid=T, xlab=axis.name[[1]], ylab=axis.name[[2]])\n";
-        }
-        break;
-    }
-    case 1: { // heatmap
-        rcode += "library(gregmisc)\n"
-                "cor.result <- cor.test(table.data[[1]], table.data[[2]])\n"
-                "h2c <- hist2d(table.data[[1]], table.data[[2]], show=F, same.scale=F, nbins=c(20, 20))\n"
-                "print(image(h2c$x, h2c$y, log2(h2c$count + 1), xlab=axis.name[[1]], ylab=axis.name[[2]], main=sprintf(\"Correlation: %f   p-value: %f\", cor.result[[4]], cor.result[[3]])))\n";
-        break;
-    }
-    case 2: { // histogram
-        rcode += "nint <- "+QString::number(ui->binSpin->value())+"\n";
-        rcode += "histogram(table.data[[1]], nint=nint, xlab=axis.name[[1]])\n";
-        break;
-    }
-    case 3: { // densityplot
-        rcode += "densityplot(table.data[[1]], xlab=axis.name[[1]])\n";
-        break;
-    }
-    }
-
-    if (!device.isEmpty())
-        rcode += "dev.off()\n";
-    return rcode;
-}
-
-void SqlPlotChart::writeTable()
-{
-    if (m_rdata == 0) {
-        m_rdata = new QTemporaryFile();
-        m_rdata->open();
-    }
-    m_rdata->seek(0);
-    m_rdata->resize(0);
-
-    m_fields_type[0] = FIELD_NUMERIC;
-    m_fields_type[1] = FIELD_NUMERIC;
-
-    if (ui->axis1ComboBox->currentText().isEmpty())
-        return;
-
-    QSqlQuery query = m_database->exec(QString("SELECT %1, %2 FROM %3 %4").arg(ui->axis1ComboBox->currentText(),
-                                                                               ui->axis2ComboBox->currentText(),
-                                                                               ui->tableComboBox->currentText(),
-                                                                               ui->sqlFilter->toPlainText().isEmpty() ? "" : QString("WHERE %1").arg(ui->sqlFilter->toPlainText())));
-    if (query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::critical(this, tr("Cannot select table"), query.lastError().text());
-        return;
-    }
-
-    if (query.first()) {
-        do {
-            for (int i = 0; i < 2; i++) {
-                QVariant value = query.value(i);
-                switch(value.type()) {
-                case QVariant::Int:
-                case QVariant::Double:
-                case QVariant::LongLong:
-                    m_rdata->write(value.toByteArray());
-                    break;
-                default: {
-                    QByteArray data = value.toByteArray();
-                    data.replace("\"", "\"\"");
-                    m_rdata->write("\"");
-                    m_rdata->write(data);
-                    m_rdata->write("\"");
-                    m_fields_type[i] = FIELD_STRING;
-                    break;
-                }
-                }
-                if (i == 0)
-                    m_rdata->write("\t");
-            }
-            m_rdata->write("\n");
-        } while (query.next());
-    }
-
-    m_rdata->flush();
-    qDebug() << m_rdata->fileName();
-}
-
 void SqlPlotChart::refreshTables()
 {
     QString current = ui->tableComboBox->lineEdit()->text();
@@ -211,50 +69,70 @@ void SqlPlotChart::on_chartTypeComboBox_currentIndexChanged(int index)
 {
     switch (index) {
     case 0:
-    case 1:
         ui->axis2ComboBox->setEnabled(true);
         break;
-    case 2:
-    case 3:
+    case 1:
         ui->axis2ComboBox->setEnabled(false);
         break;
     }
 
 
     ui->alphaSpin->setEnabled(index == 0);
-    ui->pchComboBox->setEnabled(index == 0);
-    ui->binSpin->setEnabled(index == 2);
+    ui->binSpin->setEnabled(index == 1);
 }
 
 void SqlPlotChart::on_plotButton_clicked()
 {
-    SAFE_DELETE(m_rcode);
-    SAFE_DELETE(m_rpng);
-
-    writeTable();
-
-    m_rcode = new QTemporaryFile(this);
-    m_rpng = new QTemporaryFile(this);
-    m_rcode->open();
-    m_rpng->open();
-
-    QString code = generateRcode(QString("png(\"%1\")").arg(m_rpng->fileName()));
-
-    m_rcode->write(code.toUtf8());
-    m_rcode->flush();
-
-    QStringList args;
-    args << m_rcode->fileName();
-    int retcode = QProcess::execute(tableview_settings->value(PATH_R, suggestRPath()).toString(), args);
-
-    if (retcode) {
-        SheetMessageBox::warning(this, tr("Cannot plot"), tr("Something wrong with R. If you are ploting heatmap, please confirm \"gregmisc\" package is installed."));
+    QSqlQuery query = m_database->exec(QString("SELECT %1, %2 FROM %3 %4").arg(ui->axis1ComboBox->currentText(),
+                                                                               ui->axis2ComboBox->currentText(),
+                                                                               ui->tableComboBox->currentText(),
+                                                                               ui->sqlFilter->toPlainText().isEmpty() ? "" : QString("WHERE %1").arg(ui->sqlFilter->toPlainText())));
+    if (query.lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::critical(this, tr("Cannot select table"), query.lastError().text());
+        return;
     }
 
-    QImage img(m_rpng->fileName(), "PNG");
-    ui->imageView->setImage(img);
-    ui->imageView->repaint();
+    switch (ui->chartTypeComboBox->currentIndex()) {
+    case 0: { // Scatter Plot
+        QList<QPointF> data;
+        while (query.next()) {
+            qreal x, y;
+            bool ok;
+            x = query.value(0).toDouble(&ok);
+            if(!ok) goto onerror;
+            y = query.value(1).toDouble(&ok);
+            if(!ok) goto onerror;
 
+            data << QPointF(x, y);
+        }
+
+        m_scatterPlotter.setData(data);
+        m_scatterPlotter.setAlpha(ui->alphaSpin->value());
+        ui->plotWidget->setPlotter(&m_scatterPlotter);
+        break;
+    }
+    case 1: { // Histogram
+        QList<double> data;
+
+        while (query.next()) {
+            qreal x;
+            bool ok;
+            x = query.value(0).toDouble(&ok);
+            if(!ok) goto onerror;
+            data << x;
+        }
+
+       m_histogramPlotter.setData(data);
+       ui->plotWidget->setPlotter(&m_histogramPlotter);
+       break;
+    }
+    }
+    ui->plotWidget->repaint();
+
+    return;
+    onerror:
+    SheetMessageBox::critical(this, tr("Cannot plot"), tr("Non-number value was found."));
+    return;
 }
 
 void SqlPlotChart::on_tableComboBox_editTextChanged(const QString &arg1)
@@ -272,49 +150,24 @@ void SqlPlotChart::on_tableComboBox_editTextChanged(const QString &arg1)
     ui->sqlFilter->setTable(arg1);
 }
 
-void SqlPlotChart::on_exportButton_clicked()
-{
-    writeTable();
-    QString code = generateRcode("");
-    QApplication::clipboard()->setText(code.left(code.size()-1));
-}
 
 void SqlPlotChart::on_exportImageButton_clicked()
 {
-    QString file = QFileDialog::getSaveFileName(this, tr("Save plot image"), QDir::homePath(), tr("PNG (*.png);;PDF (*.pdf);;Post Script (*.ps);;SVG (*.svg)"));
+    QString file = QFileDialog::getSaveFileName(this, tr("Save plot image"), QDir::homePath(), tr("PNG (*.png)"));
     if (file.isEmpty())
         return;
 
-    SAFE_DELETE(m_rcode);
-
-    writeTable();
-
-    m_rcode = new QTemporaryFile(this);
-    m_rcode->open();
-
-    QString device;
-    if (file.endsWith(".png")) {
-        device = QString("png(\"%1\")").arg(file);
-    } else if (file.endsWith(".pdf")) {
-        device = QString("cairo_pdf(\"%1\")").arg(file);
-    } else if (file.endsWith(".svg")) {
-        device = QString("svg(\"%1\")").arg(file);
-    } else if (file.endsWith(".ps")) {
-        device = QString("cairo_ps(\"%1\")").arg(file);
-    } else {
-        device = QString("png(\"%1.png\")").arg(file);;
+    QImage img(500, 500, QImage::Format_ARGB32);
+    QPainter painter(&img);
+    painter.fillRect(QRect(QPoint(0,0), img.size()), QBrush(Qt::white));
+    switch (ui->chartTypeComboBox->currentIndex()) {
+    case 0:
+        m_scatterPlotter.plot(painter, QRect(QPoint(0,0), img.size()));
+        break;
+    case 1:
+        m_histogramPlotter.plot(painter, QRect(QPoint(0,0), img.size()));
+        break;
     }
 
-    QString code = generateRcode(device);
-
-    m_rcode->write(code.toUtf8());
-    m_rcode->flush();
-
-    QStringList args;
-    args << m_rcode->fileName();
-    int retcode = QProcess::execute(tableview_settings->value(PATH_R, suggestRPath()).toString(), args);
-
-    if (retcode) {
-        SheetMessageBox::warning(this, tr("Cannot plot"), tr("Something wrong with R. If you are ploting heatmap, please confirm \"gregmisc\" package is installed."));
-    }
+    img.save(file);
 }
