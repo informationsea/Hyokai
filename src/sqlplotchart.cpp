@@ -32,8 +32,7 @@ SqlPlotChart::SqlPlotChart(QSqlDatabase *database, QWidget *parent, const QStrin
     }
     ui->sqlFilter->setDatabase(m_database);
     connect(ui->sqlFilter, SIGNAL(returnPressed()), ui->plotButton, SLOT(click()));
-    //setMaximumSize(size());
-    //ui->groupBox->setMaximumWidth(ui->groupBox->previousInFocusChain());
+
     refreshTables();
 }
 
