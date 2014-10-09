@@ -1,8 +1,10 @@
 #!/bin/sh
 
-if [ ! -e go_daily-termdb-tables.tar.gz ];then
-    curl -O http://archive.geneontology.org/latest-termdb/go_daily-termdb-tables.tar.gz
+if [ ! -e go.obo ];then
+    curl -L -O http://purl.obolibrary.org/obo/go.obo
 fi
+
+python import-go.py
 
 
 
