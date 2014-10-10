@@ -170,3 +170,9 @@ void SummaryDialog::on_buttonCopyImport_clicked()
                            QString::number(m_histogramPlotter.plotMinimumValue()), QString::number(m_histogramPlotter.plotMaximumValue()),
                            QString::number((m_histogramPlotter.plotMaximumValue() - m_histogramPlotter.plotMinimumValue())/ m_histogramPlotter.plotInterval())));
 }
+
+void SummaryDialog::on_doubleSpinBox_valueChanged(double arg1)
+{
+    m_histogramPlotter.setInterval(arg1);
+    ui->plotWidget->repaint();
+}

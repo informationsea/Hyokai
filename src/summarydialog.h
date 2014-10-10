@@ -27,6 +27,8 @@ protected:
 private slots:
     void on_buttonCopyImport_clicked();
 
+    void on_doubleSpinBox_valueChanged(double arg1);
+
 private:
     Ui::SummaryDialog *ui;
 
