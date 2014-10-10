@@ -77,7 +77,7 @@ void SqlPlotChart::on_chartTypeComboBox_currentIndexChanged(int index)
 
 
     ui->alphaSpin->setEnabled(index == 0);
-    ui->binSpin->setEnabled(index == 1);
+    ui->binSpinBox->setEnabled(index == 1);
 }
 
 void SqlPlotChart::on_plotButton_clicked()
@@ -122,6 +122,7 @@ void SqlPlotChart::on_plotButton_clicked()
         }
 
        m_histogramPlotter.setData(data);
+       m_histogramPlotter.setInterval(ui->binSpinBox->value());
        ui->plotWidget->setPlotter(&m_histogramPlotter);
        break;
     }
