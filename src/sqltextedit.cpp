@@ -300,7 +300,8 @@ QStringList SQLSyntaxHighligter::completeCandidates(const QString &prefix, const
 
         foreach(QString one, textlist) {
             if (one.startsWith(prefix)) {
-                list << one;
+                if (!list.contains(one))
+                    list << one;
             }
         }
     }
