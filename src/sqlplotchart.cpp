@@ -107,6 +107,8 @@ void SqlPlotChart::on_plotButton_clicked()
         }
 
         m_scatterPlotter.setData(data);
+        m_scatterPlotter.setXLabel(ui->axis1ComboBox->currentText());
+        m_scatterPlotter.setYLabel(ui->axis2ComboBox->currentText());
         m_scatterPlotter.setAlpha(ui->alphaSpin->value());
         ui->plotWidget->setPlotter(&m_scatterPlotter);
         break;
@@ -123,6 +125,7 @@ void SqlPlotChart::on_plotButton_clicked()
         }
 
        m_histogramPlotter.setData(data);
+       m_histogramPlotter.setXLabel(ui->axis1ComboBox->currentText());
        m_histogramPlotter.setInterval(ui->binSpinBox->value());
        ui->plotWidget->setPlotter(&m_histogramPlotter);
        break;
