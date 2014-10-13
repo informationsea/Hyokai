@@ -31,6 +31,7 @@ SqlPlotChart::SqlPlotChart(QSqlDatabase *database, QWidget *parent, const QStrin
         setWindowTitle(QString("Plot : ") + database->databaseName());
     }
     ui->sqlFilter->setDatabase(m_database);
+    ui->binSpinBox->setDisabled(true);
     connect(ui->sqlFilter, SIGNAL(returnPressed()), ui->plotButton, SLOT(click()));
 
     refreshTables();
@@ -137,7 +138,7 @@ void SqlPlotChart::on_plotButton_clicked()
 
 void SqlPlotChart::on_tableComboBox_editTextChanged(const QString &arg1)
 {
-    qDebug() << "currentIndexChanged " << arg1;
+    //qDebug() << "currentIndexChanged " << arg1;
     QSqlRecord record = m_database->record(arg1);
     QStringList columns;
     for (int i = 0; i < record.count(); ++i) {
