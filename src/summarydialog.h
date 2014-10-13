@@ -29,6 +29,8 @@ private slots:
 
     void on_doubleSpinBox_valueChanged(double arg1);
 
+    void on_exportImageButton_clicked();
+
 private:
     Ui::SummaryDialog *ui;
 

@@ -9,6 +9,8 @@
 #include <QDebug>
 #include <QStringList>
 #include <QRegExp>
+#include <QDir>
+#include <QFileDialog>
 
 #include "main.h"
 #include "preferencewindow.h"
@@ -175,4 +177,18 @@ void SummaryDialog::on_doubleSpinBox_valueChanged(double arg1)
 {
     m_histogramPlotter.setInterval(arg1);
     ui->plotWidget->repaint();
+}
+
+void SummaryDialog::on_exportImageButton_clicked()
+{
+    QString file = QFileDialog::getSaveFileName(this, tr("Save plot image"), QDir::homePath(), tr("PNG (*.png)"));
+    if (file.isEmpty())
+        return;
+
+    QImage img(500, 500, QImage::Format_ARGB32);
+    QPainter painter(&img);
+    painter.fillRect(QRect(QPoint(0,0), img.size()), QBrush(Qt::white));
+    m_histogramPlotter.plot(painter, QRect(QPoint(0,0), img.size()));
+
+    img.save(file);
 }
