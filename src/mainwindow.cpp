@@ -118,6 +118,7 @@ void MainWindow::initialize()
 
     ui->tabView->setDocumentMode(true);
     ui->tabView->setUsesScrollButtons(true);
+    ui->tabView->setShape(QTabBar::RoundedSouth);
     connect(ui->tabView, SIGNAL(currentChanged(int)), SLOT(tableTabChanged(int)));
 
 #ifdef ENABLE_SQLITE_EXTENSION
