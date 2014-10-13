@@ -73,6 +73,7 @@ private slots:
     void onChangeColumnOrRowSize();
     void filterFinished();
     void filterChainging();
+    void tableTabChanged(int index);
     void tableChanged(const QString &name);
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
     void tableUpdated();

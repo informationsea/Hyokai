@@ -109,11 +109,16 @@ void MainWindow::initialize()
     ui->setupUi(this);
     m_tableViewItemDelegate = new TableViewStyledItemDelegate(ui->tableView);
     ui->tableView->setItemDelegate(m_tableViewItemDelegate);
-    m_rowcountlabel = new QLabel(ui->statusBar);
+    //m_rowcountlabel = new QLabel(ui->statusBar);
+    m_rowcountlabel = ui->statusLabel;
     //ui->statusBar->addWidget(sqlLineCount);
-    ui->statusBar->addPermanentWidget(m_rowcountlabel);
+    //ui->statusBar->addPermanentWidget(m_rowcountlabel);
 
     move(nextWindowPosition());
+
+    ui->tabView->setDocumentMode(true);
+    ui->tabView->setUsesScrollButtons(true);
+    connect(ui->tabView, SIGNAL(currentChanged(int)), SLOT(tableTabChanged(int)));
 
 #ifdef ENABLE_SQLITE_EXTENSION
 #if !defined(Q_OS_WIN32)
@@ -589,6 +594,11 @@ void MainWindow::filterChainging()
     }
 }
 
+void MainWindow::tableTabChanged(int index)
+{
+    tableChanged(ui->tabView->tabText(index));
+}
+
 
 void MainWindow::tableChanged(const QString &name)
 {
@@ -598,6 +608,11 @@ void MainWindow::tableChanged(const QString &name)
         return;
     if (!confirmDuty())
         return;
+
+
+    int index = ui->tableSelect->findText(name);
+    ui->tableSelect->setCurrentIndex(index);
+    ui->tabView->setCurrentIndex(index);
 
     m_tableModel->setTable(name);
     ui->sqlLine->setTable(name);
@@ -627,18 +642,31 @@ void MainWindow::tableUpdated()
 void MainWindow::updateDatabase()
 {
     ui->tableSelect->clear();
+    while (ui->tabView->count())
+        ui->tabView->removeTab(0);
+
+    int index = 0;
     foreach(QString name, m_database.tables()) {
         ui->tableSelect->addItem(name);
+        ui->tabView->addTab(name);
+        ui->tabView->setTabToolTip(index, name);
+        index += 1;
     }
 
     foreach(QString name, m_database.tables(QSql::Views)) {
         ui->tableSelect->addItem(name);
+        ui->tabView->addTab(name);
+        ui->tabView->setTabToolTip(index, name);
+        index += 1;
     }
 
     if (m_tableModel->tableName().isEmpty() || !m_database.tables().contains(m_tableModel->tableName())) {
         if (m_database.tables().size())
             tableChanged(m_database.tables()[0]);
-        ui->tableSelect->setCurrentIndex(ui->tableSelect->findText(m_tableModel->plainTableName()));
+
+        int index = ui->tableSelect->findText(m_tableModel->plainTableName());
+        ui->tableSelect->setCurrentIndex(index);
+        ui->tabView->setCurrentIndex(index);
     }
 }
 
