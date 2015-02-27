@@ -37,6 +37,8 @@ public:
 
 protected:
     bool eventFilter(QObject *obj, QEvent *ev);
+    virtual void dragEnterEvent(QDragEnterEvent * event);
+    virtual void dropEvent(QDropEvent * event);
     
 private:
     Ui::MainWindow *ui;

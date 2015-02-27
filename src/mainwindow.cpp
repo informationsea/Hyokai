@@ -49,6 +49,7 @@
 #include <QValidator>
 #include <QIntValidator>
 #include <QFont>
+#include <QMimeData>
 
 #include <tablereader.hpp>
 #include <csvreader.hpp>
@@ -191,6 +192,7 @@ void MainWindow::initialize()
         ui->actionR_code_to_import->setEnabled(false);
     }
 
+    setAcceptDrops(true);
     move(nextWindowPosition());
 }
 
@@ -330,6 +332,32 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
         }
     }
     return false;
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat("text/uri-list")) {
+        event->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    QList<QUrl> urls = event->mimeData()->urls();
+    QStringList fileList;
+    foreach (QUrl oneUrl, urls) {
+        if (oneUrl.isLocalFile()) {
+            fileList.append(oneUrl.toLocalFile());
+        }
+    }
+
+    if (fileList.isEmpty())
+        return;
+
+    SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&m_database, this);
+    connect(importer, SIGNAL(finish(QStringList,bool,QString)), SLOT(importFinished(QStringList,bool,QString)));
+    importer->executeImport(fileList);
+    event->accept();
 }
 
 void MainWindow::onChangeColumnOrRowSize()
