@@ -147,4 +147,6 @@ OTHER_FILES += \
     keywords/mysql-keywords.txt \
     keywords/mysql-functions.txt
 
+QMAKE_INFO_PLIST = Info.plist
+
 greaterThan(QT_MAJOR_VERSION, 4): cache()
