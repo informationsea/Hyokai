@@ -419,6 +419,12 @@ bool SqlFileImporter::importCSVFile(QString path, const QString &name, const QLi
     int currentLine = 0;
     do {
         islineend = false;
+        // clear column data
+        foreach (QString one, logical2sqlindex.values()) {
+            query.bindValue(one, QVariant());
+        }
+
+        // bind column data
         for (int columnNumber = 0; !islineend; columnNumber++) {
             const char *column = reader->readnext(&readlen, &islineend);
             if (column == NULL) goto finishImport;
