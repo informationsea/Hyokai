@@ -7,23 +7,23 @@ About
 Hyokai is database viewer for big data analysis.
 Easy to import from tab-separated values or CSV and export to them.
 
-![Screen Shot](http://hyokai.info/assets/img/screenshots/w8-mainwindow.PNG)
+![Screen Shot](screenshot.png)
 
 Downloads
 ---------
 
 * [Source code](https://github.com/informationsea/Hyokai)
-* [Binaries](http://informationsea.info/apps/tableview/downloads.html)
+* [Binaries](https://hyokai.info)
 
 Requirements
 ------------
 
-* Mac OS X 10.5 Leopard or later
-* Windows XP or later
+* Mac OS X 10.8 or later
+* Windows 7 or later
 
 ### Build Requirements
 
-* Qt 5.2 or later (Qt 5.1 with QtMacExtra is also supported)
+* Qt 5.5
 * Qt Creator (Recommend)
 
 Supported Databases
@@ -40,18 +40,18 @@ How to build
 
 #### Mac OS X
 
-1. Build Qt with configure options `./configure -prefix /usr/local/Qt-5.3.2 -system-sqlite -qt-sql-sqlite -qt-sql-odbc -confirm-license -opensource`
+1. Build Qt with configure options `./configure -prefix /usr/local/Qt-5.5.1-systemsqlite -system-sqlite -qt-sql-sqlite -confirm-license -opensource  -framework -system-proxies  -nomake examples -skip qtwebkit -skip qtwebengine -skip qtwebkit-examples -skip qtwebchannel`
 2. Install Qt with `sudo make install`
-3. move to `build-scripts/script-for-mac`
+3. move to `scripts/script-for-mac`
 4. run `build.sh`
 
 `qmake` should be included into `$PATH`
 
 #### Windows
 
-1. Install pre-built Qt 5.3
+1. Install pre-built Qt 5.5
 2. Open Qt command prompt
-3. move to `build-scripts/script-for-windows`
+3. move to `scripts/script-for-windows`
 4. run `build.bat`
 
 Please read `build-scripts/script-for-windows/README.md` to learn more.

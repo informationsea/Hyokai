@@ -28,7 +28,6 @@ qmake -spec macx-clang -config release ../../src || die
 make -j5 || die
 echo "Deploying..."
 macdeployqt $APPNAME # for dynamic link library || die
-cp Info.plist $APPNAME/Contents/ || die
 cp ../../src/images/fileicon/sqlite.icns $APPNAME/Contents/Resources || die
 cp ../../src/images/fileicon/table.icns $APPNAME/Contents/Resources || die
 
