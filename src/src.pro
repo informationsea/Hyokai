@@ -111,7 +111,8 @@ HEADERS  += mainwindow.h \
     zlib/trees.h \
     zlib/zconf.h \
     zlib/zlib.h \
-    zlib/zutil.h
+    zlib/zutil.h \
+    filereader/src/growbuffer.hpp
 
 win32 {
     SOURCES -= sqlite3-extension/extension-functions.c
