@@ -107,7 +107,7 @@ bool SqlFileExporter::exportTableAsXLSX(QSqlQuery query, const QString &outputpa
 
 QString SqlFileExporter::quoteCSVColumn(QString column)
 {
-    if (column.contains('"') || column.contains('\n') || column.contains('\r')) {
+    if (column.contains('"') || column.contains('\n') || column.contains('\r') || column.contains(',')) {
         column.replace("\"", "\"\"");
         return QString("\"%1\"").arg(column);
     }
