@@ -9,7 +9,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en_US</string>
 	<key>CFBundleShortVersionString</key>
-        <string>0.4</string>
+        <string>0.4.1</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

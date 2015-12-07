@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
 
-  <Product Name='Hyokai 0.4' Id='20DB0E43-B0D2-484F-BDFE-F2ECF1B9EA96' UpgradeCode='0ABA09BB-8BDE-4BC8-99C6-F4484CAE5C94'
+  <Product Name='Hyokai 0.4.1' Id='20DB0E43-B0D2-484F-BDFE-F2ECF1B9EA96' UpgradeCode='0ABA09BB-8BDE-4BC8-99C6-F4484CAE5C94'
     Language='1033' Codepage='1252' Version='1.0.0' Manufacturer='Yasunobu OKAMURA'>
 
     <Package Id='*' Keywords='Installer' Description="Hyokai Installer"
@@ -12,12 +12,12 @@
 
 
     <Media Id='1' Cabinet='Hyokai.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
-    <Property Id='DiskPrompt' Value="Hyokai 0.4 Installation [1]" />
+    <Property Id='DiskPrompt' Value="Hyokai 0.4.1 Installation [1]" />
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
         <Directory Id='OKAMURA' Name='Y-OKAMURA'>
-          <Directory Id='INSTALLDIR' Name='Hyokai0.4'>
+          <Directory Id='INSTALLDIR' Name='Hyokai0.4.1'>
             <Component Id='MainExecutable' Guid='AD5FD49E-2E88-48B0-B6CE-153E77C7DF31'>
               <File Id='HyokaiEXE' Name='Hyokai_x86.exe' DiskId='1' Source='..\release\Hyokai_x86.exe' KeyPath='yes'>
                 <Shortcut Id="startmenuHyokai03" Directory="ProgramMenuDir" Name="Hyokai (32 bit)"
@@ -75,7 +75,7 @@
       </Directory>
       
       <Directory Id="ProgramMenuFolder" Name="Programs">
-        <Directory Id="ProgramMenuDir" Name="Hyokai 0.4">
+        <Directory Id="ProgramMenuDir" Name="Hyokai 0.4.1">
           <Component Id="ProgramMenuDir" Guid="23CBDA40-3D57-466A-80DA-C138EACDD65E">
             <RemoveFolder Id='ProgramMenuDir' On='uninstall' />
             <RegistryValue Root='HKCU' Key='Software\[Manufacturer]\[ProductName]' Type='string' Value='' KeyPath='yes' />
