@@ -72,7 +72,7 @@ Authors
 License
 -------
 
-Copyright (C) 2014 Yasunobu OKAMURA, S.T
+Copyright (C) 2012-2015 Yasunobu OKAMURA, S.T
 
 Source code of Hyokai is licensed under GPL version 3 or later.
 
