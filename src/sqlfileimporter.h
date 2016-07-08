@@ -29,7 +29,7 @@ public:
     bool createIndexes(const QString &name, const QList<SchemaField> &fields);
     bool importFile(QString path, const QString &name, const QList<SchemaField> &fields, enum FileType type, int skipLines, bool firstLineIsHeader, volatile bool *canceledFlag = 0);
     bool importCSVFile(QString path, const QString &name, const QList<SchemaField> &fields, bool isCSV, int skipLines, volatile bool *canceledFlag);
-    bool importXLSXFile(QString path, const QString &name, const QList<SchemaField> &fields, int skipLines, volatile bool *canceledFlag);
+    //bool importXLSXFile(QString path, const QString &name, const QList<SchemaField> &fields, int skipLines, volatile bool *canceledFlag);
     QString errorMessage();
     
 signals:

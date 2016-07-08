@@ -14,7 +14,7 @@ INCLUDEPATH += filereader/src
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc
 
-include(qtxlsx/src/xlsx/qtxlsx.pri)
+#include(qtxlsx/src/xlsx/qtxlsx.pri)
 include(QtSimplePlot/libsrc/SimplePlot.pri)
 
 SOURCES += main.cpp\
@@ -31,7 +31,6 @@ SOURCES += main.cpp\
     summarydialog.cpp \
     imageview.cpp \
     sqltextedit.cpp \
-    sqlite3-extension/extension-functions.c \
     databaseconnectiondialog.cpp \
     sheettextinputdialog.cpp \
     sqlservice.cpp \
@@ -80,8 +79,6 @@ HEADERS  += mainwindow.h \
     summarydialog.h \
     imageview.h \
     sqltextedit.h \
-    sqlite3-extension/sqlite3ext.h \
-    sqlite3-extension/sqlite3.h \
     databaseconnectiondialog.h \
     sheettextinputdialog.h \
     sqlservice.h \

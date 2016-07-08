@@ -17,7 +17,7 @@
 #include "sheetmessagebox.h"
 #include "schemadialog.h"
 
-#include "qtxlsx/src/xlsx/xlsxdocument.h"
+//#include "qtxlsx/src/xlsx/xlsxdocument.h"
 
 #define SUGGEST_LINE 20
 
@@ -37,11 +37,13 @@ static bool isrealstr(const char *str, size_t length)
     return isOk;
 }
 
+/*
 static QVariant getValueFromXLSXDocument(const QXlsx::Document &doc, int row, int col)
 {
     const QXlsx::Cell *cell = doc.cellAt(row, col);
     return cell != 0 ? cell->value() : QVariant();
 }
+*/
 
 SqlFileImporter::SqlFileImporter(QSqlDatabase *database, QObject *parent) :
     QObject(parent), m_database(database), m_canceled(false)
@@ -58,8 +60,8 @@ QList<SchemaField> SqlFileImporter::suggestSchema(QString path, FileType type, i
     case FILETYPE_TVS:
     default:
         return suggestSchemaFromCSV(path, type == FILETYPE_CSV, skipLines, firstLineIsHeader, preferText);
-    case FILETYPE_XLSX:
-        return suggestSchemaFromXLSX(path, skipLines, firstLineIsHeader, preferText);
+    //case FILETYPE_XLSX:
+    //    return suggestSchemaFromXLSX(path, skipLines, firstLineIsHeader, preferText);
 
     }
 
@@ -164,6 +166,7 @@ QList<SchemaField> SqlFileImporter::suggestSchemaFromCSV(QString path, bool isCS
     return fields;
 }
 
+/*
 QList<SchemaField> SqlFileImporter::suggestSchemaFromXLSX(QString path, int skipLines, bool firstLineIsHeader, bool preferText)
 {
     //
@@ -269,6 +272,7 @@ QList<SchemaField> SqlFileImporter::suggestSchemaFromXLSX(QString path, int skip
 
     return fields;
 }
+*/
 
 QString SqlFileImporter::generateCreateTableSql(const QString &name, const QList<SchemaField> &fields, bool usingFTS4)
 {
@@ -375,8 +379,8 @@ bool SqlFileImporter::importFile(QString path, const QString &name, const QList<
     case FILETYPE_TVS:
         return importCSVFile(path, name, fields, type == FILETYPE_CSV, skipLines, canceledFlag);
 
-    case FILETYPE_XLSX:
-        return importXLSXFile(path, name, fields, skipLines, canceledFlag);
+    //case FILETYPE_XLSX:
+    //    return importXLSXFile(path, name, fields, skipLines, canceledFlag);
 
     default:
         m_errorMessage = tr("Unsupported file type is specified. (%1)").arg(type);
@@ -453,6 +457,7 @@ bool SqlFileImporter::importCSVFile(QString path, const QString &name, const QLi
     return true;
 }
 
+/*
 bool SqlFileImporter::importXLSXFile(QString path, const QString &name, const QList<SchemaField> &fields, int skipLines, volatile bool *canceledFlag)
 {
     //
@@ -502,6 +507,7 @@ bool SqlFileImporter::importXLSXFile(QString path, const QString &name, const QL
 
     return true;
 }
+*/
 
 QString SqlFileImporter::errorMessage()
 {

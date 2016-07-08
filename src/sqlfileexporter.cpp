@@ -5,7 +5,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QVariant>
-#include "qtxlsx/src/xlsx/xlsxdocument.h"
+//#include "qtxlsx/src/xlsx/xlsxdocument.h"
 
 SqlFileExporter::SqlFileExporter(QSqlDatabase *database, QWidget *parent) :
     QObject(parent), m_database(database), m_parent(parent)
@@ -35,8 +35,8 @@ bool SqlFileExporter::exportTable(QSqlQuery query, const QString &outputpath, en
     case FILETYPE_CSV:
     case FILETYPE_TVS:
         return exportTableAsCSV(query, outputpath, fileType == FILETYPE_CSV);
-    case FILETYPE_XLSX:
-        return exportTableAsXLSX(query, outputpath);
+    //case FILETYPE_XLSX:
+    //    return exportTableAsXLSX(query, outputpath);
 
     default:
         m_errorMessage = tr("Unsupported file type is selected (%1)").arg(fileType);
@@ -80,6 +80,7 @@ bool SqlFileExporter::exportTableAsCSV(QSqlQuery query, const QString &outputpat
     return true;
 }
 
+/*
 bool SqlFileExporter::exportTableAsXLSX(QSqlQuery query, const QString &outputpath)
 {
     //
@@ -104,6 +105,7 @@ bool SqlFileExporter::exportTableAsXLSX(QSqlQuery query, const QString &outputpa
 
     return ret;
 }
+*/
 
 QString SqlFileExporter::quoteCSVColumn(QString column)
 {

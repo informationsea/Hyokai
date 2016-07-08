@@ -65,9 +65,11 @@
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 static int open_count = 0;
 
+/*
 extern "C" {
 int RegisterExtensionFunctions(sqlite3 *db);
 }
+*/
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
@@ -121,20 +123,6 @@ void MainWindow::initialize()
     ui->tabView->setUsesScrollButtons(true);
     ui->tabView->setShape(QTabBar::RoundedSouth);
     connect(ui->tabView, SIGNAL(currentChanged(int)), SLOT(tableTabChanged(int)));
-
-#ifdef ENABLE_SQLITE_EXTENSION
-#if !defined(Q_OS_WIN32)
-    QVariant v = m_database.driver()->handle();
-    if (v.isValid() && qstrcmp(v.typeName(), "sqlite3*") == 0) {
-        // v.data() returns a pointer to the handle
-        sqlite3 *handle = *static_cast<sqlite3 **>(v.data());
-        if (handle != 0) { // check that it is not NULL
-            //sqlite3_enable_load_extension(handle, 1); // Enable extension
-            RegisterExtensionFunctions(handle);
-        }
-    }
-#endif
-#endif
 
     ui->actionAbout_Qt->setMenuRole(QAction::AboutQtRole);
     ui->actionAbout_Table_View->setMenuRole(QAction::AboutRole);
@@ -785,7 +773,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv *.xlsx);; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Excel (*.xlsx);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
+                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv;; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
     if (path.isEmpty())
         return;
     if (path.endsWith(".sqlite3") || path.endsWith(".sqlite")) {
@@ -864,7 +852,7 @@ void MainWindow::on_actionImportTable_triggered()
 
     QStringList import = QFileDialog::getOpenFileNames(this, tr("Select import file"),
                                                   tableview_settings->value(LAST_IMPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                  tr("All (*.txt *.csv *.tsv *.txt.gz *.csv.gz *.tsv.gz *.xlsx *.bed *.gff *.gtf);; Excel (*.xlsx);; Gene Annotations (*.bed *.gff *.gtf *.bed.gz *.gff.gz *.gtf.gz);; All (*)"));
+                                                  tr("All (*.txt *.csv *.tsv *.txt.gz *.csv.gz *.tsv.gz *.bed *.gff *.gtf);; Gene Annotations (*.bed *.gff *.gtf *.bed.gz *.gff.gz *.gtf.gz);; All (*)"));
 
     if (import.isEmpty())
         return;
@@ -909,9 +897,8 @@ void MainWindow::on_actionAbout_Table_View_triggered()
                      " (32 bit)<br /><br />"
                  #endif
                      "Simple SQLite Viewer<br /><br />"
-                     "Copyright (C) 2014 Yasunobu OKAMURA<br /><br />"
+                     "Copyright (C) 2014-2016 Yasunobu OKAMURA<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/Hyokai\">Github</a><hr />"
-                     "Excel support powered by <a href=\"http://qtxlsx.debao.me/\">Qt Xlsx module</a><br />"
                      "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
                      "Build at " __DATE__ " " __TIME__));
     about.exec();
@@ -959,7 +946,7 @@ void MainWindow::on_actionExport_Table_triggered()
     //qDebug() << "defaultpath: " << defaultpath;
     QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
                                                       defaultpath,
-                                                      "CSV (*.csv);; Tab separated (*.txt);; Excel (*.xlsx)");
+                                                      "CSV (*.csv);; Tab separated (*.txt)");
     if (outputpath.isEmpty())
         return;
     QFileInfo outputfileinfo(outputpath);

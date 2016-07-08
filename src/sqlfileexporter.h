@@ -25,7 +25,7 @@ public slots:
 
 private:
     bool exportTableAsCSV(QSqlQuery query, const QString &outputpath, bool csv);
-    bool exportTableAsXLSX(QSqlQuery query, const QString &outputpath);
+    //bool exportTableAsXLSX(QSqlQuery query, const QString &outputpath);
 
     QString quoteCSVColumn(QString column);
 
