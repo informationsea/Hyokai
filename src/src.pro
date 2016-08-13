@@ -111,13 +111,6 @@ HEADERS  += mainwindow.h \
     zlib/zutil.h \
     filereader/src/growbuffer.hpp
 
-win32 {
-    SOURCES -= sqlite3-extension/extension-functions.c
-    HEADERS -= sqlite3-extension/sqlite3ext.h \
-        sqlite3-extension/sqlite3.h
-    DEFINES += DISABLE_GZIP
-}
-
 FORMS    += mainwindow.ui \
     schemadialog.ui \
     attachdatabasedialog.ui \
