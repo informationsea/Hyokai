@@ -80,33 +80,6 @@ bool SqlFileExporter::exportTableAsCSV(QSqlQuery query, const QString &outputpat
     return true;
 }
 
-/*
-bool SqlFileExporter::exportTableAsXLSX(QSqlQuery query, const QString &outputpath)
-{
-    //
-    QXlsx::Document doc;
-
-    QSqlRecord record = query.record();
-    for (int i = 0; i < record.count(); ++i)
-        doc.write(1, i + 1, record.fieldName(i));
-
-    //
-    int row = 1;
-    do {
-        record = query.record();
-        for (int col = 0; col < record.count(); ++col)
-            doc.write(row + 1, col + 1, record.value(col));
-        ++row;
-    } while (query.next());
-
-    //
-    bool ret = doc.saveAs(outputpath);
-    if (!ret) m_errorMessage = tr("Failed to write to the specified file.");
-
-    return ret;
-}
-*/
-
 QString SqlFileExporter::quoteCSVColumn(QString column)
 {
     if (column.contains('"') || column.contains('\n') || column.contains('\r') || column.contains(',')) {

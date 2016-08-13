@@ -311,7 +311,7 @@ void CustomSqlDialog::onExportTable()
 {
     QString outputpath = QFileDialog::getSaveFileName(this, tr("Export as text"),
                                                       tableview_settings->value(LAST_EXPORT_DIRECTORY, QDir::homePath()).toString(),
-                                                      "CSV (*.csv);; Tab separated (*.txt);; Excel (*.xlsx)");
+                                                      "CSV (*.csv);; Tab separated (*.txt)");
     if (outputpath.isEmpty())
         return;
     if (!m_query.isSelect())

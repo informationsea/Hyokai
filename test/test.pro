@@ -12,8 +12,6 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-#include(../src/qtxlsx/src/xlsx/qtxlsx.pri)
-
 SOURCES += tst_csvwritertest.cpp \
     ../src/sqlfileexporter.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"

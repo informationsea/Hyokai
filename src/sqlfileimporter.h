@@ -22,7 +22,6 @@ public:
 
     static QList<SchemaField> suggestSchema(QString path, enum FileType type, int skipLines, bool firstLineIsHeader, bool preferText);
     static QList<SchemaField> suggestSchemaFromCSV(QString path, bool isCSV, int skipLines, bool firstLineIsHeader, bool preferText);
-    static QList<SchemaField> suggestSchemaFromXLSX(QString path, int skipLines, bool firstLineIsHeader, bool preferText);
     static QString generateCreateTableSql(const QString &name, const QList<SchemaField> &fields, bool useFts4);
     static QStringList generateCreateIndexSql(const QString &name, const QList<SchemaField> &fields);
     bool createTables(const QString &name, const QList<SchemaField> &fields, bool useFts4);

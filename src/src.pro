@@ -14,7 +14,6 @@ INCLUDEPATH += filereader/src
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc
 
-#include(qtxlsx/src/xlsx/qtxlsx.pri)
 include(QtSimplePlot/libsrc/SimplePlot.pri)
 
 SOURCES += main.cpp\

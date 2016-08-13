@@ -37,14 +37,6 @@ static bool isrealstr(const char *str, size_t length)
     return isOk;
 }
 
-/*
-static QVariant getValueFromXLSXDocument(const QXlsx::Document &doc, int row, int col)
-{
-    const QXlsx::Cell *cell = doc.cellAt(row, col);
-    return cell != 0 ? cell->value() : QVariant();
-}
-*/
-
 SqlFileImporter::SqlFileImporter(QSqlDatabase *database, QObject *parent) :
     QObject(parent), m_database(database), m_canceled(false)
 {
@@ -165,114 +157,6 @@ QList<SchemaField> SqlFileImporter::suggestSchemaFromCSV(QString path, bool isCS
 
     return fields;
 }
-
-/*
-QList<SchemaField> SqlFileImporter::suggestSchemaFromXLSX(QString path, int skipLines, bool firstLineIsHeader, bool preferText)
-{
-    //
-    QXlsx::Document doc(path);
-
-    //
-    int row = skipLines;    // `row` and `col` uses zero-origin index,
-                            // however, QXlsx::Document.cellAt uses one-origin index
-
-    //
-    QList<SchemaField> fields;
-    QList<SchemaField::FieldType> currentFieldTypes;
-
-    if (firstLineIsHeader) {
-        for (int col = 0; ; col++) {
-            const QVariant value = getValueFromXLSXDocument(doc, row + 1, col + 1);
-            const QString stringValue = value.toString();
-            if (value.isNull() || stringValue.isNull() || stringValue.isEmpty())
-                break;
-
-            qDebug() << col << value;
-
-            SchemaField field;
-            field.setName(SqlService::suggestFieldName(stringValue, fields));
-            field.setLogicalIndex(col);
-
-            fields.append(field);
-            currentFieldTypes.append(SchemaField::FIELD_INTEGER);
-        }
-
-        row++;
-    }
-
-    //
-    for (int i = 0; i < SUGGEST_LINE; i++, row++) {
-        for (int col = 0; ; col++) {
-            //
-            const QVariant value = getValueFromXLSXDocument(doc, row + 1, col + 1);
-            if (value.isNull()) break;
-
-            if (col >= fields.size()) {
-                SchemaField field;
-                field.setName(SqlService::suggestFieldName(QString("V%1").arg(col), fields));
-                field.setLogicalIndex(col);
-
-                fields.append(field);
-                currentFieldTypes.append(SchemaField::FIELD_INTEGER);
-            }
-
-            //
-            const QVariant::Type valueType = value.type();
-
-            switch (currentFieldTypes[col]) {
-            case SchemaField::FIELD_INTEGER:
-                if (valueType == QVariant::Int) break;
-                currentFieldTypes[col] = SchemaField::FIELD_REAL;
-                // no break
-
-            case SchemaField::FIELD_REAL:
-                if (valueType == QVariant::Double) break;
-                currentFieldTypes[col] = SchemaField::FIELD_TEXT;
-                // no break
-
-            case SchemaField::FIELD_TEXT:
-            default:
-                break;
-            }
-
-            //
-            const QString stringValue = value.toString();
-            fields[col].setMaximumLength(qMax(fields[col].maximumLength(), stringValue.toUtf8().length()));
-        }
-    }
-
-    // TODO: remove duplicate code
-    for (int i = 0; i < fields.size(); i++) {
-        switch (currentFieldTypes[i]) {
-        case SchemaField::FIELD_INTEGER:
-            fields[i].setFieldType("INTEGER");
-            fields[i].setIndexedField(true);
-            break;
-
-        case SchemaField::FIELD_REAL:
-            fields[i].setFieldType("REAL");
-            fields[i].setIndexedField(true);
-            break;
-
-        case SchemaField::FIELD_TEXT:
-        default:
-            if (preferText) {
-                fields[i].setFieldType("TEXT");
-            } else {
-                int round = ((int)(fields[i].maximumLength()*1.5/10))*10+10;
-                fields[i].setFieldType(QString("varchar(%1)").arg(round));
-            }
-
-            if (fields[i].maximumLength() < 20)
-                fields[i].setIndexedField(true);
-
-            break;
-        }
-    }
-
-    return fields;
-}
-*/
 
 QString SqlFileImporter::generateCreateTableSql(const QString &name, const QList<SchemaField> &fields, bool usingFTS4)
 {
