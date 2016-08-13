@@ -634,6 +634,8 @@ void MainWindow::tableChanged(const QString &name)
     ui->tableSelect->setCurrentIndex(index);
     ui->tabView->setCurrentIndex(index);
 
+    ui->sqlLine->clear();
+
     m_tableModel->setTable(name);
     ui->sqlLine->setTable(name);
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
