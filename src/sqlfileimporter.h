@@ -68,7 +68,7 @@ private:
     QSqlDatabase *m_database;
     QWidget *m_parent;
     QList<SchemaDialog *> m_schemaList;
-    QProgressDialog m_progress;
+    QProgressDialog *m_progress;
     QList<off_t> m_filesizes;
 
     QStringList m_importedTables;

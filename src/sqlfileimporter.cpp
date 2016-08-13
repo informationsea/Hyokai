@@ -516,11 +516,9 @@ QString SqlFileImporter::errorMessage()
 
 
 SqlAsynchronousFileImporter::SqlAsynchronousFileImporter(QSqlDatabase *database, QWidget *parent) :
-    QThread(parent), m_database(database), m_parent(parent), m_progress(parent)
+    QThread(parent), m_database(database), m_parent(parent), m_progress(0)
 {
     m_withError = false;
-    connect(this, SIGNAL(updateProgressLabelText(QString)), &m_progress, SLOT(setLabelText(QString)));
-    connect(this, SIGNAL(updateProgressValue(int)), &m_progress, SLOT(setValue(int)));
 }
 
 SqlAsynchronousFileImporter::~SqlAsynchronousFileImporter()
@@ -528,6 +526,8 @@ SqlAsynchronousFileImporter::~SqlAsynchronousFileImporter()
     foreach(SchemaDialog *dialog, m_schemaList) {
         delete dialog;
     }
+
+    delete m_progress;
 }
 
 void SqlAsynchronousFileImporter::executeImport(QStringList files)
@@ -588,9 +588,13 @@ void SqlAsynchronousFileImporter::executeImport(QStringList files)
     //connect(this, SIGNAL(finish(QStringList,bool,QString)), SLOT(finishThread()), Qt::QueuedConnection);
     connect(this, SIGNAL(finished()), SLOT(finishThread()));
 
-    m_progress.open(this, SLOT(canceled()));
-    m_progress.setMaximum(sumsize);
-    m_progress.setValue(0);
+    m_progress = new QProgressDialog(m_parent);
+    m_progress->open(this, SLOT(canceled()));
+    m_progress->setMaximum(sumsize);
+    m_progress->setValue(0);
+
+    connect(this, SIGNAL(updateProgressLabelText(QString)), m_progress, SLOT(setLabelText(QString)));
+    connect(this, SIGNAL(updateProgressValue(int)), m_progress, SLOT(setValue(int)));
     //connect(&m_progress, SIGNAL(canceled()), SLOT(canceled()));
 
     start();
@@ -655,8 +659,8 @@ void SqlAsynchronousFileImporter::finishThread()
 {
     qDebug() << "finish thread";
     //m_progress.setValue(m_progress.maximum());
-    if (m_progress.isVisible())
-        m_progress.close();
+    if (m_progress->isVisible())
+        m_progress->close();
     emit finish(m_importedTables, m_withError, m_errorMessage);
 }
 
