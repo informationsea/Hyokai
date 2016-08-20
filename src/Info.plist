@@ -35,6 +35,7 @@
 			<array>
 				<string>sqlite3</string>
 				<string>sqlite</string>
+                                <string>db</string>
 			</array>
 			<key>CFBundleTypeName</key>
 			<string>SQLite3</string>

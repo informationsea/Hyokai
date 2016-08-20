@@ -19,7 +19,8 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
         qDebug() << openevent->file();
 
         if (openevent->file().endsWith(".sqlite3") ||
-                openevent->file().endsWith(".sqlite")) {
+                openevent->file().endsWith(".sqlite") ||
+                openevent->file().endsWith(".db")) {
             ::tableviewCleanupWindows();
 
             MainWindow *w = new MainWindow(NULL, openevent->file());

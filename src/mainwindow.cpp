@@ -54,7 +54,6 @@
 #include <tablereader.hpp>
 #include <csvreader.hpp>
 
-#include "sqlite3-extension/sqlite3.h"
 
 #define RECENT_FILES "RECENT_FILES"
 #define RECENT_FILES_MAX 10
@@ -64,12 +63,6 @@
 
 static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 static int open_count = 0;
-
-/*
-extern "C" {
-int RegisterExtensionFunctions(sqlite3 *db);
-}
-*/
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
@@ -792,7 +785,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "All (*.sqlite3 *.sqlite *.txt *.csv *.tsv;; SQLite3 (*.sqlite3 *.sqlite);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
+                                                "All (*.sqlite3 *.sqlite *.db *.txt *.csv *.tsv ;; SQLite3 (*.sqlite3 *.sqlite *.db);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
     if (path.isEmpty())
         return;
     if (path.endsWith(".sqlite3") || path.endsWith(".sqlite")) {
@@ -812,7 +805,7 @@ void MainWindow::on_actionNew_triggered()
     QString defaultpath = QFileInfo(tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(), "Untitled.sqlite3").absoluteFilePath();
     QString path = QFileDialog::getSaveFileName(NULL, "New SQLite3 Database",
                                                 defaultpath,
-                                                "SQLite3 (*.sqlite3 *.sqlite);; All (*)");
+                                                "SQLite3 (*.sqlite3 *.sqlite *.db);; All (*)");
     if (path.isEmpty())
         return;
     open(path);
