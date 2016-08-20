@@ -508,7 +508,24 @@ void MainWindow::showColumnSummary()
     while(query.next()) {
         double value = query.record().value(0).toDouble(&ok);
         if (!ok) {
-            SheetMessageBox::critical(this, tr("Column summary error"), tr("This column contains non-number data"));
+            QSqlQuery query2;
+
+            query2 = m_database.exec(QString("SELECT \"%1\", count(*) FROM %2 GROUP BY \"%1\" ORDER BY 2 DESC").arg(column_name, m_tableModel->tableName()));
+            QString message;
+            while(query2.next()) {
+                message += query2.record().value(0).toString() + " : " + query2.record().value(1).toString() + "\n";
+            }
+
+            if (message.length() > 200) {
+                QMessageBox *mesbox = SheetMessageBox::makeMessageBox(this, tr("Column Summary : ") + column_name,
+                                                                       message.left(200)+"...");
+                mesbox->setDetailedText(message);
+                mesbox->setIcon(QMessageBox::Information);
+                mesbox->exec();
+                delete mesbox;
+            } else {
+                SheetMessageBox::information(this, tr("Column summary : ") + column_name, message);
+            }
             return;
         }
         doubleList.append(value);
