@@ -6,3 +6,5 @@ ui*.h
 *_plugin_import.cpp
 Hyokai
 Hyokai.zip
+build32
+build64

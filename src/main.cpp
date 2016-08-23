@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     a.setApplicationVersion("0.1");
 #ifndef Q_OS_MACX
     a.setWindowIcon(QIcon(":/rc/images/icon128.png"));
+    a.addLibraryPath(a.applicationDirPath() + "/plugins");
 #endif
 
     QStringList filelist;
