@@ -9,7 +9,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Hyokai
 TEMPLATE = app
-INCLUDEPATH += filereader/src
+INCLUDEPATH += filereader/src zlib
 
 ICON = images/icon.icns
 RC_FILE = windowsicon.rc

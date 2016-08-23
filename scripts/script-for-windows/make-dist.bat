@@ -1,14 +1,14 @@
 del /S /Q Hyokai
+rmdir /Q /S Hyokai
+
 mkdir Hyokai
 copy License.txt Hyokai\
 copy dist-README.txt Hyokai\README.txt
-copy release\Hyokai_x86.exe Hyokai\
-copy release\Hyokai_x64.exe Hyokai\
+robocopy /S build32\deploy Hyokai\Hyokai32
+robocopy /S build64\deploy Hyokai\Hyokai64
 mkdir Hyokai\sampledata
 copy ..\..\sampledata\iris.data.sqlite3 Hyokai\sampledata
 copy ..\..\sampledata\iris.data.csv Hyokai\sampledata
-copy vc_redist.x64.exe Hyokai\
-copy vc_redist.x86.exe Hyokai\
 
 del Hyokai.zip
 

@@ -785,7 +785,9 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
-                                                "All (*.sqlite3 *.sqlite *.db *.txt *.csv *.tsv ;; SQLite3 (*.sqlite3 *.sqlite *.db);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
+
+                                                "All (*.sqlite3 *.sqlite *.db *.txt *.csv *.tsv) ;; SQLite3 (*.sqlite3 *.sqlite *.db);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
+
     if (path.isEmpty())
         return;
     if (path.endsWith(".sqlite3") || path.endsWith(".sqlite")) {
@@ -898,6 +900,12 @@ void MainWindow::on_actionAbout_Qt_triggered()
 
 void MainWindow::on_actionAbout_Table_View_triggered()
 {
+    QString messageDrivers;
+    foreach(QString one, QSqlDatabase::drivers()) {
+        if (!messageDrivers.isEmpty()) messageDrivers += ", ";
+        messageDrivers += one;
+    }
+
     QMessageBox about(this);
     about.setWindowTitle(tr("Hyokai"));
     about.setIconPixmap(QPixmap(":rc/images/icon128.png"));
@@ -912,7 +920,8 @@ void MainWindow::on_actionAbout_Table_View_triggered()
                      "Copyright (C) 2014-2016 Yasunobu OKAMURA<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/Hyokai\">Github</a><hr />"
                      "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
-                     "Build at " __DATE__ " " __TIME__));
+                     "Build at " __DATE__ " " __TIME__ "<br />"
+                     "Supported Databases: ") + messageDrivers);
     about.exec();
 }
 
