@@ -503,11 +503,20 @@ void MainWindow::showColumnSummary()
         if (!ok) {
             QSqlQuery query2;
 
-            query2 = m_database.exec(QString("SELECT \"%1\", count(*) FROM %2 GROUP BY \"%1\" ORDER BY 2 DESC").arg(column_name, m_tableModel->tableName()));
+            if (ui->sqlLine->toPlainText().isEmpty()) {
+                query2 = m_database.exec(QString("SELECT \"%1\", count(*) FROM %2 GROUP BY \"%1\" ORDER BY 2 DESC").arg(column_name, m_tableModel->tableName()));
+            } else {
+                query2 = m_database.exec(QString("SELECT \"%1\", count(*) FROM %2 WHERE %3 GROUP BY \"%1\" ORDER BY 2 DESC").arg(column_name, m_tableModel->tableName(), ui->sqlLine->toPlainText()));
+            }
+
             QString message;
+            int typeCount = 0;
             while(query2.next()) {
                 message += query2.record().value(0).toString() + " : " + query2.record().value(1).toString() + "\n";
+                typeCount += 1;
             }
+
+            message = "# of value types: " + QVariant(typeCount).toString() + "\n\n" + message;
 
             if (message.length() > 200) {
                 QMessageBox *mesbox = SheetMessageBox::makeMessageBox(this, tr("Column Summary : ") + column_name,
@@ -519,6 +528,7 @@ void MainWindow::showColumnSummary()
             } else {
                 SheetMessageBox::information(this, tr("Column summary : ") + column_name, message);
             }
+
             return;
         }
         doubleList.append(value);
