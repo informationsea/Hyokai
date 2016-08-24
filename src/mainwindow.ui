@@ -254,6 +254,7 @@
     <addaction name="actionUse_fixed_width_font"/>
     <addaction name="separator"/>
     <addaction name="actionShow_Toolbar"/>
+    <addaction name="actionShow_Table_List_View"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -285,6 +286,33 @@
    <addaction name="actionDelete"/>
    <addaction name="actionCommit"/>
    <addaction name="actionRevert"/>
+  </widget>
+  <widget class="QDockWidget" name="tableListWidget">
+   <property name="windowTitle">
+    <string>Table List</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QListWidget" name="tableListView"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -666,6 +694,14 @@
    </property>
    <property name="text">
     <string>Show Toolbar</string>
+   </property>
+  </action>
+  <action name="actionShow_Table_List_View">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Table List View</string>
    </property>
   </action>
  </widget>

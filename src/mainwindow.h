@@ -101,6 +101,7 @@ private slots:
     void setNumDecimalPlaces();
     void resetNumDecimalPlaces();
     void onToolbarVisibiltyChanged();
+    void onTableViewVisibilityChanged();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
@@ -138,6 +139,7 @@ private slots:
     void on_actionGo_to_Hyokai_info_triggered();
     void on_actionUse_fixed_width_font_triggered(bool checked);
     void on_actionShow_Toolbar_triggered(bool checked);
+    void on_actionShow_Table_List_View_triggered();
 };
 
 #endif // MAINWINDOW_H

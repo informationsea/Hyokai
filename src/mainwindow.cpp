@@ -127,22 +127,22 @@ void MainWindow::initialize()
     setupTableModel();
     updateDatabase();
 
-#if QT_VERSION >= 0x050000
     ui->tableView->horizontalHeader()->setSectionsMovable(true);
-#else
-    ui->tableView->horizontalHeader()->setMovable(true);
-#endif
+    ui->menuWindow->setAsDockMenu();
+
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
     connect(ui->sqlLine, SIGNAL(textChanged()), SLOT(filterChainging()));
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
+    connect(ui->tableListView, SIGNAL(currentTextChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
-#ifdef Q_OS_OSX
-    ui->menuWindow->setAsDockMenu();
-#endif
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     connect(ui->menuShowHiddenColumn, SIGNAL(aboutToShow()), SLOT(onShowHiddenColumnShow()));
     connect(ui->mainToolBar, SIGNAL(visibilityChanged(bool)), SLOT(onToolbarVisibiltyChanged()));
+    connect(ui->tableListWidget, SIGNAL(visibilityChanged(bool)), SLOT(onTableViewVisibilityChanged()));
+
+    ui->tableListWidget->setVisible(false);
+
     ui->tableView->horizontalHeader()->installEventFilter(this);
     ui->tableView->verticalHeader()->installEventFilter(this);
     ui->tableView->installEventFilter(this);
@@ -662,6 +662,7 @@ void MainWindow::tableChanged(const QString &name)
     int index = ui->tableSelect->findText(name);
     ui->tableSelect->setCurrentIndex(index);
     ui->tabView->setCurrentIndex(index);
+    ui->tableListView->setCurrentRow(index);
 
     ui->sqlLine->clear();
 
@@ -693,21 +694,22 @@ void MainWindow::tableUpdated()
 void MainWindow::updateDatabase()
 {
     ui->tableSelect->clear();
+    ui->tableListView->clear();
     while (ui->tabView->count())
         ui->tabView->removeTab(0);
 
-    int index = 0;
-    foreach(QString name, m_database.tables()) {
-        ui->tableSelect->addItem(name);
-        ui->tabView->addTab(name);
-        ui->tabView->setTabToolTip(index, name);
-        index += 1;
-    }
+    QStringList list = m_database.tables();
+    list.append(m_database.tables(QSql::Views));
+    list.removeOne("Hyokai_SQL_History");
+    list.removeOne("sqlite_sequence");
+    qSort(list);
 
-    foreach(QString name, m_database.tables(QSql::Views)) {
+    int index = 0;
+    foreach(QString name, list) {
         ui->tableSelect->addItem(name);
         ui->tabView->addTab(name);
         ui->tabView->setTabToolTip(index, name);
+        ui->tableListView->addItem(name);
         index += 1;
     }
 
@@ -718,6 +720,7 @@ void MainWindow::updateDatabase()
         int index = ui->tableSelect->findText(m_tableModel->plainTableName());
         ui->tableSelect->setCurrentIndex(index);
         ui->tabView->setCurrentIndex(index);
+        ui->tableListView->setCurrentRow(index);
     }
 }
 
@@ -1440,6 +1443,11 @@ void MainWindow::onToolbarVisibiltyChanged()
     ui->actionShow_Toolbar->setChecked(ui->mainToolBar->isVisible());
 }
 
+void MainWindow::onTableViewVisibilityChanged()
+{
+    ui->actionShow_Table_List_View->setChecked(ui->tableListWidget->isVisible());
+}
+
 void MainWindow::on_actionGo_to_Hyokai_info_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://hyokai.info"));
@@ -1460,4 +1468,9 @@ void MainWindow::on_actionUse_fixed_width_font_triggered(bool checked)
 void MainWindow::on_actionShow_Toolbar_triggered(bool checked)
 {
     ui->mainToolBar->setVisible(checked);
+}
+
+void MainWindow::on_actionShow_Table_List_View_triggered()
+{
+    ui->tableListWidget->setVisible(ui->actionShow_Table_List_View->isChecked());
 }
