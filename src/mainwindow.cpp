@@ -128,7 +128,10 @@ void MainWindow::initialize()
     updateDatabase();
 
     ui->tableView->horizontalHeader()->setSectionsMovable(true);
+
+#ifdef Q_OS_MACX
     ui->menuWindow->setAsDockMenu();
+#endif
 
     connect(ui->sqlLine, SIGNAL(returnPressed()), SLOT(filterFinished()));
     connect(ui->sqlLine, SIGNAL(textChanged()), SLOT(filterChainging()));
