@@ -173,6 +173,8 @@ void MainWindow::initialize()
         ui->actionR_code_to_import->setEnabled(false);
     }
 
+    m_historyHelper = new SqlHistoryHelper(&m_database, this);
+
     setAcceptDrops(true);
     move(nextWindowPosition());
 }
@@ -187,6 +189,7 @@ void MainWindow::setupTableModel()
 
 MainWindow::~MainWindow()
 {
+    delete m_historyHelper;
     delete ui;
 }
 
@@ -604,6 +607,8 @@ void MainWindow::filterFinished()
 {
     if (m_tableModel->plainTableName().isEmpty())
         return;
+    if (m_tableModel->filter() == ui->sqlLine->toPlainText()) return;
+
     m_tableModel->setFilter(ui->sqlLine->toPlainText());
     m_tableModel->select();
     if (m_tableModel->lastError().type() != QSqlError::NoError) {
@@ -623,6 +628,10 @@ void MainWindow::filterFinished()
     tableview_settings->setValue(SQL_FILTER_HISTORY, history);
 
     m_rowcountlabel->setText(QString("%1 rows").arg(QString::number(m_tableModel->sqlRowCount())));
+
+    if (!ui->sqlLine->toPlainText().isEmpty()) {
+        m_historyHelper->insertFilterHistory(m_tableModel->plainTableName(), m_tableModel->filter());
+    }
 }
 
 void MainWindow::filterChainging()
@@ -1080,7 +1089,22 @@ void MainWindow::on_buttonAssist_clicked()
 {
     m_assistPopup.clear();
 
-    QMenu *historyMenu = m_assistPopup.addMenu(tr("History"));
+
+    QMenu *historyMenuForTable = m_assistPopup.addMenu(tr("History"));
+    QStringList historyForTable = m_historyHelper->filterHistory(m_tableModel->plainTableName());
+    foreach (QString oneHistory, historyForTable) {
+        QString showHistory = oneHistory;
+        if (oneHistory.length() > 150) {
+            showHistory = QString("%1 .. %2").arg(oneHistory.left(75), oneHistory.right(75));
+        }
+        QAction *action = historyMenuForTable->addAction(showHistory);
+        action->setData(oneHistory);
+        connect(action, SIGNAL(triggered()), SLOT(replaceSqlFilter()));
+    }
+    if (historyMenuForTable->isEmpty())
+        historyMenuForTable->setEnabled(false);
+
+    QMenu *historyMenu = m_assistPopup.addMenu(tr("All History"));
     QStringList history = tableview_settings->value(SQL_FILTER_HISTORY).toStringList();
     foreach (QString oneHistory, history) {
         QString showHistory = oneHistory;
@@ -1089,8 +1113,9 @@ void MainWindow::on_buttonAssist_clicked()
         }
         QAction *action = historyMenu->addAction(showHistory);
         action->setData(oneHistory);
-        connect(action, SIGNAL(triggered()), SLOT(insertSqlFilter()));
+        connect(action, SIGNAL(triggered()), SLOT(replaceSqlFilter()));
     }
+
     if (history.isEmpty()) {
         historyMenu->setEnabled(false);
     } else {
@@ -1143,6 +1168,17 @@ void MainWindow::insertSqlFilter()
         return;
     }
     ui->sqlLine->insertPlainText(add);
+}
+
+void MainWindow::replaceSqlFilter()
+{
+    QAction *senderAction = (QAction *)sender();
+    QString add = senderAction->data().toString();
+    if (add.compare("<CLEAR>") == 0) {
+        tableview_settings->setValue(SQL_FILTER_HISTORY, QVariant());
+        return;
+    }
+    ui->sqlLine->document()->setPlainText(add);
 }
 
 void MainWindow::on_actionGo_to_SQLite3_webpage_triggered()

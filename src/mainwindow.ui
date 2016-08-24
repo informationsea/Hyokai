@@ -452,7 +452,10 @@
      <normaloff>:/rc/images/utilities-terminal.png</normaloff>:/rc/images/utilities-terminal.png</iconset>
    </property>
    <property name="text">
-    <string>Run Custum SQL</string>
+    <string>Run Custom SQL</string>
+   </property>
+   <property name="toolTip">
+    <string>Run Custom SQL</string>
    </property>
    <property name="statusTip">
     <string>Run Custum SQL</string>

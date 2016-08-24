@@ -29,6 +29,8 @@ PreferenceWindow::PreferenceWindow(QWidget *parent) :
     m_group.addAction(ui->actionGeneral);
     m_group.addAction(ui->actionSQL_Templates);
 
+    ui->pushButtonCreateHistoryTable->setChecked(tableview_settings->value(CREATE_SQL_HISTORY_TABLE).toBool());
+
     move(nextWindowPosition());
 }
 
@@ -266,4 +268,9 @@ void PreferenceWindow::on_removeSqlTemplate_clicked()
 void PreferenceWindow::on_pushButtonClearFilterHistory_clicked()
 {
     tableview_settings->setValue(SQL_FILTER_HISTORY, QVariant());
+}
+
+void PreferenceWindow::on_pushButtonCreateHistoryTable_clicked()
+{
+    tableview_settings->setValue(CREATE_SQL_HISTORY_TABLE, ui->pushButtonCreateHistoryTable->isChecked());
 }

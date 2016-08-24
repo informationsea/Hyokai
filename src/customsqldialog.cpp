@@ -7,6 +7,7 @@
 #include "sqlfileexporter.h"
 #include "main.h"
 #include "summarydialog.h"
+#include "sqlhistoryhelper.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFileInfo>
@@ -48,6 +49,8 @@ CustomSqlDialog::CustomSqlDialog(QSqlDatabase *database, QWidget *parent) :
     createMenus();
 
     m_history = tableview_settings->value(CUSTOM_SQL_HISTORY).toStringList();
+
+    m_historyHelper = new SqlHistoryHelper(database, this);
 }
 
 CustomSqlDialog::~CustomSqlDialog()
@@ -56,6 +59,7 @@ CustomSqlDialog::~CustomSqlDialog()
     delete assistMenu;
     delete historyMenu;
     delete menu;
+    delete m_historyHelper;
 }
 
 QTableView *CustomSqlDialog::tableView()
@@ -206,6 +210,8 @@ void CustomSqlDialog::on_pushButton_clicked()
         tableview_settings->setValue(CUSTOM_SQL_HISTORY, m_history);
     }
 
+    m_historyHelper->insertCustomSqlHistory(m_query.lastQuery());
+
     if (m_query.isSelect()) {
         m_querymodel.setQuery(m_query);
     } else {
@@ -252,12 +258,23 @@ void CustomSqlDialog::on_historyButton_clicked()
 {
     int count = 0;
     historyMenu->clear();
-    QMenu *additionalHistoy;
+
+    QStringList histories = m_historyHelper->customHistory();
+    foreach (QString query, histories) {
+        QString showName = query;
+        if (showName.length() > MAX_HISTORY_SHOW_LENGTH)
+            showName = query.left(MAX_HISTORY_SHOW_LENGTH/2-2) + QString(" ... ") + query.right(MAX_HISTORY_SHOW_LENGTH/2-2);
+
+        QAction *action = historyMenu->addAction(showName);
+        action->setData(query);
+        connect(action, SIGNAL(triggered()), SLOT(onHistorySelected()));
+    }
+
+    if (!histories.isEmpty())
+        historyMenu->addSeparator();\
+
+    QMenu *additionalHistoy = historyMenu->addMenu(tr("All History"));;
     foreach(QString query, m_history) {
-        if (count == MAX_HISTORY_SHOW_ITEMS+1) {
-            historyMenu->addSeparator();
-            additionalHistoy = historyMenu->addMenu(tr("More"));
-        }
         QAction *action;
 
         QString showName = query;
@@ -265,12 +282,11 @@ void CustomSqlDialog::on_historyButton_clicked()
             showName = query.left(MAX_HISTORY_SHOW_LENGTH/2-2) + QString(" ... ") + query.right(MAX_HISTORY_SHOW_LENGTH/2-2);
         }
 
-        if (count <= MAX_HISTORY_SHOW_ITEMS)
-            action = historyMenu->addAction(showName);
-        else if (count < MAX_HISTORY_SHOW_MORE_ITEMS)
+        if (count < MAX_HISTORY_SHOW_MORE_ITEMS)
             action = additionalHistoy->addAction(showName);
         else
             break;
+
         action->setData(query);
         connect(action, SIGNAL(triggered()), SLOT(onHistorySelected()));
         count += 1;

@@ -15,6 +15,8 @@
 
 #define CUSTOM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
 
+class SqlHistoryHelper;
+
 namespace Ui {
 class CustomSql;
 }
@@ -67,6 +69,7 @@ private:
     QSqlQuery m_query;
     SqlQueryModelAlternativeBackground m_querymodel;
     QStringList m_history;
+    SqlHistoryHelper *m_historyHelper;
 
     QMenu *assistMenu;
     QMenu *menu;

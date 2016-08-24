@@ -20,6 +20,10 @@
 #define SQL_FILTER_HISTORY "SQL_FILTER_HISTORY"
 #define SQL_FILTER_HISTORY_MAX 20
 
+#define CREATE_SQL_HISTORY_TABLE "CREATE_SQL_HISTORY_TABLE"
+
+class MainWindow;
+
 extern QList<MainWindow *> windowList;
 extern QSettings *tableview_settings;
 extern PreferenceWindow *preferenceDialog;

@@ -54,11 +54,10 @@ int main(int argc, char *argv[])
     a.installEventFilter(handler);
 
     tableview_settings = new QSettings(&a);
-/*
-    MainWindow *w = new MainWindow(NULL, filelist[0]);
-    w->show();
-    windowList.append(w);
-*/
+
+    if (!tableview_settings->contains(CREATE_SQL_HISTORY_TABLE)) {
+        tableview_settings->setValue(CREATE_SQL_HISTORY_TABLE, true);
+    }
 
     for (int i = 0; i < filelist.length(); ++i) {
         MainWindow *w2 = new MainWindow(NULL, filelist[i]);

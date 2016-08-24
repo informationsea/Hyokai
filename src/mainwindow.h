@@ -11,13 +11,16 @@
 #include "sqlplotchart.h"
 #include "hyokaiconfig.h"
 #include "tableviewstyleditemdelegate.h"
+#include "sqlhistoryhelper.h"
 
 #ifdef ENABLE_MAC_NATIVE_TOOLBAR
 class QMacNativeToolBar;
 #endif
 
+class SqlHistoryHelper;
+
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -32,7 +35,6 @@ public:
     QString databaseName() { return m_databasename; }
     QSqlDatabase &database() {return m_database;}
     void refresh();
-//    void importOneFile(const QString &path);
     bool isDirty() { return m_isDirty; }
 
 protected:
@@ -58,12 +60,12 @@ private:
     QList<QDialog *> m_dialogs;
     QMenu m_assistPopup;
     TableViewStyledItemDelegate *m_tableViewItemDelegate;
+    SqlHistoryHelper *m_historyHelper;
 
     void initialize();
 
     void open(QString path);
     bool confirmDuty(); // return false if canceled
-//    QString importFile(QString path, bool autoimport);
     void setupTableModel();
 
     QWidgetList m_windowList;
@@ -91,6 +93,7 @@ private slots:
     void hideColumn();
     void createIndexForColumn();
     void insertSqlFilter();
+    void replaceSqlFilter();
     void onCopyTriggered(bool withHeader);
     void showCell();
     void cleanupDatabase();

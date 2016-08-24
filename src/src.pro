@@ -62,7 +62,8 @@ SOURCES += main.cpp\
     zlib/inftrees.c \
     zlib/trees.c \
     zlib/uncompr.c \
-    zlib/zutil.c
+    zlib/zutil.c \
+    sqlhistoryhelper.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -108,7 +109,8 @@ HEADERS  += mainwindow.h \
     zlib/zconf.h \
     zlib/zlib.h \
     zlib/zutil.h \
-    filereader/src/growbuffer.hpp
+    filereader/src/growbuffer.hpp \
+    sqlhistoryhelper.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
