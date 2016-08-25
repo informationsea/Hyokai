@@ -8,6 +8,8 @@
 #include "main.h"
 #include "summarydialog.h"
 #include "sqlhistoryhelper.h"
+#include "sqlasynchronousexecutor.h"
+
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFileInfo>
@@ -23,7 +25,7 @@
 CustomSqlDialog::CustomSqlDialog(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CustomSql), m_database(database),
-    m_query(*database), m_querymodel(this)
+    m_query(*database), m_querymodel(this), m_asynchronousExecutor(0)
 {
     ui->setupUi(this);
     ui->tableView->setModel(&m_querymodel);
@@ -60,6 +62,7 @@ CustomSqlDialog::~CustomSqlDialog()
     delete historyMenu;
     delete menu;
     delete m_historyHelper;
+    delete m_asynchronousExecutor;
 }
 
 QTableView *CustomSqlDialog::tableView()
@@ -108,7 +111,6 @@ bool CustomSqlDialog::eventFilter(QObject *obj, QEvent *ev)
     }
     return false;
 }
-
 void CustomSqlDialog::showCell()
 {
     QAction *action = (QAction *)sender();
@@ -196,11 +198,36 @@ void CustomSqlDialog::on_pushButton_clicked()
 {
     if(ui->sql->toPlainText().isEmpty())
         return;
-    m_query.exec(ui->sql->toPlainText());
-    if (m_query.lastError().type() != QSqlError::NoError) {
+    m_query.prepare(ui->sql->toPlainText());
+
+    delete m_asynchronousExecutor;
+    m_asynchronousExecutor = new SqlAsynchronousExecutor(&m_query, this);
+    connect(m_asynchronousExecutor, SIGNAL(finishQuery(QSqlQuery*,SqlAsynchronousExecutor*)), SLOT(finishQuery(QSqlQuery*,SqlAsynchronousExecutor*)));
+
+    ui->pushButton->setEnabled(false);
+    ui->historyButton->setEnabled(false);
+    ui->menuButton->setEnabled(false);
+    ui->assistButton->setEnabled(false);
+    ui->sql->setEnabled(false);
+
+    m_asynchronousExecutor->start();
+}
+
+
+void CustomSqlDialog::finishQuery(QSqlQuery *query, SqlAsynchronousExecutor *executor)
+{
+    delete executor;
+
+    if (query->lastError().type() != QSqlError::NoError) {
         SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+m_query.lastQuery());
         return;
     }
+
+    ui->pushButton->setEnabled(true);
+    ui->historyButton->setEnabled(true);
+    ui->menuButton->setEnabled(true);
+    ui->assistButton->setEnabled(true);
+    ui->sql->setEnabled(true);
 
     ui->sql->setStyleSheet("SQLTextEdit{ background: white; }");
 
@@ -218,7 +245,6 @@ void CustomSqlDialog::on_pushButton_clicked()
         SheetMessageBox::information(this, tr("SQL Report"), tr("The query SQL was finished successfully.") + "\n\n" + m_query.lastQuery());
     }
 }
-
 
 void CustomSqlDialog::on_assistButton_clicked()
 {

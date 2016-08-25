@@ -63,7 +63,8 @@ SOURCES += main.cpp\
     zlib/trees.c \
     zlib/uncompr.c \
     zlib/zutil.c \
-    sqlhistoryhelper.cpp
+    sqlhistoryhelper.cpp \
+    sqlasynchronousexecutor.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -110,7 +111,8 @@ HEADERS  += mainwindow.h \
     zlib/zlib.h \
     zlib/zutil.h \
     filereader/src/growbuffer.hpp \
-    sqlhistoryhelper.h
+    sqlhistoryhelper.h \
+    sqlasynchronousexecutor.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \

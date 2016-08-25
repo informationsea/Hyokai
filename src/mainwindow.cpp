@@ -607,7 +607,6 @@ void MainWindow::filterFinished()
 {
     if (m_tableModel->plainTableName().isEmpty())
         return;
-    if (m_tableModel->filter() == ui->sqlLine->toPlainText()) return;
 
     m_tableModel->setFilter(ui->sqlLine->toPlainText());
     m_tableModel->select();
@@ -682,6 +681,18 @@ void MainWindow::tableChanged(const QString &name)
     ui->actionCommit->setEnabled(m_tableModel->editable());
     ui->actionRevert->setEnabled(m_tableModel->editable());
     setWindowTitle(QString("[*] %1 : %2").arg(m_tableModel->plainTableName(), QFileInfo(m_database.databaseName()).completeBaseName()));
+
+    // reset column size
+    int columns = m_tableModel->columnCount();
+    for (int i = 0; i < columns; i++) {
+        ui->tableView->setColumnWidth(i, 100);
+    }
+
+    int rows = m_tableModel->rowCount();
+    for (int i = 0; i < rows; i++) {
+        ui->tableView->setRowHeight(i, 30);
+    }
+
     filterFinished();
 }
 

@@ -16,6 +16,7 @@
 #define CUSTOM_SQL_HISTORY "CUSTUM_SQL_HISTORY"
 
 class SqlHistoryHelper;
+class SqlAsynchronousExecutor;
 
 namespace Ui {
 class CustomSql;
@@ -35,6 +36,7 @@ protected:
     bool eventFilter(QObject *obj, QEvent *ev);
 
 public slots:
+    void finishQuery(QSqlQuery *query, SqlAsynchronousExecutor *executor);
     void selectTableAll();
     
 private slots:
@@ -70,6 +72,7 @@ private:
     SqlQueryModelAlternativeBackground m_querymodel;
     QStringList m_history;
     SqlHistoryHelper *m_historyHelper;
+    SqlAsynchronousExecutor *m_asynchronousExecutor;
 
     QMenu *assistMenu;
     QMenu *menu;
