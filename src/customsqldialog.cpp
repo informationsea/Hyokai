@@ -216,18 +216,16 @@ void CustomSqlDialog::on_pushButton_clicked()
 
 void CustomSqlDialog::finishQuery(QSqlQuery *query, SqlAsynchronousExecutor *executor)
 {
-    delete executor;
-
-    if (query->lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+m_query.lastQuery());
-        return;
-    }
-
     ui->pushButton->setEnabled(true);
     ui->historyButton->setEnabled(true);
     ui->menuButton->setEnabled(true);
     ui->assistButton->setEnabled(true);
     ui->sql->setEnabled(true);
+
+    if (query->lastError().type() != QSqlError::NoError) {
+        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+m_query.lastQuery());
+        return;
+    }
 
     ui->sql->setStyleSheet("SQLTextEdit{ background: white; }");
 
