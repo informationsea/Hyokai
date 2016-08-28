@@ -61,7 +61,6 @@
 #define CHANGE_SIZE_COLUMN 1
 #define CHANGE_SIZE_ROW    2
 
-static QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE");
 static int open_count = 0;
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
@@ -71,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
     m_databasename = path;
 
     open_count++;
-    m_database = QSqlDatabase::cloneDatabase(sqlite, QString::number(open_count));
+    m_database = QSqlDatabase::addDatabase("QSQLITE", QString::number(open_count));
     m_database.setDatabaseName(path);
     m_database.open();
 
