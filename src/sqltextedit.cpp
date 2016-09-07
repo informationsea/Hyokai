@@ -210,6 +210,15 @@ void SQLSyntaxHighligter::highlightBlock(const QString &text)
                 pos += quoted.matchedLength();
             }
         }
+
+        {
+            QRegExp quoted("'[^']*'");
+            int pos = -1;
+            while ((pos = text.indexOf(quoted, pos+1)) >= 0) {
+                setFormat(pos, quoted.matchedLength(), m_sql_quoted_format);
+                pos += quoted.matchedLength();
+            }
+        }
     }
 }
 
