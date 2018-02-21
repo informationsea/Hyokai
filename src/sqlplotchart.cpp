@@ -8,7 +8,6 @@
 #include <QSqlError>
 #include <QSqlResult>
 #include <QBuffer>
-#include <QProcess>
 #include <QClipboard>
 #include <QFileDialog>
 #include <QPainter>

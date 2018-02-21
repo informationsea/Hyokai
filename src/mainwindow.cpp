@@ -455,6 +455,11 @@ void MainWindow::onShowHiddenColumnShow()
     if (!isHiddenColumnExists) {
         QAction *empty = ui->menuShowHiddenColumn->addAction(tr("No hidden column"));
         empty->setDisabled(true);
+    } else {
+        ui->menuShowHiddenColumn->addSeparator();
+        QAction *showAll = ui->menuShowHiddenColumn->addAction(tr("Show all"));
+        showAll->setData(-1);
+        connect(showAll, SIGNAL(triggered()), SLOT(showColumn()));
     }
 }
 
@@ -549,7 +554,13 @@ void MainWindow::showColumn()
 {
     QAction *sigsender = static_cast<QAction *>(sender());
     int logicalIndex = sigsender->data().toInt();
-    ui->tableView->showColumn(logicalIndex);
+    if (logicalIndex >= 0) {
+        ui->tableView->showColumn(logicalIndex);
+    } else {
+        for (int i = 0; i < m_tableModel->columnCount(); i++) {
+            ui->tableView->showColumn(i);
+        }
+    }
 }
 
 void MainWindow::hideColumn()

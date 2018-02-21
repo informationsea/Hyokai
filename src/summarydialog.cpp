@@ -5,7 +5,6 @@
 #include <QVariant>
 #include <QtAlgorithms>
 #include <QClipboard>
-#include <QProcess>
 #include <QDebug>
 #include <QStringList>
 #include <QRegExp>
@@ -107,41 +106,10 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAn
         m_rdata_file->write((const char *)&oneValue, sizeof(oneValue));
     }
     m_rdata_file->flush();
-    //qDebug() << m_rdata_file->fileName();
-
-    /*
-    m_rdraw_file->open();
-    m_rdraw_png->open();
-    qDebug() << m_rName;
-    m_drawRScript = QString("library(lattice)\n"
-                            "file.%3 <- file(\"%1\", \"rb\")\n"
-                            "data.%3 <- readBin(file.%3, \"double\", %4, 8)\n"
-                            "png(\"%2\", width=400, height=400)\n"
-                            "densityplot(data.%3, panel=function(...){panel.grid(h=-1, v=-1);panel.densityplot(...)})\n"
-                            "close.connection(file.%3)\n"
-                            "dev.off()").
-                    arg(m_rdata_file->fileName(), m_rdraw_png->fileName(), m_rName, QString::number(values.length()));
-    qDebug() << m_drawRScript;
-
-    m_rdraw_file->write(m_drawRScript.toUtf8());
-    m_rdraw_file->flush();
-    */
 
     m_histogramPlotter.setData(values);
     m_histogramPlotter.setXLabel(tableAndcolumnName);
     ui->plotWidget->setPlotter(&m_histogramPlotter);
-
-    /*
-    QStringList args;
-    args << m_rdraw_file->fileName();
-    int rt = QProcess::execute(tableview_settings->value(PATH_R, suggestRPath()).toString(), args);
-
-    if (rt == 0) {
-        QImage histogram(m_rdraw_png->fileName());
-        ui->histogram->setImage(histogram);
-        ui->histogram->repaint();
-    }
-    */
 }
 
 SummaryDialog::~SummaryDialog()
