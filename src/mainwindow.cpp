@@ -974,7 +974,7 @@ void MainWindow::on_actionAbout_Table_View_triggered()
                      " (32 bit)<br /><br />"
                  #endif
                      "Simple SQLite Viewer<br /><br />"
-                     "Copyright (C) 2014-2016 Yasunobu OKAMURA<br /><br />"
+                     "Copyright (C) 2014-2018 Yasunobu OKAMURA<br /><br />"
                      "Developing on <a href=\"https://github.com/informationsea/Hyokai\">Github</a><hr />"
                      "Some toolbar icons by <a href=\"http://tango.freedesktop.org\">Tango Desktop Project</a><br /><br />"
                      "Build at " __DATE__ " " __TIME__ "<br />"

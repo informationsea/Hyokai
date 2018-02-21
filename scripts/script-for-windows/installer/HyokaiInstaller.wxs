@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
 
-  <Product Name='Hyokai 0.4.2' Id='30B61E67-7B40-48E4-9300-B90677280C60' UpgradeCode='0ABA09BB-8BDE-4BC8-99C6-F4484CAE5C94'
+  <Product Name='Hyokai 0.4.3' Id='a1a0ce21-43ec-4578-81bf-ef99587b08df' UpgradeCode='17e68d53-8b89-47a3-9556-c6c44fbed19d'
     Language='1033' Codepage='1252' Version='1.0.1' Manufacturer='Yasunobu OKAMURA'>
 
     <Package Id='*' Keywords='Installer' Description="Hyokai Installer"
@@ -12,13 +12,13 @@
     <Property Id="ARPPRODUCTICON" Value="Hyokai.exe" />
 
     <Media Id='1' Cabinet='Hyokai.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
-    <Property Id='DiskPrompt' Value="Hyokai 0.4.2 Installation [1]" />
+    <Property Id='DiskPrompt' Value="Hyokai 0.4.3 Installation [1]" />
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
         <Directory Id='OKAMURA' Name='Y-OKAMURA'>
-          <Directory Id='INSTALLDIR' Name='Hyokai-0.4.2'>
-            <Component Id='QtComponents' Guid='489E5012-12B3-4852-81E4-C3133A31EF47'>
+          <Directory Id='INSTALLDIR' Name='Hyokai-0.4.3'>
+            <Component Id='QtComponents' Guid='af2d869f-02ad-47c1-8f12-18ef067ff015'>
               <File Id="QtCore" Name="Qt5Core.dll" DiskId="1" Source="..\Hyokai\Hyokai32\Qt5Core.dll" KeyPath="yes" />
               <File Id="QtGui" Name="Qt5Gui.dll" DiskId="1" Source="..\Hyokai\Hyokai32\Qt5Gui.dll" KeyPath="no" />
               <File Id="QtSql" Name="Qt5Sql.dll" DiskId="1" Source="..\Hyokai\Hyokai32\Qt5Sql.dll" KeyPath="no" />
@@ -32,7 +32,7 @@
 
             <Directory Id="QtPlugins" Name="plugins">
               <Directory Id="QtImageFormats" Name="imageformats">
-                <Component Id="imageformat_dll" Guid="722F4694-E99E-49D3-948A-E16B0309D09A">
+                <Component Id="imageformat_dll" Guid="9614e88e-1ba4-4cbd-a8cb-431cdaf1077a">
                   <File Id="qico" Name="qico.dll" DiskId="1" Source="..\Hyokai\Hyokai32\plugins\imageformats/qico.dll" KeyPath="yes" />
                   <File Id="qgif" Name="qgif.dll" DiskId="1" Source="..\Hyokai\Hyokai32\plugins\imageformats/qgif.dll" KeyPath="no" />
                   <File Id="qjpeg" Name="qjpeg.dll" DiskId="1" Source="..\Hyokai\Hyokai32\plugins\imageformats/qjpeg.dll" KeyPath="no" />
@@ -43,7 +43,7 @@
               </Directory>
 
               <Directory Id="SQL_DRIVERS" Name="sqldrivers">
-                <Component Id="drivers" Guid="E013C830-2859-4513-849C-E23E56D9E019">
+                <Component Id="drivers" Guid="04c4ea17-9dc1-45ed-96d1-032d6f44ffa9">
                   <File Id="sqlite" Name="qsqlite.dll" DiskId="1" Source="..\Hyokai\Hyokai32\plugins\sqldrivers\qsqlite.dll" KeyPath="yes" />
                   <File Id="mysql" Name="qsqlmysql.dll" DiskId="1" Source="..\Hyokai\Hyokai32\plugins\sqldrivers\qsqlmysql.dll" KeyPath="no" />
                   <File Id="psql" Name="qsqlpsql.dll" DiskId="1" Source="..\Hyokai\Hyokai32\plugins\sqldrivers\qsqlpsql.dll" KeyPath="no" />
@@ -52,12 +52,12 @@
             </Directory>
 
             <Directory Id="QtPlatforms" Name="platforms">
-              <Component Id="platforms" Guid="8BA4459E-83BA-4F38-A489-F8AF23D3C8B0">
+              <Component Id="platforms" Guid="a6fce008-6b82-40c8-95f2-300bf398863d">
                 <File Id="windows" Name="qwindows.dll" DiskId="1" Source="..\Hyokai\Hyokai32\platforms\qwindows.dll" KeyPath="yes" />
               </Component>
             </Directory>
 
-            <Component Id='MainExecutable' Guid='4910FE8D-9E90-4C6D-9054-FF5613B0B6DA'>
+            <Component Id='MainExecutable' Guid='00d5d44a-e61e-4a63-b567-8486d8043251'>
               <File Id='HyokaiEXE' Name='Hyokai.exe' DiskId='1' Source='..\Hyokai\Hyokai32\Hyokai.exe' KeyPath='yes'>
                 <Shortcut Id="startmenuHyokai03" Directory="ProgramMenuDir" Name="Hyokai (32 bit)"
                           WorkingDirectory='INSTALLDIR' Icon="Hyokai.exe" IconIndex="0" Advertise="yes" />
@@ -90,19 +90,19 @@
                 </Extension>
               </ProgId>
             </Component>
-            <Component Id='Manual' Guid='B28C10D0-8A4D-4089-A4BB-922A07694933'>
+            <Component Id='Manual' Guid='38946a94-aca2-40b4-8852-a0899afda84a'>
               <File Id='Manual' Name='README.txt' DiskId='1' Source='..\dist-README.txt' KeyPath='yes'>
                 <Shortcut Id='startmenuManual' Directory='ProgramMenuDir' Name='README' Advertise='yes' />
               </File>
             </Component>
 
             <Directory Id='SAMPLE' Name='sample'>
-              <Component Id='SampleDb' Guid='69EA6A59-D293-411A-BFF8-7C22639A56BE'>
+              <Component Id='SampleDb' Guid='062c2ac2-52e3-4af2-8be6-b8c2e052022e'>
                 <File Id='SampleDb' Name='iris.data.sqlite3' DiskId='1' Source='..\..\..\sampledata\iris.data.sqlite3' KeyPath='yes'>
                   <Shortcut Id='startmenuSampleDb' Directory='ProgramMenuDir' Name='iris.data' Advertise='yes' Icon="Hyokai.exe" IconIndex="1" />
                 </File>
               </Component>
-              <Component Id='SampleCsv' Guid='3D73BB95-F472-4C7E-B0CC-8A604653BAF6'>
+              <Component Id='SampleCsv' Guid='1caa88d8-33a6-47be-a48e-baf964e4f0df'>
                 <File Id='SampleCsv' Name='iris.data.csv' DiskId='1' Source='..\..\..\sampledata\iris.data.csv' KeyPath='yes'>
                 </File>
               </Component>
@@ -115,8 +115,8 @@
       </Directory>
       
       <Directory Id="ProgramMenuFolder" Name="Programs">
-        <Directory Id="ProgramMenuDir" Name="Hyokai 0.4.2">
-          <Component Id="ProgramMenuDir" Guid="E34E36CC-9C42-4135-AF64-A4D59402A43C">
+        <Directory Id="ProgramMenuDir" Name="Hyokai 0.4.3">
+          <Component Id="ProgramMenuDir" Guid="c402129c-a42e-4c6b-be25-a8e4cebef524">
             <RemoveFolder Id='ProgramMenuDir' On='uninstall' />
             <RegistryValue Root='HKCU' Key='Software\[Manufacturer]\[ProductName]' Type='string' Value='' KeyPath='yes' />
 
