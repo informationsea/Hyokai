@@ -91,6 +91,7 @@ private slots:
     void showColumnSummary();
     void showColumn();
     void hideColumn();
+    void copyColumnName();
     void createIndexForColumn();
     void insertSqlFilter();
     void replaceSqlFilter();

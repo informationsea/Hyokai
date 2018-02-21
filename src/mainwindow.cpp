@@ -262,6 +262,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
             QAction *summary = popup.addAction("Summary");
             summary->setData(logical_index);
             connect(summary, SIGNAL(triggered()), SLOT(showColumnSummary()));
+            QAction *copyColumnName = popup.addAction("Copy column name");
+            copyColumnName->setData(logical_index);
+            connect(copyColumnName, SIGNAL(triggered()), SLOT(copyColumnName()));
             QAction *hideColumn = popup.addAction("Hide");
             hideColumn->setData(logical_index);
             connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
@@ -568,6 +571,14 @@ void MainWindow::hideColumn()
     QAction *sigsender = static_cast<QAction *>(sender());
     int logicalIndex = sigsender->data().toInt();
     ui->tableView->hideColumn(logicalIndex);
+}
+
+void MainWindow::copyColumnName()
+{
+    QAction *sigsender = static_cast<QAction *>(sender());
+    int logicalIndex = sigsender->data().toInt();
+    QClipboard *clip = QGuiApplication::clipboard();
+    clip->setText(m_tableModel->headerData(logicalIndex, Qt::Horizontal).toString());
 }
 
 void MainWindow::createIndexForColumn()
