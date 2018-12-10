@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
             QString db = list[1].replace("\"", "");
             QSqlQuery q = m_database.exec(QString("ATTACH DATABASE \"%1\" AS \"%2\"").arg(db, as));
             if (q.lastError().type() != QSqlError::NoError) {
-                SheetMessageBox::critical(NULL, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+q.lastQuery());
+                SheetMessageBox::critical(nullptr, tr("Cannot attach"), m_database.lastError().text()+"\n\n"+q.lastQuery());
             }
         }
     }
@@ -351,7 +351,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 
 void MainWindow::onChangeColumnOrRowSize()
 {
-    QAction *action = (QAction *)sender();
+    QAction *action = static_cast<QAction *>(sender());
     int type = action->data().toInt();
     int defaultsize = 100;
     QString title = tr("Change size of columns");
@@ -426,7 +426,7 @@ void MainWindow::onRecentFileOpen()
     if (fileinfo.exists()) {
         open(action->data().toString());
     } else {
-        SheetMessageBox::critical(0, tr("Cannot open recent file."), tr("%1 is not found.").arg(fileinfo.completeBaseName()));
+        SheetMessageBox::critical(nullptr, tr("Cannot open recent file."), tr("%1 is not found.").arg(fileinfo.completeBaseName()));
     }
 }
 
@@ -468,7 +468,7 @@ void MainWindow::onShowHiddenColumnShow()
 
 void MainWindow::showCell()
 {
-    QAction *action = (QAction *)sender();
+    QAction *action = static_cast<QAction *>(sender());
     QModelIndex index = action->data().toModelIndex();
     QString header = m_tableModel->headerData(index.column(), Qt::Horizontal).toString();
 
@@ -484,7 +484,7 @@ void MainWindow::showCell()
 
 void MainWindow::activate()
 {
-    QAction *action = (QAction *)sender();
+    QAction *action = static_cast<QAction *>(sender());
     m_windowList[action->data().toInt()]->raise();
     m_windowList[action->data().toInt()]->activateWindow();
 }
@@ -798,7 +798,7 @@ void MainWindow::on_actionCreateTable_triggered()
     if (!confirmDuty())
         return;
 
-    SchemaDialog dialog(&m_database, 0, this);
+    SchemaDialog dialog(&m_database, nullptr, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
 
@@ -824,7 +824,7 @@ void MainWindow::open(QString path)
     if (path.isEmpty())
         return;
     ::tableviewCleanupWindows();
-    MainWindow *w = new MainWindow(NULL, path);
+    MainWindow *w = new MainWindow(nullptr, path);
     w->show();
     ::windowList.append(w);
     if (m_databasename.compare(":memory:") == 0 && m_database.tables().size() == 0) {
@@ -840,7 +840,7 @@ void MainWindow::refresh()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString path = QFileDialog::getOpenFileName(NULL, "Open SQLite3 Database or text file",
+    QString path = QFileDialog::getOpenFileName(nullptr, "Open SQLite3 Database or text file",
                                                 tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(),
 
                                                 "All (*.sqlite3 *.sqlite *.db *.txt *.csv *.tsv) ;; SQLite3 (*.sqlite3 *.sqlite *.db);; Text (*.txt);; CSV (*.csv);; Tab delimited (*.tsv);; Gene Annotations (*.bed *.gff *.gtf);; All (*)");
@@ -862,7 +862,7 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionNew_triggered()
 {
     QString defaultpath = QFileInfo(tableview_settings->value(LAST_SQLITE_DIRECTORY, QDir::homePath()).toString(), "Untitled.sqlite3").absoluteFilePath();
-    QString path = QFileDialog::getSaveFileName(NULL, "New SQLite3 Database",
+    QString path = QFileDialog::getSaveFileName(nullptr, "New SQLite3 Database",
                                                 defaultpath,
                                                 "SQLite3 (*.sqlite3 *.sqlite *.db);; All (*)");
     if (path.isEmpty())
@@ -1199,7 +1199,7 @@ void MainWindow::on_buttonAssist_clicked()
 
 void MainWindow::insertSqlFilter()
 {
-    QAction *senderAction = (QAction *)sender();
+    QAction *senderAction = static_cast<QAction *>(sender());
     QString add = senderAction->data().toString();
     if (add.compare("<CLEAR>") == 0) {
         tableview_settings->setValue(SQL_FILTER_HISTORY, QVariant());
@@ -1210,7 +1210,7 @@ void MainWindow::insertSqlFilter()
 
 void MainWindow::replaceSqlFilter()
 {
-    QAction *senderAction = (QAction *)sender();
+    QAction *senderAction = static_cast<QAction *>(sender());
     QString add = senderAction->data().toString();
     if (add.compare("<CLEAR>") == 0) {
         tableview_settings->setValue(SQL_FILTER_HISTORY, QVariant());
@@ -1237,7 +1237,7 @@ void MainWindow::on_actionDrop_Table_triggered()
     QString tableName = m_tableModel->tableName();
     bool isView = m_tableModel->isView();
     m_tableModel->setTable("");
-    ui->tableView->setModel(0);
+    ui->tableView->setModel(nullptr);
     delete m_tableModel;
 
     if (isView)
@@ -1340,7 +1340,9 @@ void MainWindow::on_actionDuplicate_Table_triggered()
                 newfield.setFieldType("BOLB");
                 break;
             default:
-                qDebug() << field;
+                qDebug() << "Unknown field type " << field;
+                newfield.setFieldType("TEXT");
+                break;
             case QVariant::String:
                 newfield.setFieldType("TEXT");
                 break;
@@ -1353,7 +1355,7 @@ void MainWindow::on_actionDuplicate_Table_triggered()
 
         m_database.transaction();
 
-        SchemaDialog dialog(&m_database, NULL, this);
+        SchemaDialog dialog(&m_database, nullptr, this);
         dialog.setFields(fields);
         dialog.setName(SqlService::suggestTableName(tableName, &m_database));
 
@@ -1442,7 +1444,7 @@ void MainWindow::on_actionClose_triggered()
 void MainWindow::setNumDecimalPlaces()
 {
     const QAction *action = static_cast<QAction *>(sender());
-    if (action == 0) return;
+    if (action == nullptr) return;
 
     int logicalIndex = action->data().toInt();
     if (logicalIndex < 0) return;
@@ -1464,7 +1466,7 @@ void MainWindow::setNumDecimalPlaces()
 void MainWindow::resetNumDecimalPlaces()
 {
     const QAction *action = static_cast<QAction *>(sender());
-    if (action == 0) return;
+    if (action == nullptr) return;
 
     int logicalIndex = action->data().toInt();
     if (logicalIndex < 0) return;
