@@ -748,9 +748,9 @@ void MainWindow::updateDatabase()
         index += 1;
     }
 
-    if (m_tableModel->tableName().isEmpty() || !m_database.tables().contains(m_tableModel->tableName())) {
-        if (m_database.tables().size())
-            tableChanged(m_database.tables()[0]);
+    if (m_tableModel->tableName().isEmpty() || !list.contains(m_tableModel->tableName())) {
+        if (list.size())
+            tableChanged(list[0]);
 
         int index = ui->tableSelect->findText(m_tableModel->plainTableName());
         ui->tableSelect->setCurrentIndex(index);
