@@ -18,6 +18,10 @@ QVariant SqlTableModelAlternativeBackground::data(const QModelIndex & index, int
             return d.toString().split("\n").at(0);
         return d;
     }
+    case Qt::ToolTipRole: {
+        QVariant d = QSqlTableModel::data(index, Qt::DisplayRole);
+        return d;
+    }
     case Qt::FontRole: {
         //return QFont("monaco");
     }

@@ -22,8 +22,6 @@ void TableViewStyledItemDelegate::paint(QPainter *painter, const QStyleOptionVie
     const QSqlTableModel *model = static_cast<const QSqlTableModel *>(index.model());
     if (model->isDirty(index)) {
         painter->fillRect(option.rect, QColor(index.row() % 2 ? "#FFF4CF" : "#FFFAE9"));
-    } else if (index.row() % 2) {
-        painter->fillRect(option.rect, QColor("#E8EDF5"));
     }
 
     // when drawing numeric values

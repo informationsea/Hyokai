@@ -25,7 +25,7 @@
 CustomSqlDialog::CustomSqlDialog(QSqlDatabase *database, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CustomSql), m_database(database),
-    m_query(*database), m_querymodel(this), m_asynchronousExecutor(0)
+    m_query(*database), m_querymodel(this), m_asynchronousExecutor(nullptr)
 {
     ui->setupUi(this);
     ui->tableView->setModel(&m_querymodel);
@@ -227,7 +227,7 @@ void CustomSqlDialog::finishQuery(QSqlQuery *query, SqlAsynchronousExecutor *exe
         return;
     }
 
-    ui->sql->setStyleSheet("SQLTextEdit{ background: white; }");
+    ui->sql->setStyleSheet("SQLTextEdit{ background: white; color: black; }");
 
     if (m_history.isEmpty() || m_history.first() != m_query.lastQuery()) {
         m_history.insert(0, m_query.lastQuery());
@@ -357,7 +357,7 @@ void CustomSqlDialog::onExportTable()
     if (!m_query.isSelect())
         return;
 
-    SqlFileExporter exporter(NULL, this);
+    SqlFileExporter exporter(nullptr, this);
     if (!exporter.exportTable(m_query, outputpath, FileTypeUtil::getFileTypeFromPath(outputpath)))
         SheetMessageBox::critical(this, tr("Cannot export table"), exporter.errorMessage());
 }
@@ -536,8 +536,8 @@ void CustomSqlDialog::createMenus()
 void CustomSqlDialog::on_sql_textChanged()
 {
     if (ui->sql->toPlainText().trimmed() == m_query.lastQuery()) {
-        ui->sql->setStyleSheet("SQLTextEdit{ background: white; }");
+        ui->sql->setStyleSheet("SQLTextEdit{ background: white; color: black; }");
     } else {
-        ui->sql->setStyleSheet("SQLTextEdit{ background: #FAFFC5;}");
+        ui->sql->setStyleSheet("SQLTextEdit{ background: #FAFFC5; color: black;}");
     }
 }

@@ -14,6 +14,6 @@ fi
 
 APPNAME=Hyokai.app
 
-find ${APPNAME} -type f -perm 755 -exec codesign --force --verify --verbose -s "$CODE_SIGN_IDENTITY" '{}' ';'
-find ${APPNAME} -name '*.framework' -exec codesign --force --verify --verbose -s "$CODE_SIGN_IDENTITY" '{}' ';'
-codesign --force --verify --verbose -s "$CODE_SIGN_IDENTITY" ${APPNAME}
+#find ${APPNAME} -type f -perm 755 -exec codesign --force --verify --verbose -s "$CODE_SIGN_IDENTITY" '{}' ';'
+#find ${APPNAME} -name '*.framework' -exec codesign --force --verify --verbose -s "$CODE_SIGN_IDENTITY" '{}' ';'
+#codesign --force --verify --verbose -s "$CODE_SIGN_IDENTITY" ${APPNAME}

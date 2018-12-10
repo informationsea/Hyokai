@@ -10,10 +10,9 @@
 #include "main.h"
 
 SQLTextEdit::SQLTextEdit(QWidget *parent) :
-    QPlainTextEdit(parent), m_popup(0)
+    QPlainTextEdit(parent), m_popup(nullptr)
 {
     m_syntaxHilighter = new SQLSyntaxHighligter(document());
-
 }
 
 SQLTextEdit::~SQLTextEdit()
@@ -137,7 +136,7 @@ void SQLTextEdit::autoComplete()
 
 
 SQLSyntaxHighligter::SQLSyntaxHighligter(QTextDocument *parent):
-    QSyntaxHighlighter(parent), m_database(0)
+    QSyntaxHighlighter(parent), m_database(nullptr)
 {
     m_command_list << "ALTER TABLE"
                    << "ANALYZE"
