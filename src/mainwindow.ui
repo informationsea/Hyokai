@@ -168,12 +168,12 @@
      <x>0</x>
      <y>0</y>
      <width>673</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <widget class="QMenu" name="menuRecent_Files">
      <property name="title">
@@ -244,7 +244,7 @@
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="actionCopy"/>
     <addaction name="actionCopy_with_header"/>
@@ -261,6 +261,7 @@
     <addaction name="separator"/>
     <addaction name="actionShow_Toolbar"/>
     <addaction name="actionShow_Table_List_View"/>
+    <addaction name="actionShow_Column_List_View"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -315,7 +316,62 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="QListWidget" name="tableListView"/>
+      <widget class="QListWidget" name="tableListView">
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="columnListWidget">
+   <property name="windowTitle">
+    <string>Column List</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLineEdit" name="columnListSearchEdit"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="columnListSearchClear">
+         <property name="text">
+          <string>Clear</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QListWidget" name="columnListView">
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -708,6 +764,14 @@
    </property>
    <property name="text">
     <string>Show Table List View</string>
+   </property>
+  </action>
+  <action name="actionShow_Column_List_View">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Column List View</string>
    </property>
   </action>
  </widget>

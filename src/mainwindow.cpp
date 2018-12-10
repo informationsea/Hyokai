@@ -61,11 +61,14 @@
 #define CHANGE_SIZE_COLUMN 1
 #define CHANGE_SIZE_ROW    2
 
+#define TABLE_LIST_VISIBLE "TABLE_LIST_VISIBLE"
+#define COLUMN_LIST_VISIBLE "COLUMN_LIST_VISIBLE"
+
 static int open_count = 0;
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false)
+    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false)
 {
     m_databasename = path;
 
@@ -92,7 +95,7 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 
 MainWindow::MainWindow(const QSqlDatabase &database, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false)
+    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false)
 {
     m_databasename = database.databaseName();
     m_database = database;
@@ -141,9 +144,12 @@ void MainWindow::initialize()
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     connect(ui->menuShowHiddenColumn, SIGNAL(aboutToShow()), SLOT(onShowHiddenColumnShow()));
     connect(ui->mainToolBar, SIGNAL(visibilityChanged(bool)), SLOT(onToolbarVisibiltyChanged()));
-    connect(ui->tableListWidget, SIGNAL(visibilityChanged(bool)), SLOT(onTableViewVisibilityChanged()));
 
-    ui->tableListWidget->setVisible(false);
+    ui->tableListWidget->setVisible(tableview_settings->value(TABLE_LIST_VISIBLE).toBool());
+    ui->columnListWidget->setVisible(tableview_settings->value(COLUMN_LIST_VISIBLE).toBool());
+    ui->columnListView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    ui->columnListSearchEdit->setVisible(false);
+    ui->columnListSearchClear->setVisible(false);
 
     ui->tableView->horizontalHeader()->installEventFilter(this);
     ui->tableView->verticalHeader()->installEventFilter(this);
@@ -204,6 +210,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
                                          QMessageBox::Discard|QMessageBox::Cancel, QMessageBox::Cancel);
         switch(selected) {
         case QMessageBox::Discard:
+            m_isClosing = true;
             event->accept();
             cleanupDatabase();
             return;
@@ -216,6 +223,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (!confirmDuty()) {
         event->ignore();
     } else {
+        m_isClosing = true;
         event->accept();
         cleanupDatabase();
     }
@@ -715,6 +723,12 @@ void MainWindow::tableChanged(const QString &name)
     int rows = m_tableModel->rowCount();
     for (int i = 0; i < rows; i++) {
         ui->tableView->setRowHeight(i, 30);
+    }
+
+    // reset column list
+    ui->columnListView->clear();
+    for (int i = 0; i < columns; ++i) {
+        ui->columnListView->addItem(m_tableModel->headerData(i, Qt::Horizontal).toString());
     }
 
     filterFinished();
@@ -1480,11 +1494,6 @@ void MainWindow::onToolbarVisibiltyChanged()
     ui->actionShow_Toolbar->setChecked(ui->mainToolBar->isVisible());
 }
 
-void MainWindow::onTableViewVisibilityChanged()
-{
-    ui->actionShow_Table_List_View->setChecked(ui->tableListWidget->isVisible());
-}
-
 void MainWindow::on_actionGo_to_Hyokai_info_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://hyokai.info"));
@@ -1510,4 +1519,45 @@ void MainWindow::on_actionShow_Toolbar_triggered(bool checked)
 void MainWindow::on_actionShow_Table_List_View_triggered()
 {
     ui->tableListWidget->setVisible(ui->actionShow_Table_List_View->isChecked());
+    tableview_settings->setValue(TABLE_LIST_VISIBLE, QVariant(ui->actionShow_Table_List_View->isChecked()));
+    tableview_settings->sync();
+}
+
+void MainWindow::on_columnListSearchClear_clicked()
+{
+    ui->columnListSearchEdit->clear();
+}
+
+void MainWindow::on_actionShow_Column_List_View_triggered()
+{
+    ui->columnListWidget->setVisible(ui->actionShow_Column_List_View->isChecked());
+    tableview_settings->setValue(COLUMN_LIST_VISIBLE, QVariant(ui->actionShow_Column_List_View->isChecked()));
+    tableview_settings->sync();
+    qDebug() << "on_actionShow_Column_List_View_triggered" << tableview_settings->value(COLUMN_LIST_VISIBLE);
+}
+
+void MainWindow::on_columnListWidget_visibilityChanged(bool visible)
+{
+    if (m_isClosing) return;
+    ui->actionShow_Column_List_View->setChecked(visible);
+    tableview_settings->setValue(COLUMN_LIST_VISIBLE, QVariant(visible));
+    tableview_settings->sync();
+    qDebug() << "on_columnListWidget_visibilityChanged" << tableview_settings->value(COLUMN_LIST_VISIBLE);
+}
+
+void MainWindow::on_tableListWidget_visibilityChanged(bool visible)
+{
+    if (m_isClosing) return;
+    ui->actionShow_Table_List_View->setChecked(visible);
+    tableview_settings->setValue(TABLE_LIST_VISIBLE, QVariant(visible));
+    tableview_settings->sync();
+}
+
+void MainWindow::on_columnListView_currentRowChanged(int currentRow)
+{
+    //qDebug() << "Selected " << currentRow << ui->tableView->indexAt(QPoint(0, 0));
+    if (currentRow < 0) return;
+    auto currentVisibleIndex = ui->tableView->indexAt(QPoint(0, 0));
+    auto index = m_tableModel->index(currentVisibleIndex.row(), currentRow);
+    ui->tableView->scrollTo(index);
 }

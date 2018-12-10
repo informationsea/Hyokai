@@ -57,6 +57,7 @@ private:
     QLabel *m_rowcountlabel;
     QString m_databasename;
     bool m_isDirty;
+    bool m_isClosing;
     QList<QDialog *> m_dialogs;
     QMenu m_assistPopup;
     TableViewStyledItemDelegate *m_tableViewItemDelegate;
@@ -102,7 +103,6 @@ private slots:
     void setNumDecimalPlaces();
     void resetNumDecimalPlaces();
     void onToolbarVisibiltyChanged();
-    void onTableViewVisibilityChanged();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
@@ -141,6 +141,11 @@ private slots:
     void on_actionUse_fixed_width_font_triggered(bool checked);
     void on_actionShow_Toolbar_triggered(bool checked);
     void on_actionShow_Table_List_View_triggered();
+    void on_columnListSearchClear_clicked();
+    void on_actionShow_Column_List_View_triggered();
+    void on_columnListWidget_visibilityChanged(bool visible);
+    void on_tableListWidget_visibilityChanged(bool visible);
+    void on_columnListView_currentRowChanged(int currentRow);
 };
 
 #endif // MAINWINDOW_H
