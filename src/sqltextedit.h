@@ -6,6 +6,16 @@
 #include <QStringList>
 #include <QSqlDatabase>
 
+class SQLCompleteCandidates
+{
+public:
+    QStringList tables;
+    QStringList columns;
+    QStringList keywords;
+
+    SQLCompleteCandidates() {}
+};
+
 class SQLSyntaxHighligter : public QSyntaxHighlighter
 {
     Q_OBJECT
@@ -13,8 +23,9 @@ public:
     explicit SQLSyntaxHighligter(QTextDocument *parent = 0);
     virtual void highlightBlock ( const QString & text );
     void setDatabase(QSqlDatabase *database);
+    QSqlDatabase* database() {return m_database;}
     void setTable(const QString &table);
-    QStringList completeCandidates(const QString &prefix, const QString &blockText);
+    SQLCompleteCandidates completeCandidates(const QString &prefix, const QString &blockText);
 
 private:
     QTextCharFormat m_base_format;
@@ -34,7 +45,6 @@ private:
 
     virtual QStringList highlightBlockHelper (const QString & text, const QStringList & keys, const QTextCharFormat & format );
 };
-
 class SQLTextEdit : public QPlainTextEdit
 {
     Q_OBJECT
@@ -54,6 +64,8 @@ protected:
 private:
     SQLSyntaxHighligter *m_syntaxHilighter;
     QMenu *m_popup;
+
+    void addEntryHelper(QMenu *menu, QString str, int length);
     
 signals:
     void returnPressed();
