@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
     a.setWindowIcon(QIcon(":/rc/images/icon128.png"));
 #endif
 
+    qDebug() << isDarkMode();
+
     QStringList filelist;
     QStringList importlist;
     if (argc > 1) {
@@ -137,4 +139,9 @@ QString normstr(QString str, bool shoudStartWithAlpha)
     str = str.replace("\"", "");
     str = str.replace(QRegExp("[^a-zA-Z0-9_]"), "_");
     return str;
+}
+
+bool isDarkMode() {
+    auto basecolor = QApplication::palette().color(QPalette::Base).toHsl().lightnessF();
+    return basecolor < 0.5;
 }

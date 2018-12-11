@@ -34,5 +34,6 @@ QPoint nextWindowPosition();
 QString addQuote(QString name);
 QString removeQuote(QString name);
 QString normstr(QString str, bool shoudStartWithAlpha = true);
+bool isDarkMode();
 
 #endif // MAIN_H
