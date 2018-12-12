@@ -75,9 +75,7 @@ QVariant SchemaTableModel::data ( const QModelIndex & index, int role ) const
         case 4:
             return m_fieldList[index.row()].logicalIndex();
         }
-    case Qt::BackgroundRole:
-        if (index.row() % 2)
-            return QVariant(QColor("#E8EDF5"));
+        break;
     default:
         break;
     }

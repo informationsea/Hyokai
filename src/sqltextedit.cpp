@@ -79,6 +79,17 @@ QStringList SQLTextEdit::loadKeywords(const QString &driver)
     return list;
 }
 
+void SQLTextEdit::addEntryHelper(QMenu *menu, QString str, int length) {
+    QAction *action = new QAction(menu);
+    QMap<QString, QVariant> data;
+    data["text"] = str;
+    data["length"] = length;
+    action->setData(data);
+    action->setText(str);
+    connect(action, SIGNAL(triggered()), this, SLOT(autoComplete()));
+    menu->addAction(action);
+}
+
 void SQLTextEdit::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Enter ||
@@ -94,21 +105,58 @@ void SQLTextEdit::keyPressEvent(QKeyEvent *event)
         int seppos = textBlock.lastIndexOf(QRegExp("[\\W]"), cursor.positionInBlock()-1);
         seppos += 1;
         int length = cursor.positionInBlock()-seppos;
-        QStringList suggest = m_syntaxHilighter->completeCandidates(textBlock.mid(seppos, length), textBlock);
 
         m_popup = new QMenu(this);
-        foreach (QString one, suggest) {
-            QAction *action = new QAction(m_popup);
-            QMap<QString, QVariant> data;
-            data["text"] = one;
-            data["length"] = length;
-            action->setData(data);
-            action->setText(one);
-            connect(action, SIGNAL(triggered()), this, SLOT(autoComplete()));
-            m_popup->addAction(action);
+        SQLCompleteCandidates suggest = m_syntaxHilighter->completeCandidates(textBlock.mid(seppos, length), textBlock);
+
+        if (suggest.columns.length() < 10) {
+            foreach(QString one, suggest.columns) {
+                addEntryHelper(m_popup, one, length);
+            }
+        } else {
+            QMenu *columns = new QMenu(tr("Columns"), m_popup);
+
+            foreach(QString one, suggest.columns) {
+                addEntryHelper(columns, one, length);
+            }
+            m_popup->addMenu(columns);
         }
 
-        if (suggest.isEmpty()) {
+        if (m_popup->actions().length() > 0 && suggest.tables.length() > 0) {
+            m_popup->addSeparator();
+        }
+
+        if (suggest.tables.length() < 10) {
+            foreach(QString one, suggest.tables) {
+                addEntryHelper(m_popup, one, length);
+            }
+        } else {
+            QMenu *tables = new QMenu(tr("Tables"), m_popup);
+
+            foreach(QString one, suggest.tables) {
+                addEntryHelper(tables, one, length);
+            }
+            m_popup->addMenu(tables);
+        }
+
+        if (m_popup->actions().length() > 0 && suggest.keywords.length() > 0) {
+            m_popup->addSeparator();
+        }
+
+        if (suggest.keywords.length() < 10) {
+            foreach(QString one, suggest.keywords) {
+                addEntryHelper(m_popup, one, length);
+            }
+        } else {
+            QMenu *keywords = new QMenu(tr("Keywords"), m_popup);
+
+            foreach(QString one, suggest.keywords) {
+                addEntryHelper(keywords, one, length);
+            }
+            m_popup->addMenu(keywords);
+        }
+
+        if (m_popup->actions().length() == 0) {
             QAction *action = new QAction(m_popup);
             action->setDisabled(true);
             action->setText(tr("No candidate"));
@@ -117,6 +165,7 @@ void SQLTextEdit::keyPressEvent(QKeyEvent *event)
             m_popup->setActiveAction(m_popup->actions()[0]);
             m_popup->setFocus();
         }
+
 
         m_popup->popup(mapToGlobal(cursorRect().topLeft()));
     } else {
@@ -269,17 +318,24 @@ QStringList SQLSyntaxHighligter::highlightBlockHelper(const QString & text, cons
     return found;
 }
 
-QStringList SQLSyntaxHighligter::completeCandidates(const QString &prefix, const QString &blockText)
+SQLCompleteCandidates SQLSyntaxHighligter::completeCandidates(const QString &prefix, const QString &blockText)
 {
-    QStringList list;
+    SQLCompleteCandidates candidates;
     //qDebug() << "completeCandidates" << prefix << blockText;
 
     if (m_database) {
-        QStringList textlist;
-        textlist << m_keyword_list;
+        foreach(QString one, m_keyword_list) {
+            if (one.startsWith(prefix)) {
+                candidates.keywords << one;
+            }
+        }
 
         QStringList tables = m_database->tables(QSql::AllTables);
-        textlist << tables;
+        foreach(QString one, tables) {
+            if (one.startsWith(prefix)) {
+                candidates.tables << one;
+            }
+        }
 
         QStringList foundTables;
         if (m_table.isEmpty()) {
@@ -302,17 +358,13 @@ QStringList SQLSyntaxHighligter::completeCandidates(const QString &prefix, const
         foreach(QString oneTable, foundTables) {
             QSqlRecord record = m_database->record(oneTable);
             for (int i = 0; i < record.count(); ++i) {
-                textlist << record.fieldName(i);
-            }
-        }
-
-        foreach(QString one, textlist) {
-            if (one.startsWith(prefix)) {
-                if (!list.contains(one))
-                    list << one;
+                QString fieldName = record.fieldName(i);
+                if (fieldName.startsWith(prefix)) {
+                    candidates.columns << fieldName;
+                }
             }
         }
     }
 
-    return list;
+    return candidates;
 }

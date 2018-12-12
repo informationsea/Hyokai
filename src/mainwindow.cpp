@@ -647,7 +647,7 @@ void MainWindow::filterFinished()
         return;
     }
 
-    ui->sqlLine->setStyleSheet("");
+    ui->sqlLine->setStyleSheet("SQLTextEdit{ background: white; color: black;}");
     QStringList history = tableview_settings->value(SQL_FILTER_HISTORY).toStringList();
     if (history.contains(ui->sqlLine->toPlainText()))
         history.removeOne(ui->sqlLine->toPlainText());
@@ -668,9 +668,9 @@ void MainWindow::filterFinished()
 void MainWindow::filterChainging()
 {
     if (m_tableModel->filter().trimmed() == ui->sqlLine->toPlainText().trimmed()) {
-        ui->sqlLine->setStyleSheet("");
+        ui->sqlLine->setStyleSheet("SQLTextEdit{ background: white; color: black;}");
     } else {
-        ui->sqlLine->setStyleSheet("SQLTextEdit{ background: #FAFFC5;}");
+        ui->sqlLine->setStyleSheet("SQLTextEdit{ background: #FAFFC5; color: black;}");
     }
 }
 

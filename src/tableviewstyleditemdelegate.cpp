@@ -5,6 +5,7 @@
 #include <QSqlTableModel>
 #include <QTextOption>
 #include <QVariant>
+#include "main.h"
 
 static inline bool isNumeric(const QVariant &value)
 {
@@ -21,7 +22,7 @@ void TableViewStyledItemDelegate::paint(QPainter *painter, const QStyleOptionVie
     // fills background
     const QSqlTableModel *model = static_cast<const QSqlTableModel *>(index.model());
     if (model->isDirty(index)) {
-        painter->fillRect(option.rect, QColor(index.row() % 2 ? "#FFF4CF" : "#FFFAE9"));
+        painter->fillRect(option.rect, QColor(isDarkMode() ? ( index.row() % 2 ? "#000e51" : "#000c3f") : ( index.row() % 2 ? "#FFF4CF" : "#FFFAE9")));
     }
 
     // when drawing numeric values
