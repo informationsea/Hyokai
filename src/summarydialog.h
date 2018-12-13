@@ -18,7 +18,7 @@ class SummaryDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit SummaryDialog(const QList<double> &valus, const QString &tableAndcolumnName, QWidget *parent = 0);
+    explicit SummaryDialog(const QList<double> &valus, const QString &tableAndcolumnName, int numberOfSkippedRow, QWidget *parent = nullptr);
     ~SummaryDialog();
 
 protected:

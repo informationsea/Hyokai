@@ -33,8 +33,6 @@ int main(int argc, char *argv[])
     a.setWindowIcon(QIcon(":/rc/images/icon128.png"));
 #endif
 
-    qDebug() << isDarkMode();
-
     QStringList filelist;
     QStringList importlist;
     if (argc > 1) {

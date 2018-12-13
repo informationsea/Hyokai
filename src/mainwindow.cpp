@@ -518,9 +518,16 @@ void MainWindow::showColumnSummary()
     QList<double> doubleList;
     double sumValue = 0;
     bool ok = true;
+    int numberOfSkippedRow = 0;
 
     while(query.next()) {
-        double value = query.record().value(0).toDouble(&ok);
+        auto raw_value = query.record().value(0);
+        if (raw_value.isNull() || raw_value.toString() == "") {
+            numberOfSkippedRow += 1;
+            continue;
+        }
+
+        double value = raw_value.toDouble(&ok);
         if (!ok) {
             QSqlQuery query2;
 
@@ -556,7 +563,7 @@ void MainWindow::showColumnSummary()
         sumValue += value;
     }
 
-    SummaryDialog *summary = new SummaryDialog(doubleList, QString("%1/%2").arg(removeQuote(m_tableModel->tableName()), column_name), this);
+    SummaryDialog *summary = new SummaryDialog(doubleList, QString("%1/%2").arg(removeQuote(m_tableModel->tableName()), column_name), numberOfSkippedRow, this);
     summary->show();
     m_dialogs.append(summary);
 }
@@ -1533,7 +1540,6 @@ void MainWindow::on_actionShow_Column_List_View_triggered()
     ui->columnListWidget->setVisible(ui->actionShow_Column_List_View->isChecked());
     tableview_settings->setValue(COLUMN_LIST_VISIBLE, QVariant(ui->actionShow_Column_List_View->isChecked()));
     tableview_settings->sync();
-    qDebug() << "on_actionShow_Column_List_View_triggered" << tableview_settings->value(COLUMN_LIST_VISIBLE);
 }
 
 void MainWindow::on_columnListWidget_visibilityChanged(bool visible)
@@ -1542,7 +1548,6 @@ void MainWindow::on_columnListWidget_visibilityChanged(bool visible)
     ui->actionShow_Column_List_View->setChecked(visible);
     tableview_settings->setValue(COLUMN_LIST_VISIBLE, QVariant(visible));
     tableview_settings->sync();
-    qDebug() << "on_columnListWidget_visibilityChanged" << tableview_settings->value(COLUMN_LIST_VISIBLE);
 }
 
 void MainWindow::on_tableListWidget_visibilityChanged(bool visible)
@@ -1555,7 +1560,6 @@ void MainWindow::on_tableListWidget_visibilityChanged(bool visible)
 
 void MainWindow::on_columnListView_currentRowChanged(int currentRow)
 {
-    //qDebug() << "Selected " << currentRow << ui->tableView->indexAt(QPoint(0, 0));
     if (currentRow < 0) return;
     auto currentVisibleIndex = ui->tableView->indexAt(QPoint(0, 0));
     auto index = m_tableModel->index(currentVisibleIndex.row(), currentRow);

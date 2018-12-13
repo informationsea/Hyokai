@@ -136,9 +136,16 @@ void CustomSqlDialog::onShowSummary()
     }
 
     QList<double> data;
+    int numberOfSkippedRows = 0;
     while (newquery.next()) {
         bool ok;
-        double d = newquery.record().value(0).toDouble(&ok);
+        QVariant raw_value = newquery.record().value(0);
+        if (raw_value.isNull() || raw_value.toString() == "") {
+            numberOfSkippedRows += 1;
+            continue;
+        }
+
+        double d = raw_value.toDouble(&ok);
         if (ok) {
             data.append(d);
         } else {
@@ -147,7 +154,7 @@ void CustomSqlDialog::onShowSummary()
         }
     }
 
-    SummaryDialog *summary = new SummaryDialog(data, QString("Sql/%1").arg(record.fieldName(logicalIndex)), parentWidget());
+    SummaryDialog *summary = new SummaryDialog(data, QString("Sql/%1").arg(record.fieldName(logicalIndex)), numberOfSkippedRows, parentWidget());
     summary->show();
 }
 

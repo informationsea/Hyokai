@@ -39,7 +39,7 @@ static QList<double> quantile(const QList<double> &values, const QList<double> &
     return result;
 }
 
-SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAndcolumnName, QWidget *parent) :
+SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAndcolumnName, int numberOfSkippedRow, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SummaryDialog),
     m_values(values),
@@ -47,7 +47,7 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAn
     m_rName(tableAndcolumnName),
     m_rdata_file(new QTemporaryFile()),
     m_rdraw_file(new QTemporaryFile()),
-    m_rdraw_png(new QTemporaryFile()), m_histogram(0), m_histogram_brush(0)
+    m_rdraw_png(new QTemporaryFile()), m_histogram(nullptr), m_histogram_brush(nullptr)
 {
     ui->setupUi(this);
 
@@ -92,11 +92,12 @@ SummaryDialog::SummaryDialog(const QList<double> &values, const QString &tableAn
         }
     }
 
-    QString summaryText = tr("Summary of %1\n\nSum:  %5\nMean: %2\nSD:   %3\n\n%4").arg(tableAndcolumnName,
-                                                                                        QString::number(meanValue),
-                                                                                        QString::number(sdValue),
-                                                                                        quantile_text,
-                                                                                        QString::number(sumValue));
+    QString summaryText = tr("Summary of %1\n\nSum:  %5\nMean: %2\nSD:   %3\n\n%4\n\n%6 rows were skipped").arg(tableAndcolumnName,
+                                                                                                                QString::number(meanValue),
+                                                                                                                QString::number(sdValue),
+                                                                                                                quantile_text,
+                                                                                                                QString::number(sumValue),
+                                                                                                                QString::number(numberOfSkippedRow));
 
     ui->summaryText->setPlainText(summaryText);
 
