@@ -1564,4 +1564,5 @@ void MainWindow::on_columnListView_currentRowChanged(int currentRow)
     auto currentVisibleIndex = ui->tableView->indexAt(QPoint(0, 0));
     auto index = m_tableModel->index(currentVisibleIndex.row(), currentRow);
     ui->tableView->scrollTo(index);
+    ui->tableView->selectColumn(currentRow);
 }
