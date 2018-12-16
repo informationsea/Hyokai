@@ -27,7 +27,6 @@ SOURCES += main.cpp\
     jointabledialog.cpp \
     preferencewindow.cpp \
     fileeventhandler.cpp \
-    summarydialog.cpp \
     imageview.cpp \
     sqltextedit.cpp \
     databaseconnectiondialog.cpp \
@@ -79,7 +78,6 @@ HEADERS  += mainwindow.h \
     jointabledialog.h \
     preferencewindow.h \
     fileeventhandler.h \
-    summarydialog.h \
     imageview.h \
     sqltextedit.h \
     databaseconnectiondialog.h \

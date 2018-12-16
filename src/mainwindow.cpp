@@ -10,7 +10,6 @@
 #include "customsqldialog.h"
 #include "sqltablemodelalternativebackground.h"
 #include "attachdatabasedialog.h"
-#include "summarydialog.h"
 #include "databaseconnectiondialog.h"
 #include "sqlservice.h"
 #include "sqlplotchart.h"

@@ -6,7 +6,6 @@
 #include "sqlservice.h"
 #include "sqlfileexporter.h"
 #include "main.h"
-#include "summarydialog.h"
 #include "sqlhistoryhelper.h"
 #include "sqlasynchronousexecutor.h"
 #include "summarydialog2.h"
