@@ -16,6 +16,7 @@
 #include "sqlplotchart.h"
 #include "sqlfileimporter.h"
 #include "sqlfileexporter.h"
+#include "summarydialog2.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -503,69 +504,8 @@ void MainWindow::showColumnSummary()
     int logical_index = sigsender->data().toInt();
     QString column_name = m_tableModel->headerData(logical_index, Qt::Horizontal).toString();
 
-    QSqlQuery query;
-    if (ui->sqlLine->toPlainText().isEmpty()) {
-        query = m_database.exec(QString("SELECT \"%1\" FROM %2").arg(column_name, m_tableModel->tableName()));
-    } else {
-        query = m_database.exec(QString("SELECT \"%1\" FROM %2 WHERE %3").arg(column_name, m_tableModel->tableName(), ui->sqlLine->toPlainText()));
-    }
-
-    if (query.lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::warning(this, tr("Cannot make summary"), m_database.lastError().text()+"\n\n"+query.lastQuery());
-        return;
-    }
-
-    QList<double> doubleList;
-    double sumValue = 0;
-    bool ok = true;
-    int numberOfSkippedRow = 0;
-
-    while(query.next()) {
-        auto raw_value = query.record().value(0);
-        if (raw_value.isNull() || raw_value.toString() == "") {
-            numberOfSkippedRow += 1;
-            continue;
-        }
-
-        double value = raw_value.toDouble(&ok);
-        if (!ok) {
-            QSqlQuery query2;
-
-            if (ui->sqlLine->toPlainText().isEmpty()) {
-                query2 = m_database.exec(QString("SELECT \"%1\", count(*) FROM %2 GROUP BY \"%1\" ORDER BY 2 DESC").arg(column_name, m_tableModel->tableName()));
-            } else {
-                query2 = m_database.exec(QString("SELECT \"%1\", count(*) FROM %2 WHERE %3 GROUP BY \"%1\" ORDER BY 2 DESC").arg(column_name, m_tableModel->tableName(), ui->sqlLine->toPlainText()));
-            }
-
-            QString message;
-            int typeCount = 0;
-            while(query2.next()) {
-                message += query2.record().value(0).toString() + " : " + query2.record().value(1).toString() + "\n";
-                typeCount += 1;
-            }
-
-            message = "# of value types: " + QVariant(typeCount).toString() + "\n\n" + message;
-
-            if (message.length() > 200) {
-                QMessageBox *mesbox = SheetMessageBox::makeMessageBox(this, tr("Column Summary : ") + column_name,
-                                                                       message.left(200)+"...");
-                mesbox->setDetailedText(message);
-                mesbox->setIcon(QMessageBox::Information);
-                mesbox->exec();
-                delete mesbox;
-            } else {
-                SheetMessageBox::information(this, tr("Column summary : ") + column_name, message);
-            }
-
-            return;
-        }
-        doubleList.append(value);
-        sumValue += value;
-    }
-
-    SummaryDialog *summary = new SummaryDialog(doubleList, QString("%1/%2").arg(removeQuote(m_tableModel->tableName()), column_name), numberOfSkippedRow, this);
-    summary->show();
-    m_dialogs.append(summary);
+	SummaryDialog2 *sumamry2 = new SummaryDialog2(&m_database, m_tableModel->tableName(), column_name, ui->sqlLine->toPlainText(), this);
+	sumamry2->show();
 }
 
 void MainWindow::showColumn()

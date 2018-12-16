@@ -9,6 +9,7 @@
 #include "summarydialog.h"
 #include "sqlhistoryhelper.h"
 #include "sqlasynchronousexecutor.h"
+#include "summarydialog2.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -125,37 +126,8 @@ void CustomSqlDialog::onShowSummary()
     int logicalIndex = action->data().toInt();
 
     QSqlRecord record = m_query.record();
-    QString newQueryText = QString("SELECT %1 FROM (%2)").arg(record.fieldName(logicalIndex), m_query.lastQuery());
-    qDebug() << newQueryText;
-
-    QSqlQuery newquery = m_database->exec(newQueryText);
-
-    if  (newquery.lastError().isValid()) {
-        SheetMessageBox::critical(this, tr("SQL Error"), newquery.lastError().text());
-        return;
-    }
-
-    QList<double> data;
-    int numberOfSkippedRows = 0;
-    while (newquery.next()) {
-        bool ok;
-        QVariant raw_value = newquery.record().value(0);
-        if (raw_value.isNull() || raw_value.toString() == "") {
-            numberOfSkippedRows += 1;
-            continue;
-        }
-
-        double d = raw_value.toDouble(&ok);
-        if (ok) {
-            data.append(d);
-        } else {
-            SheetMessageBox::critical(this, tr("Cannot show summary"), tr("This field contains non number values."));
-            return;
-        }
-    }
-
-    SummaryDialog *summary = new SummaryDialog(data, QString("Sql/%1").arg(record.fieldName(logicalIndex)), numberOfSkippedRows, parentWidget());
-    summary->show();
+    SummaryDialog2 *summary2 = new SummaryDialog2(m_database, "(" + m_query.lastQuery() + ")", record.fieldName(logicalIndex), "", parentWidget());
+    summary2->show();
 }
 
 void CustomSqlDialog::onSortAscending()
@@ -230,7 +202,7 @@ void CustomSqlDialog::finishQuery(QSqlQuery *query, SqlAsynchronousExecutor *exe
     ui->sql->setEnabled(true);
 
     if (query->lastError().type() != QSqlError::NoError) {
-        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().text()+"\n\n"+m_query.lastQuery());
+        SheetMessageBox::critical(this, tr("SQL Error"), m_query.lastError().driverText() + "\n" + m_query.lastError().databaseText()+"\n\n"+m_query.lastQuery());
         return;
     }
 
@@ -459,12 +431,6 @@ void CustomSqlDialog::createMenus()
     commonFunctions << "min(";
     commonFunctions << "count(";
     commonFunctions << "total(";
-    commonFunctions << "--";
-    commonFunctions << "stdev(";
-    commonFunctions << "variance(";
-    commonFunctions << "median(";
-    commonFunctions << "lower_quartile(";
-    commonFunctions << "upper_quartile(";
 
     QMenu *commonFunctionMenu = assistMenu->addMenu(tr("Common SQL Functions"));
     foreach(QString i, commonFunctions) {

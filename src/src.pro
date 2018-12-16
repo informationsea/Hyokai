@@ -64,7 +64,9 @@ SOURCES += main.cpp\
     zlib/uncompr.c \
     zlib/zutil.c \
     sqlhistoryhelper.cpp \
-    sqlasynchronousexecutor.cpp
+    sqlasynchronousexecutor.cpp \
+    summarydialog2.cpp \
+    sqlitemcounttablemodel.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -112,7 +114,9 @@ HEADERS  += mainwindow.h \
     zlib/zutil.h \
     filereader/src/growbuffer.hpp \
     sqlhistoryhelper.h \
-    sqlasynchronousexecutor.h
+    sqlasynchronousexecutor.h \
+    summarydialog2.h \
+    sqlitemcounttablemodel.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
@@ -123,7 +127,8 @@ FORMS    += mainwindow.ui \
     databaseconnectiondialog.ui \
     sheettextinputdialog.ui \
     sqlplotchart.ui \
-    customsqldialog.ui
+    customsqldialog.ui \
+    summarydialog2.ui
 
 RESOURCES += \
     resouces.qrc

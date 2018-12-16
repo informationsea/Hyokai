@@ -6,6 +6,7 @@
 #include <QProgressBar>
 #include <QDebug>
 #include <QTimer>
+#include <QSqlError>
 
 SqlAsynchronousExecutor::SqlAsynchronousExecutor(QSqlQuery *query, QWidget *parent) :
     QThread(parent), m_parent(parent), m_query(query), m_timer(new QTimer(this)), m_count(0)
@@ -21,11 +22,11 @@ SqlAsynchronousExecutor::~SqlAsynchronousExecutor()
 
 void SqlAsynchronousExecutor::start()
 {
-    qDebug() << m_parent;
+    //qDebug() << m_parent;
     m_progress = new QProgressDialog(m_parent);
     m_progress->setLabelText("Now Querying...");
     m_progress->setMinimumDuration(100);
-    m_progress->setCancelButton(0);
+    m_progress->setCancelButton(nullptr);
     m_progress->setAutoClose(false);
     m_progress->setAutoReset(false);
     m_bar = new QProgressBar(m_progress);
@@ -41,7 +42,15 @@ void SqlAsynchronousExecutor::start()
 
 void SqlAsynchronousExecutor::run()
 {
+
+    auto error = m_query->lastError();
+    if (error.isValid()) {
+        emit finishQuery(m_query, this);
+        return;
+    }
+
     m_query->exec();
+
     emit finishQuery(m_query, this);
 }
 
