@@ -5,6 +5,7 @@
 #include <QSqlDatabase>
 #include <QSqlTableModel>
 #include <QLabel>
+#include <QTableView>
 
 #include "sqltablemodelalternativebackground.h"
 #include "customsqldialog.h"
@@ -28,8 +29,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    explicit MainWindow(QWidget *parent = 0, QString path = ":memory:");
-    explicit MainWindow(const QSqlDatabase &database, QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr, QString path = ":memory:");
+    explicit MainWindow(const QSqlDatabase &database, QWidget *parent = nullptr);
     ~MainWindow();
 
     QString databaseName() { return m_databasename; }
@@ -60,8 +61,10 @@ private:
     bool m_isClosing;
     QList<QDialog *> m_dialogs;
     QMenu m_assistPopup;
-    TableViewStyledItemDelegate *m_tableViewItemDelegate;
+    TableViewStyledItemDelegate *m_tableViewItemDelegate1;
+    TableViewStyledItemDelegate *m_tableViewItemDelegate2;
     SqlHistoryHelper *m_historyHelper;
+    int m_splitColumn;
 
     void initialize();
 
@@ -103,6 +106,7 @@ private slots:
     void setNumDecimalPlaces();
     void resetNumDecimalPlaces();
     void onToolbarVisibiltyChanged();
+    void onTableViewScrollMoved(int value);
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();
@@ -146,6 +150,8 @@ private slots:
     void on_columnListWidget_visibilityChanged(bool visible);
     void on_tableListWidget_visibilityChanged(bool visible);
     void on_columnListView_currentRowChanged(int currentRow);
+    void on_splitter_splitterMoved(int pos, int index);
+    void on_actionSplit_Window_triggered(bool checked);
 };
 
 #endif // MAINWINDOW_H

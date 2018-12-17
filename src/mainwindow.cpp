@@ -50,6 +50,7 @@
 #include <QIntValidator>
 #include <QFont>
 #include <QMimeData>
+#include <QScrollBar>
 
 #include <tablereader.hpp>
 #include <csvreader.hpp>
@@ -68,7 +69,7 @@ static int open_count = 0;
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false)
+    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false), m_splitColumn(0)
 {
     m_databasename = path;
 
@@ -105,8 +106,10 @@ MainWindow::MainWindow(const QSqlDatabase &database, QWidget *parent) :
 void MainWindow::initialize()
 {
     ui->setupUi(this);
-    m_tableViewItemDelegate = new TableViewStyledItemDelegate(ui->tableView);
-    ui->tableView->setItemDelegate(m_tableViewItemDelegate);
+    m_tableViewItemDelegate1 = new TableViewStyledItemDelegate(ui->tableView);
+    ui->tableView->setItemDelegate(m_tableViewItemDelegate1);
+    m_tableViewItemDelegate2 = new TableViewStyledItemDelegate(ui->tableView_2);
+    ui->tableView_2->setItemDelegate(m_tableViewItemDelegate2);
     //m_rowcountlabel = new QLabel(ui->statusBar);
     m_rowcountlabel = ui->statusLabel;
     //ui->statusBar->addWidget(sqlLineCount);
@@ -130,6 +133,7 @@ void MainWindow::initialize()
     updateDatabase();
 
     ui->tableView->horizontalHeader()->setSectionsMovable(true);
+    ui->tableView_2->horizontalHeader()->setSectionsMovable(true);
 
 #ifdef Q_OS_MACX
     ui->menuWindow->setAsDockMenu();
@@ -140,6 +144,9 @@ void MainWindow::initialize()
     connect(ui->tableSelect, SIGNAL(currentIndexChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableListView, SIGNAL(currentTextChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
+    connect(ui->tableView_2->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
+    connect(ui->tableView->verticalScrollBar(), SIGNAL(valueChanged(int)), SLOT(onTableViewScrollMoved(int)));
+    connect(ui->tableView_2->verticalScrollBar(), SIGNAL(valueChanged(int)), SLOT(onTableViewScrollMoved(int)));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
     connect(ui->menuRecent_Files, SIGNAL(aboutToShow()), SLOT(onRecentFileShow()));
     connect(ui->menuShowHiddenColumn, SIGNAL(aboutToShow()), SLOT(onShowHiddenColumnShow()));
@@ -154,6 +161,14 @@ void MainWindow::initialize()
     ui->tableView->horizontalHeader()->installEventFilter(this);
     ui->tableView->verticalHeader()->installEventFilter(this);
     ui->tableView->installEventFilter(this);
+    ui->tableView_2->horizontalHeader()->installEventFilter(this);
+    ui->tableView_2->verticalHeader()->installEventFilter(this);
+    ui->tableView_2->installEventFilter(this);
+    QList<int> splitterSizes;
+    splitterSizes << 0 << 1;
+    ui->splitter->setSizes(splitterSizes);
+    ui->splitter->setStretchFactor(0, 0);
+    ui->splitter->setStretchFactor(1, 1);
     ui->sqlLine->setDatabase(&m_database);
 
     if (m_databasename.compare(":memory:") == 0 || m_database.driverName() != "QSQLITE") {
@@ -192,6 +207,7 @@ void MainWindow::setupTableModel()
     m_tableModel = new SqlTableModelAlternativeBackground(this, m_database);
     m_tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     ui->tableView->setModel(m_tableModel);
+    ui->tableView_2->setModel(m_tableModel);
     connect(m_tableModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(tableUpdated()));
 }
 
@@ -256,76 +272,81 @@ void MainWindow::cleanupDatabase()
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
-    if (obj == ui->tableView->horizontalHeader() && ev->type() == QEvent::ContextMenu) {
-        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
-        int logical_index = ui->tableView->horizontalHeader()->logicalIndexAt(cev->pos());
-        if (logical_index >= 0) {
-            //qDebug() << obj << cev << cev->pos() << logical_index;
-            cev->accept();
-            QMenu popup(this);
-            popup.move(cev->globalPos());
-            QAction *name = popup.addAction(m_tableModel->headerData(logical_index, Qt::Horizontal).toString());
-            name->setEnabled(false);
-            popup.addSeparator();
-            QAction *summary = popup.addAction("Summary");
-            summary->setData(logical_index);
-            connect(summary, SIGNAL(triggered()), SLOT(showColumnSummary()));
-            QAction *copyColumnName = popup.addAction("Copy column name");
-            copyColumnName->setData(logical_index);
-            connect(copyColumnName, SIGNAL(triggered()), SLOT(copyColumnName()));
-            QAction *hideColumn = popup.addAction("Hide");
-            hideColumn->setData(logical_index);
-            connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
-            if (!m_tableModel->isView()) {
-                QAction *createIndex = popup.addAction(tr("Create index"));
-                createIndex->setData(logical_index);
-                connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
+    QList<QTableView *> tableViews;
+    tableViews << ui->tableView << ui->tableView_2;
+
+    foreach(QTableView* oneTableView, tableViews) {
+        if (obj == oneTableView->horizontalHeader() && ev->type() == QEvent::ContextMenu) {
+            QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
+            int logical_index = oneTableView->horizontalHeader()->logicalIndexAt(cev->pos());
+            if (logical_index >= 0) {
+                //qDebug() << obj << cev << cev->pos() << logical_index;
+                cev->accept();
+                QMenu popup(this);
+                popup.move(cev->globalPos());
+                QAction *name = popup.addAction(m_tableModel->headerData(logical_index, Qt::Horizontal).toString());
+                name->setEnabled(false);
+                popup.addSeparator();
+                QAction *summary = popup.addAction("Summary");
+                summary->setData(logical_index);
+                connect(summary, SIGNAL(triggered()), SLOT(showColumnSummary()));
+                QAction *copyColumnName = popup.addAction("Copy column name");
+                copyColumnName->setData(logical_index);
+                connect(copyColumnName, SIGNAL(triggered()), SLOT(copyColumnName()));
+                QAction *hideColumn = popup.addAction("Hide");
+                hideColumn->setData(logical_index);
+                connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
+                if (!m_tableModel->isView()) {
+                    QAction *createIndex = popup.addAction(tr("Create index"));
+                    createIndex->setData(logical_index);
+                    connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
+                }
+                popup.addSeparator();
+                QAction *fitColumns = popup.addAction(tr("Resize columns to fit contents"));
+                connect(fitColumns, SIGNAL(triggered()), oneTableView, SLOT(resizeColumnsToContents()));
+                QAction *resizeColumns = popup.addAction(tr("Resize columns"));
+                resizeColumns->setData(CHANGE_SIZE_COLUMN);
+                connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
+                popup.addSeparator();
+                QAction *setNumDecimalPlaces = popup.addAction(tr("Set number of decimal places"));
+                setNumDecimalPlaces->setData(logical_index);
+                connect(setNumDecimalPlaces, SIGNAL(triggered()), SLOT(setNumDecimalPlaces()));
+                QAction *resetNumDecimalPlaces = popup.addAction(tr("Reset number of decimal places"));
+                resetNumDecimalPlaces->setEnabled(m_tableViewItemDelegate1->numDecimalPlaces(logical_index) != TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
+                resetNumDecimalPlaces->setData(logical_index);
+                connect(resetNumDecimalPlaces, SIGNAL(triggered()), SLOT(resetNumDecimalPlaces()));
+                popup.exec();
             }
-            popup.addSeparator();
-            QAction *fitColumns = popup.addAction(tr("Resize columns to fit contents"));
-            connect(fitColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeColumnsToContents()));
-            QAction *resizeColumns = popup.addAction(tr("Resize columns"));
-            resizeColumns->setData(CHANGE_SIZE_COLUMN);
-            connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
-            popup.addSeparator();
-            QAction *setNumDecimalPlaces = popup.addAction(tr("Set number of decimal places"));
-            setNumDecimalPlaces->setData(logical_index);
-            connect(setNumDecimalPlaces, SIGNAL(triggered()), SLOT(setNumDecimalPlaces()));
-            QAction *resetNumDecimalPlaces = popup.addAction(tr("Reset number of decimal places"));
-            resetNumDecimalPlaces->setEnabled(m_tableViewItemDelegate->numDecimalPlaces(logical_index) != TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
-            resetNumDecimalPlaces->setData(logical_index);
-            connect(resetNumDecimalPlaces, SIGNAL(triggered()), SLOT(resetNumDecimalPlaces()));
-            popup.exec();
-        }
-        return true;
-    } else if (obj == ui->tableView->verticalHeader() && ev->type() == QEvent::ContextMenu) {
-        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
-        QMenu popup(this);
-        popup.move(cev->globalPos());
-        QAction *fitColumns = popup.addAction(tr("Resize rows to fit contents"));
-        connect(fitColumns, SIGNAL(triggered()), ui->tableView, SLOT(resizeRowsToContents()));
-        QAction *resizeColumns = popup.addAction(tr("Resize rows"));
-        resizeColumns->setData(CHANGE_SIZE_ROW);
-        connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
-        popup.exec();
-        return true;
-    } else if (obj == ui->tableView && ev->type() == QEvent::ContextMenu) {
-        QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
-        QPoint pos = cev->pos();
-        pos.rx() -= ui->tableView->verticalHeader()->width();
-        pos.ry() -= ui->tableView->horizontalHeader()->height();
-        QModelIndex index = ui->tableView->indexAt(pos);
-        if (index.isValid()) {
-            //qDebug() << "Table View context menu" << index << pos;
-            cev->accept();
+            return true;
+        } else if (obj == oneTableView->verticalHeader() && ev->type() == QEvent::ContextMenu) {
+            QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
             QMenu popup(this);
             popup.move(cev->globalPos());
-            QAction *showContent = popup.addAction(tr("Copy"), this, SLOT(on_actionCopy_triggered()));
-            showContent->setData(index);
-            QAction *showCellContent = popup.addAction(tr("Show"), this, SLOT(showCell()));
-            showCellContent->setData(index);
+            QAction *fitColumns = popup.addAction(tr("Resize rows to fit contents"));
+            connect(fitColumns, SIGNAL(triggered()), oneTableView, SLOT(resizeRowsToContents()));
+            QAction *resizeColumns = popup.addAction(tr("Resize rows"));
+            resizeColumns->setData(CHANGE_SIZE_ROW);
+            connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
             popup.exec();
             return true;
+        } else if (obj == oneTableView && ev->type() == QEvent::ContextMenu) {
+            QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
+            QPoint pos = cev->pos();
+            pos.rx() -= oneTableView->verticalHeader()->width();
+            pos.ry() -= oneTableView->horizontalHeader()->height();
+            QModelIndex index = oneTableView->indexAt(pos);
+            if (index.isValid()) {
+                //qDebug() << "Table View context menu" << index << pos;
+                cev->accept();
+                QMenu popup(this);
+                popup.move(cev->globalPos());
+                QAction *showContent = popup.addAction(tr("Copy"), this, SLOT(on_actionCopy_triggered()));
+                showContent->setData(index);
+                QAction *showCellContent = popup.addAction(tr("Show"), this, SLOT(showCell()));
+                showCellContent->setData(index);
+                popup.exec();
+                return true;
+            }
         }
     }
     return false;
@@ -379,11 +400,13 @@ void MainWindow::onChangeColumnOrRowSize()
         int rows = m_tableModel->rowCount();
         for (int i = 0; i < rows; i++) {
             ui->tableView->setRowHeight(i, resultSize);
+            ui->tableView_2->setRowHeight(i, resultSize);
         }
     } else {
         int columns = m_tableModel->columnCount();
         for (int i = 0; i < columns; i++) {
             ui->tableView->setColumnWidth(i, resultSize);
+            ui->tableView_2->setColumnWidth(i, resultSize);
         }
     }
 }
@@ -513,9 +536,11 @@ void MainWindow::showColumn()
     int logicalIndex = sigsender->data().toInt();
     if (logicalIndex >= 0) {
         ui->tableView->showColumn(logicalIndex);
+        ui->tableView_2->showColumn(logicalIndex);
     } else {
         for (int i = 0; i < m_tableModel->columnCount(); i++) {
             ui->tableView->showColumn(i);
+            ui->tableView_2->showColumn(i);
         }
     }
 }
@@ -525,6 +550,7 @@ void MainWindow::hideColumn()
     QAction *sigsender = static_cast<QAction *>(sender());
     int logicalIndex = sigsender->data().toInt();
     ui->tableView->hideColumn(logicalIndex);
+    ui->tableView_2->hideColumn(logicalIndex);
 }
 
 void MainWindow::copyColumnName()
@@ -646,6 +672,7 @@ void MainWindow::tableChanged(const QString &name)
     m_tableModel->setTable(name);
     ui->sqlLine->setTable(name);
     ui->tableView->horizontalHeader()->setSortIndicatorShown(false);
+    ui->tableView_2->horizontalHeader()->setSortIndicatorShown(false);
     m_isDirty = false;
     setWindowModified(false);
     m_tableModel->select();
@@ -664,10 +691,12 @@ void MainWindow::tableChanged(const QString &name)
     int columns = m_tableModel->columnCount();
     for (int i = 0; i < columns; i++) {
         ui->tableView->setColumnWidth(i, 100);
+        ui->tableView_2->setColumnWidth(i, 100);
     }
 
     int rows = m_tableModel->rowCount();
     for (int i = 0; i < rows; i++) {
+        ui->tableView->setRowHeight(i, 30);
         ui->tableView->setRowHeight(i, 30);
     }
 
@@ -726,6 +755,9 @@ void MainWindow::sortIndicatorChanged(int logicalIndex, Qt::SortOrder order)
         return;
     }
     ui->tableView->horizontalHeader()->setSortIndicatorShown(true);
+    ui->tableView->horizontalHeader()->setSortIndicator(logicalIndex, order);
+    ui->tableView_2->horizontalHeader()->setSortIndicatorShown(true);
+    ui->tableView_2->horizontalHeader()->setSortIndicator(logicalIndex, order);
     m_tableModel->sort(logicalIndex, order);
 }
 
@@ -838,7 +870,7 @@ void MainWindow::on_actionInsert_triggered()
         return;
     if (!m_tableModel->editable())
         return;
-    QItemSelectionModel *selection = ui->tableView->selectionModel();
+    QItemSelectionModel *selection = ui->tableView_2->hasFocus() ? ui->tableView_2->selectionModel() : ui->tableView->selectionModel();
     QList<int> rows;
     foreach (QModelIndex index, selection->selectedIndexes()) {
         if (!rows.contains(index.row()))
@@ -858,7 +890,7 @@ void MainWindow::on_actionDelete_triggered()
         return;
     if (!m_tableModel->editable())
         return;
-    QItemSelectionModel *selection = ui->tableView->selectionModel();
+    QItemSelectionModel *selection = ui->tableView_2->hasFocus() ? ui->tableView_2->selectionModel() : ui->tableView->selectionModel();
     QList<int> rows;
     foreach (QModelIndex index, selection->selectedIndexes()) {
         if (!rows.contains(index.row()))
@@ -1030,6 +1062,9 @@ void MainWindow::onCopyTriggered(bool withHeader)
     QWidget *widget = qApp->activeWindow();
 
     tableView = ui->tableView;
+    if (ui->tableView_2->hasFocus()) {
+        tableView = ui->tableView_2;
+    }
     foreach(QDialog *dialog, m_dialogs) {
         if (widget == dialog) {
             CustomSqlDialog *customDialog = dynamic_cast<CustomSqlDialog *>(dialog);
@@ -1198,6 +1233,7 @@ void MainWindow::on_actionDrop_Table_triggered()
     bool isView = m_tableModel->isView();
     m_tableModel->setTable("");
     ui->tableView->setModel(nullptr);
+    ui->tableView_2->setModel(nullptr);
     delete m_tableModel;
 
     if (isView)
@@ -1239,6 +1275,7 @@ void MainWindow::on_actionSelect_All_triggered()
         count += 1;
     }
     ui->tableView->selectAll();
+    ui->tableView_2->selectAll();
 }
 
 void MainWindow::on_actionConnect_to_database_triggered()
@@ -1409,7 +1446,7 @@ void MainWindow::setNumDecimalPlaces()
     int logicalIndex = action->data().toInt();
     if (logicalIndex < 0) return;
 
-    int currentNumDecimalPlaces = m_tableViewItemDelegate->numDecimalPlaces(logicalIndex);
+    int currentNumDecimalPlaces = m_tableViewItemDelegate1->numDecimalPlaces(logicalIndex);
     if (currentNumDecimalPlaces == TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET) {
         currentNumDecimalPlaces = 4;
     }
@@ -1419,7 +1456,7 @@ void MainWindow::setNumDecimalPlaces()
                 tr("Set number of decimal places"), "", this, QString::number(currentNumDecimalPlaces), false, &intValidator);
     if (result.isEmpty()) return;
 
-    m_tableViewItemDelegate->setRoundingPrecision(logicalIndex, result.toInt());
+    m_tableViewItemDelegate1->setRoundingPrecision(logicalIndex, result.toInt());
     update();
 }
 
@@ -1431,7 +1468,7 @@ void MainWindow::resetNumDecimalPlaces()
     int logicalIndex = action->data().toInt();
     if (logicalIndex < 0) return;
 
-    m_tableViewItemDelegate->setRoundingPrecision(logicalIndex, TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
+    m_tableViewItemDelegate1->setRoundingPrecision(logicalIndex, TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
     update();
 }
 
@@ -1455,6 +1492,7 @@ void MainWindow::on_actionUse_fixed_width_font_triggered(bool checked)
         font = QApplication::font();
     }
     ui->tableView->setFont(font);
+    ui->tableView_2->setFont(font);
 }
 
 void MainWindow::on_actionShow_Toolbar_triggered(bool checked)
@@ -1504,4 +1542,86 @@ void MainWindow::on_columnListView_currentRowChanged(int currentRow)
     auto index = m_tableModel->index(currentVisibleIndex.row(), currentRow);
     ui->tableView->scrollTo(index);
     ui->tableView->selectColumn(currentRow);
+}
+
+void MainWindow::onTableViewScrollMoved(int value) {
+    if (value != ui->tableView->verticalScrollBar()->value()) {
+        ui->tableView->verticalScrollBar()->setValue(value);
+    }
+    if (value != ui->tableView_2->verticalScrollBar()->value()) {
+        ui->tableView_2->verticalScrollBar()->setValue(value);
+    }
+}
+
+void MainWindow::on_splitter_splitterMoved(int pos, int index)
+{
+    if (index != 1) {
+        return;
+    }
+    ui->tableView->verticalHeader()->setVisible(pos == 0);
+    ui->actionSplit_Window->setChecked(pos != 0);
+
+    if (pos == 0) {
+        for (int i = 0; i < m_splitColumn; i++) {
+            ui->tableView->showColumn(i);
+        }
+        for (int i = m_splitColumn; i < m_tableModel->columnCount(); i++) {
+            ui->tableView_2->showColumn(i);
+        }
+    }
+}
+
+void MainWindow::on_actionSplit_Window_triggered(bool checked)
+{
+    if (checked) {
+        auto selected = ui->tableView->selectionModel()->selectedIndexes();
+        int selectedColumn = 0;
+
+        if (selected.size() > 0) {
+            selectedColumn = selected.first().column();
+            foreach(QModelIndex index, selected) {
+                selectedColumn = MIN(selectedColumn, index.column());
+            }
+        }
+
+        if (selectedColumn == 0) {
+            selectedColumn = 1;
+        }
+
+
+        m_splitColumn = selectedColumn;
+
+        int columnWidth = ui->tableView->verticalHeader()->width();
+        for (int i = 0; i < selectedColumn; i++) {
+            columnWidth += ui->tableView->horizontalHeader()->sectionSize(i);
+            ui->tableView->hideColumn(i);
+        }
+
+        for (int i = selectedColumn; i < m_tableModel->columnCount(); i++) {
+            ui->tableView_2->hideColumn(i);
+        }
+
+        int viewWidth = ui->tableView->width() - ui->splitter->handleWidth();
+
+        QList<int> sizes;
+        if (viewWidth < columnWidth + 50) {
+            sizes << viewWidth-50 << 50;
+        } else {
+            sizes << columnWidth << (viewWidth - columnWidth);
+        }
+
+        ui->splitter->setSizes(sizes);
+        ui->tableView->verticalHeader()->setVisible(false);
+    } else {
+        for (int i = 0; i < m_splitColumn; i++) {
+            ui->tableView->showColumn(i);
+        }
+        for (int i = m_splitColumn; i < m_tableModel->columnCount(); i++) {
+            ui->tableView_2->showColumn(i);
+        }
+        QList<int> sizes;
+        sizes << 0 << 1;
+        ui->splitter->setSizes(sizes);
+        ui->tableView->verticalHeader()->setVisible(true);
+    }
 }
