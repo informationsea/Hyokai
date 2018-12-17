@@ -4,6 +4,7 @@
 #include <QSqlRecord>
 #include <QFileDialog>
 #include <QDebug>
+#include <cmath>
 
 /* values should be sorted */
 static QList<double> quantile(const QList<double> &values, const QList<double> &q)
