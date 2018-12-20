@@ -13,6 +13,7 @@
 #include "hyokaiconfig.h"
 #include "tableviewstyleditemdelegate.h"
 #include "sqlhistoryhelper.h"
+#include "tableviewstatus.h"
 
 #ifdef ENABLE_MAC_NATIVE_TOOLBAR
 class QMacNativeToolBar;
@@ -37,6 +38,9 @@ public:
     QSqlDatabase &database() {return m_database;}
     void refresh();
     bool isDirty() { return m_isDirty; }
+    TableViewState saveTableState();
+    void restoreTableState(const TableViewState &state);
+    void resetTableState();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *ev);
@@ -65,6 +69,8 @@ private:
     TableViewStyledItemDelegate *m_tableViewItemDelegate2;
     SqlHistoryHelper *m_historyHelper;
     int m_splitColumn;
+    bool m_tabChanging;
+    QMap<QString, TableViewState> m_tableState;
 
     void initialize();
 

@@ -69,7 +69,8 @@ static int open_count = 0;
 
 MainWindow::MainWindow(QWidget *parent, QString path) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false), m_splitColumn(0)
+    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false), m_splitColumn(0),
+    m_tabChanging(false)
 {
     m_databasename = path;
 
@@ -475,7 +476,7 @@ void MainWindow::onShowHiddenColumnShow()
     bool isHiddenColumnExists = false;
 
     for (int logicalIndex = 0; logicalIndex < numLogicalColumns; logicalIndex++) {
-        if (ui->tableView->isColumnHidden(logicalIndex)) {
+        if (logicalIndex < m_splitColumn ? ui->tableView_2->isColumnHidden(logicalIndex) : ui->tableView->isColumnHidden(logicalIndex)) {
             QString columnName = m_tableModel->headerData(logicalIndex, Qt::Horizontal).toString();
 
             QAction *showColumn = ui->menuShowHiddenColumn->addAction(columnName);
@@ -535,12 +536,30 @@ void MainWindow::showColumn()
     QAction *sigsender = static_cast<QAction *>(sender());
     int logicalIndex = sigsender->data().toInt();
     if (logicalIndex >= 0) {
-        ui->tableView->showColumn(logicalIndex);
-        ui->tableView_2->showColumn(logicalIndex);
+        if (m_splitColumn == 0) {
+            ui->tableView->showColumn(logicalIndex);
+            ui->tableView_2->showColumn(logicalIndex);
+        } else if (logicalIndex < m_splitColumn) {
+            ui->tableView_2->showColumn(logicalIndex);
+        } else {
+            ui->tableView->showColumn(logicalIndex);
+        }
     } else {
-        for (int i = 0; i < m_tableModel->columnCount(); i++) {
-            ui->tableView->showColumn(i);
-            ui->tableView_2->showColumn(i);
+
+        if (m_splitColumn == 0) {
+            for (int i = 0; i < m_tableModel->columnCount(); i++) {
+                ui->tableView->showColumn(i);
+                ui->tableView_2->showColumn(i);
+            }
+        } else {
+            for (int i = 0; i < m_tableModel->columnCount(); i++) {
+                if (i < m_splitColumn) {
+                    ui->tableView_2->showColumn(i);
+
+                } else {
+                    ui->tableView->showColumn(i);
+                }
+            }
         }
     }
 }
@@ -654,6 +673,10 @@ void MainWindow::tableTabChanged(int index)
 
 void MainWindow::tableChanged(const QString &name)
 {
+    if (m_tabChanging) {
+        return;
+    }
+
     if (name == m_tableModel->plainTableName())
         return;
     if (name.isEmpty())
@@ -661,11 +684,18 @@ void MainWindow::tableChanged(const QString &name)
     if (!confirmDuty())
         return;
 
+    if (!m_tableModel->plainTableName().isEmpty()) {
+        //qDebug() << "table change " << m_tableModel->plainTableName() << saveTableState();
+        m_tableState[m_tableModel->plainTableName()] = saveTableState();
+    }
 
+
+    m_tabChanging = true;
     int index = ui->tableSelect->findText(name);
     ui->tableSelect->setCurrentIndex(index);
     ui->tabView->setCurrentIndex(index);
     ui->tableListView->setCurrentRow(index);
+    m_tabChanging = false;
 
     ui->sqlLine->clear();
 
@@ -690,6 +720,8 @@ void MainWindow::tableChanged(const QString &name)
     // reset column size
     int columns = m_tableModel->columnCount();
     for (int i = 0; i < columns; i++) {
+        ui->tableView->showColumn(i);
+        ui->tableView_2->showColumn(i);
         ui->tableView->setColumnWidth(i, 100);
         ui->tableView_2->setColumnWidth(i, 100);
     }
@@ -704,6 +736,12 @@ void MainWindow::tableChanged(const QString &name)
     ui->columnListView->clear();
     for (int i = 0; i < columns; ++i) {
         ui->columnListView->addItem(m_tableModel->headerData(i, Qt::Horizontal).toString());
+    }
+
+    if (m_tableState.contains(m_tableModel->plainTableName())) {
+        restoreTableState(m_tableState[m_tableModel->plainTableName()]);
+    } else {
+        resetTableState();
     }
 
     filterFinished();
@@ -1562,6 +1600,7 @@ void MainWindow::on_splitter_splitterMoved(int pos, int index)
     ui->actionSplit_Window->setChecked(pos != 0);
 
     if (pos == 0) {
+        // show all columns
         for (int i = 0; i < m_splitColumn; i++) {
             ui->tableView->showColumn(i);
         }
@@ -1574,6 +1613,7 @@ void MainWindow::on_splitter_splitterMoved(int pos, int index)
 void MainWindow::on_actionSplit_Window_triggered(bool checked)
 {
     if (checked) {
+        // split window
         auto selected = ui->tableView->selectionModel()->selectedIndexes();
         int selectedColumn = 0;
 
@@ -1588,15 +1628,16 @@ void MainWindow::on_actionSplit_Window_triggered(bool checked)
             selectedColumn = 1;
         }
 
-
         m_splitColumn = selectedColumn;
 
+        // hide columns before split position and calculate width
         int columnWidth = ui->tableView->verticalHeader()->width();
         for (int i = 0; i < selectedColumn; i++) {
             columnWidth += ui->tableView->horizontalHeader()->sectionSize(i);
             ui->tableView->hideColumn(i);
         }
 
+        // hide columns after split position and calculate width
         for (int i = selectedColumn; i < m_tableModel->columnCount(); i++) {
             ui->tableView_2->hideColumn(i);
         }
@@ -1613,6 +1654,7 @@ void MainWindow::on_actionSplit_Window_triggered(bool checked)
         ui->splitter->setSizes(sizes);
         ui->tableView->verticalHeader()->setVisible(false);
     } else {
+        // show all columns
         for (int i = 0; i < m_splitColumn; i++) {
             ui->tableView->showColumn(i);
         }
@@ -1625,3 +1667,95 @@ void MainWindow::on_actionSplit_Window_triggered(bool checked)
         ui->tableView->verticalHeader()->setVisible(true);
     }
 }
+
+
+TableViewState MainWindow::saveTableState()
+{
+    QList<int> columnWidth1;
+    QList<int> columnWidth2;
+    QList<int> splitterWidth = ui->splitter->sizes();
+    QList<bool> hideColmun1;
+    QList<bool> hideColmun2;
+
+    for (int i = 0; i < m_tableModel->columnCount(); i++) {
+        columnWidth1 << ui->tableView->columnWidth(i);
+        columnWidth2 << ui->tableView_2->columnWidth(i);
+        hideColmun1 << ui->tableView->isColumnHidden(i);
+        hideColmun2 << ui->tableView_2->isColumnHidden(i);
+    }
+
+    return TableViewState(
+                ui->sqlLine->toPlainText(),
+                columnWidth1,
+                columnWidth2,
+                splitterWidth,
+                hideColmun1,
+                hideColmun2,
+                m_splitColumn,
+                m_tableModel->rowCount(),
+                ui->tableView->verticalScrollBar()->value(),
+                ui->tableView->horizontalScrollBar()->value(),
+                ui->tableView_2->horizontalScrollBar()->value()
+                );
+}
+
+void MainWindow::restoreTableState(const TableViewState &state)
+{
+    ui->tableView->verticalScrollBar()->setValue(state.verticalScroll());
+    ui->tableView_2->verticalScrollBar()->setValue(state.verticalScroll());
+    ui->tableView->horizontalScrollBar()->setValue(state.horizontalScroll1());
+    ui->tableView_2->horizontalScrollBar()->setValue(state.horizontalScroll2());
+    ui->splitter->setSizes(state.splitterWidth());
+    ui->sqlLine->setPlainText(state.filter());
+
+    qDebug() << "vertical scroll" << state.verticalScroll() << ui->tableView->verticalScrollBar()->value();
+
+    ui->tableView->verticalHeader()->setVisible(state.splitterWidth()[0] == 0);
+    ui->actionSplit_Window->setChecked(state.splitWindow() != 0);
+    m_splitColumn = state.splitWindow();
+
+    int columnCount = state.hideColumn1().size();
+    if (columnCount != m_tableModel->columnCount()) {
+        qDebug() << "ERROR Invalid Number of column" << __FILE__ << __LINE__ << " expected:" << columnCount << "  actual:" << m_tableModel->columnCount();
+        return;
+    }
+
+    for (int i = 0; i < columnCount; ++i) {
+        ui->tableView->columnWidth(state.columnWidth1()[i]);
+        ui->tableView_2->columnWidth(state.columnWidth2()[i]);
+        if (state.hideColumn1()[i]) {
+            ui->tableView->hideColumn(i);
+        } else {
+            ui->tableView->showColumn(i);
+        }
+
+        if (state.hideColumn2()[i]) {
+            ui->tableView_2->hideColumn(i);
+        } else {
+            ui->tableView_2->showColumn(i);
+        }
+    }
+}
+
+void MainWindow::resetTableState()
+{
+    ui->tableView->verticalScrollBar()->setValue(0);
+    ui->tableView_2->verticalScrollBar()->setValue(0);
+    ui->tableView->horizontalScrollBar()->setValue(0);
+    ui->tableView_2->horizontalScrollBar()->setValue(0);
+    ui->tableView->verticalHeader()->setVisible(true);
+    QList<int> values;
+    values << 0 << 1;
+    ui->splitter->setSizes(values);
+    ui->sqlLine->setPlainText("");
+    m_splitColumn = 0;
+    ui->actionSplit_Window->setChecked(false);
+
+    for (int i = 0; i < m_tableModel->columnCount(); ++i) {
+        ui->tableView->columnWidth(100);
+        ui->tableView_2->columnWidth(100);
+        ui->tableView->showColumn(i);
+        ui->tableView_2->showColumn(i);
+    }
+}
+

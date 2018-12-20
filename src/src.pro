@@ -65,7 +65,8 @@ SOURCES += main.cpp\
     sqlhistoryhelper.cpp \
     sqlasynchronousexecutor.cpp \
     summarydialog2.cpp \
-    sqlitemcounttablemodel.cpp
+    sqlitemcounttablemodel.cpp \
+    tableviewstatus.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -114,7 +115,8 @@ HEADERS  += mainwindow.h \
     sqlhistoryhelper.h \
     sqlasynchronousexecutor.h \
     summarydialog2.h \
-    sqlitemcounttablemodel.h
+    sqlitemcounttablemodel.h \
+    tableviewstatus.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
