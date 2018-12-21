@@ -80,7 +80,7 @@ SummaryDialog2::SummaryDialog2(QSqlDatabase *database, QString fromValue, QStrin
         QList<double> quantileResult = quantile(m_doubleList, q);
         QList<QPointF> cummurativeResult;
         for (int i = 0; i < quantileDivision; i++) {
-            cummurativeResult << QPointF(q[i], quantileResult[i]);
+            cummurativeResult << QPointF(quantileResult[i], q[i]);
         }
         //qDebug() << cummurativeResult;
         // TODO: Add sum, SD, mean
@@ -91,8 +91,8 @@ SummaryDialog2::SummaryDialog2(QSqlDatabase *database, QString fromValue, QStrin
 		ui->distributionPlot->setPlotter(&m_histogramPlotter);
 
 		m_linePlotter.setData(cummurativeResult);
-        m_linePlotter.setXLabel("Ratio");
-        m_linePlotter.setYLabel(columnName);
+        m_linePlotter.setYLabel("Ratio");
+        m_linePlotter.setXLabel(columnName);
 		ui->cummurativePlot->setPlotter(&m_linePlotter);
 
         // Sum

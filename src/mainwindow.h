@@ -78,6 +78,8 @@ private:
     bool confirmDuty(); // return false if canceled
     void setupTableModel();
 
+    void popupHeaderContextMenu(QPoint globalPos, int logicalIndex, QTableView *tableView);
+
     QWidgetList m_windowList;
 
 public slots:
@@ -158,6 +160,7 @@ private slots:
     void on_columnListView_currentRowChanged(int currentRow);
     void on_splitter_splitterMoved(int pos, int index);
     void on_actionSplit_Window_triggered(bool checked);
+    void on_columnListView_customContextMenuRequested(const QPoint &pos);
 };
 
 #endif // MAINWINDOW_H

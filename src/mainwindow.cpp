@@ -281,42 +281,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
             QContextMenuEvent *cev = static_cast<QContextMenuEvent *>(ev);
             int logical_index = oneTableView->horizontalHeader()->logicalIndexAt(cev->pos());
             if (logical_index >= 0) {
-                //qDebug() << obj << cev << cev->pos() << logical_index;
                 cev->accept();
-                QMenu popup(this);
-                popup.move(cev->globalPos());
-                QAction *name = popup.addAction(m_tableModel->headerData(logical_index, Qt::Horizontal).toString());
-                name->setEnabled(false);
-                popup.addSeparator();
-                QAction *summary = popup.addAction("Summary");
-                summary->setData(logical_index);
-                connect(summary, SIGNAL(triggered()), SLOT(showColumnSummary()));
-                QAction *copyColumnName = popup.addAction("Copy column name");
-                copyColumnName->setData(logical_index);
-                connect(copyColumnName, SIGNAL(triggered()), SLOT(copyColumnName()));
-                QAction *hideColumn = popup.addAction("Hide");
-                hideColumn->setData(logical_index);
-                connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
-                if (!m_tableModel->isView()) {
-                    QAction *createIndex = popup.addAction(tr("Create index"));
-                    createIndex->setData(logical_index);
-                    connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
-                }
-                popup.addSeparator();
-                QAction *fitColumns = popup.addAction(tr("Resize columns to fit contents"));
-                connect(fitColumns, SIGNAL(triggered()), oneTableView, SLOT(resizeColumnsToContents()));
-                QAction *resizeColumns = popup.addAction(tr("Resize columns"));
-                resizeColumns->setData(CHANGE_SIZE_COLUMN);
-                connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
-                popup.addSeparator();
-                QAction *setNumDecimalPlaces = popup.addAction(tr("Set number of decimal places"));
-                setNumDecimalPlaces->setData(logical_index);
-                connect(setNumDecimalPlaces, SIGNAL(triggered()), SLOT(setNumDecimalPlaces()));
-                QAction *resetNumDecimalPlaces = popup.addAction(tr("Reset number of decimal places"));
-                resetNumDecimalPlaces->setEnabled(m_tableViewItemDelegate1->numDecimalPlaces(logical_index) != TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
-                resetNumDecimalPlaces->setData(logical_index);
-                connect(resetNumDecimalPlaces, SIGNAL(triggered()), SLOT(resetNumDecimalPlaces()));
-                popup.exec();
+                popupHeaderContextMenu(cev->globalPos(), logical_index, oneTableView);
             }
             return true;
         } else if (obj == oneTableView->verticalHeader() && ev->type() == QEvent::ContextMenu) {
@@ -1578,8 +1544,9 @@ void MainWindow::on_columnListView_currentRowChanged(int currentRow)
     if (currentRow < 0) return;
     auto currentVisibleIndex = ui->tableView->indexAt(QPoint(0, 0));
     auto index = m_tableModel->index(currentVisibleIndex.row(), currentRow);
-    ui->tableView->scrollTo(index);
-    ui->tableView->selectColumn(currentRow);
+    QTableView *tableView = currentRow < m_splitColumn ? ui->tableView_2 : ui->tableView;
+    tableView->scrollTo(index);
+    tableView->selectColumn(currentRow);
 }
 
 void MainWindow::onTableViewScrollMoved(int value) {
@@ -1708,8 +1675,6 @@ void MainWindow::restoreTableState(const TableViewState &state)
     ui->splitter->setSizes(state.splitterWidth());
     ui->sqlLine->setPlainText(state.filter());
 
-    qDebug() << "vertical scroll" << state.verticalScroll() << ui->tableView->verticalScrollBar()->value();
-
     ui->tableView->verticalHeader()->setVisible(state.splitterWidth()[0] == 0);
     ui->actionSplit_Window->setChecked(state.splitWindow() != 0);
     m_splitColumn = state.splitWindow();
@@ -1759,3 +1724,53 @@ void MainWindow::resetTableState()
     }
 }
 
+void MainWindow::popupHeaderContextMenu(QPoint globalPos, int logicalIndex, QTableView *tableView)
+{
+    QMenu popup(this);
+    popup.move(globalPos);
+    QAction *name = popup.addAction(m_tableModel->headerData(logicalIndex, Qt::Horizontal).toString());
+    name->setEnabled(false);
+    popup.addSeparator();
+    QAction *summary = popup.addAction("Summary");
+    summary->setData(logicalIndex);
+    connect(summary, SIGNAL(triggered()), SLOT(showColumnSummary()));
+    QAction *copyColumnName = popup.addAction("Copy column name");
+    copyColumnName->setData(logicalIndex);
+    connect(copyColumnName, SIGNAL(triggered()), SLOT(copyColumnName()));
+    QAction *hideColumn = popup.addAction("Hide");
+    hideColumn->setData(logicalIndex);
+    connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
+    if (!m_tableModel->isView()) {
+        QAction *createIndex = popup.addAction(tr("Create index"));
+        createIndex->setData(logicalIndex);
+        connect(createIndex, SIGNAL(triggered()), SLOT(createIndexForColumn()));
+    }
+    popup.addSeparator();
+    QAction *fitColumns = popup.addAction(tr("Resize columns to fit contents"));
+    connect(fitColumns, SIGNAL(triggered()), tableView, SLOT(resizeColumnsToContents()));
+    QAction *resizeColumns = popup.addAction(tr("Resize columns"));
+    resizeColumns->setData(CHANGE_SIZE_COLUMN);
+    connect(resizeColumns, SIGNAL(triggered()), SLOT(onChangeColumnOrRowSize()));
+    popup.addSeparator();
+    QAction *setNumDecimalPlaces = popup.addAction(tr("Set number of decimal places"));
+    setNumDecimalPlaces->setData(logicalIndex);
+    connect(setNumDecimalPlaces, SIGNAL(triggered()), SLOT(setNumDecimalPlaces()));
+    QAction *resetNumDecimalPlaces = popup.addAction(tr("Reset number of decimal places"));
+    resetNumDecimalPlaces->setEnabled(m_tableViewItemDelegate1->numDecimalPlaces(logicalIndex) != TableViewStyledItemDelegate::NUM_DECIMAL_PLACES_NOT_SET);
+    resetNumDecimalPlaces->setData(logicalIndex);
+    connect(resetNumDecimalPlaces, SIGNAL(triggered()), SLOT(resetNumDecimalPlaces()));
+    popup.exec();
+
+}
+
+void MainWindow::on_columnListView_customContextMenuRequested(const QPoint &pos)
+{
+    QPoint global = ui->columnListView->mapToGlobal(pos);
+    QModelIndex indexModel = ui->columnListView->indexAt(pos);
+    int row = indexModel.row();
+    if (row < 0) {
+        return;
+    }
+    popupHeaderContextMenu(global, row, row < m_splitColumn ? ui->tableView_2 : ui->tableView);
+    qDebug() << "custom context menu" << pos << global << indexModel;
+}
