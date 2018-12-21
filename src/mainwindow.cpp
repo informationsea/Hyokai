@@ -1772,5 +1772,4 @@ void MainWindow::on_columnListView_customContextMenuRequested(const QPoint &pos)
         return;
     }
     popupHeaderContextMenu(global, row, row < m_splitColumn ? ui->tableView_2 : ui->tableView);
-    qDebug() << "custom context menu" << pos << global << indexModel;
 }
