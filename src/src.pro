@@ -66,7 +66,8 @@ SOURCES += main.cpp\
     sqlasynchronousexecutor.cpp \
     summarydialog2.cpp \
     sqlitemcounttablemodel.cpp \
-    tableviewstatus.cpp
+    tableviewstatus.cpp \
+    addfilterdialog.cpp
 
 HEADERS  += mainwindow.h \
     main.h \
@@ -116,7 +117,8 @@ HEADERS  += mainwindow.h \
     sqlasynchronousexecutor.h \
     summarydialog2.h \
     sqlitemcounttablemodel.h \
-    tableviewstatus.h
+    tableviewstatus.h \
+    addfilterdialog.h
 
 FORMS    += mainwindow.ui \
     schemadialog.ui \
@@ -127,7 +129,8 @@ FORMS    += mainwindow.ui \
     sheettextinputdialog.ui \
     sqlplotchart.ui \
     customsqldialog.ui \
-    summarydialog2.ui
+    summarydialog2.ui \
+    addfilterdialog.ui
 
 RESOURCES += \
     resouces.qrc

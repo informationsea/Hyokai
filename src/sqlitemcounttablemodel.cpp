@@ -29,7 +29,7 @@ void SqlItemCountTableModel::sort(int column, Qt::SortOrder order)
 			arg(m_columnName, m_fromValue, QString::number(column + 1), orderStr), *m_database);
 	}
 	else {
-		m_query = QSqlQuery(QString("SELECT \"%1\", count(*) as count FROM %2 WHERE %3 GROUP BY \"%1\" ORDER BY %3 %4").
+        m_query = QSqlQuery(QString("SELECT \"%1\", count(*) as count FROM %2 WHERE %3 GROUP BY \"%1\" ORDER BY %4 %5").
 			arg(m_columnName, m_fromValue, m_where, QString::number(column + 1), orderStr), *m_database);
 	}
 	this->setQuery(m_query);

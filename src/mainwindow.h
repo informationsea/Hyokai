@@ -119,6 +119,9 @@ private slots:
     void resetNumDecimalPlaces();
     void onToolbarVisibiltyChanged();
     void onTableViewScrollMoved(int value);
+    void showFilterDialog();
+    void showFilterDialogWithData();
+    void addFilterAccepted();
 
     void on_actionGo_github_triggered();
     void on_actionCommit_triggered();

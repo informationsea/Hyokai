@@ -16,6 +16,7 @@
 #include "sqlfileimporter.h"
 #include "sqlfileexporter.h"
 #include "summarydialog2.h"
+#include "addfilterdialog.h"
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -101,7 +102,8 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 
 MainWindow::MainWindow(const QSqlDatabase &database, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false)
+    ui(new Ui::MainWindow), m_isDirty(false), m_isClosing(false), m_splitColumn(0),
+    m_tabChanging(false)
 {
     m_databasename = database.databaseName();
     m_database = database;
@@ -315,6 +317,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
                 showContent->setData(index);
                 QAction *showCellContent = popup.addAction(tr("Show"), this, SLOT(showCell()));
                 showCellContent->setData(index);
+                QAction *addFilter = popup.addAction(tr("Add Filter"), this, SLOT(showFilterDialogWithData()));
+                addFilter->setData(index);
                 popup.exec();
                 return true;
             }
@@ -1572,7 +1576,7 @@ void MainWindow::onTableViewScrollMoved(int value) {
 
 void MainWindow::on_splitter_splitterMoved(int pos, int index)
 {
-    if (index != 1) {
+    if (index != 1 && m_tableModel == nullptr) {
         return;
     }
     ui->tableView->verticalHeader()->setVisible(pos == 0);
@@ -1749,6 +1753,9 @@ void MainWindow::popupHeaderContextMenu(QPoint globalPos, int logicalIndex, QTab
     QAction *copyColumnName = popup.addAction("Copy column name");
     copyColumnName->setData(logicalIndex);
     connect(copyColumnName, SIGNAL(triggered()), SLOT(copyColumnName()));
+    QAction *addFilter = popup.addAction("Add filter");
+    addFilter->setData(logicalIndex);
+    connect(addFilter, SIGNAL(triggered()), SLOT(showFilterDialog()));
     QAction *hideColumn = popup.addAction("Hide");
     hideColumn->setData(logicalIndex);
     connect(hideColumn, SIGNAL(triggered()), SLOT(hideColumn()));
@@ -1772,7 +1779,6 @@ void MainWindow::popupHeaderContextMenu(QPoint globalPos, int logicalIndex, QTab
     resetNumDecimalPlaces->setData(logicalIndex);
     connect(resetNumDecimalPlaces, SIGNAL(triggered()), SLOT(resetNumDecimalPlaces()));
     popup.exec();
-
 }
 
 void MainWindow::on_columnListView_customContextMenuRequested(const QPoint &pos)
@@ -1836,4 +1842,46 @@ void MainWindow::on_actionReset_font_size_triggered()
     ui->tableView->verticalHeader()->setDefaultSectionSize(m_defaultVerticalSectionSize);
     ui->tableView_2->verticalHeader()->setDefaultSectionSize(m_defaultVerticalSectionSize);
     updateTableFont();
+}
+
+
+void MainWindow::showFilterDialog()
+{
+    const QAction *action = static_cast<QAction *>(sender());
+    if (action == nullptr) return;
+
+    int logicalIndex = action->data().toInt();
+    if (logicalIndex < 0) return;
+    qDebug() << "show" << logicalIndex;
+
+    AddFilterDialog *dialog = new AddFilterDialog(m_tableModel, logicalIndex, "", this);
+    dialog->exec();
+}
+
+void MainWindow::showFilterDialogWithData()
+{
+    const QAction *action = static_cast<QAction *>(sender());
+    if (action == nullptr) return;
+
+    auto index = action->data().toModelIndex();
+    if (index.column() < 0) return;
+
+    AddFilterDialog *dialog = new AddFilterDialog(m_tableModel, index.column(), m_tableModel->data(index).toString(), this);
+    connect(dialog, SIGNAL(accepted()), this, SLOT(addFilterAccepted()));
+    dialog->exec();
+}
+
+void MainWindow::addFilterAccepted()
+{
+    const AddFilterDialog *dialog = static_cast<AddFilterDialog *>(sender());
+    if (dialog == nullptr) return;
+
+    if (ui->sqlLine->toPlainText().isEmpty()) {
+        ui->sqlLine->setPlainText(dialog->whereSql());
+    } else {
+        ui->sqlLine->setPlainText(ui->sqlLine->toPlainText() + " AND " + dialog->whereSql());
+    }
+    filterFinished();
+
+    delete dialog;
 }

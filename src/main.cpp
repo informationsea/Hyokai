@@ -59,13 +59,13 @@ int main(int argc, char *argv[])
     }
 
     for (int i = 0; i < filelist.length(); ++i) {
-        MainWindow *w2 = new MainWindow(NULL, filelist[i]);
+        MainWindow *w2 = new MainWindow(nullptr, filelist[i]);
         w2->show();
         windowList.append(w2);
     }
 
     if (!importlist.isEmpty()) {
-        MainWindow *w2 = new MainWindow(NULL, ":memory:");
+        MainWindow *w2 = new MainWindow(nullptr, ":memory:");
         w2->show();
         windowList.append(w2);
         SqlAsynchronousFileImporter *importer = new SqlAsynchronousFileImporter(&w2->database(), w2);

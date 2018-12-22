@@ -109,7 +109,7 @@ void SQLTextEdit::keyPressEvent(QKeyEvent *event)
         m_popup = new QMenu(this);
         SQLCompleteCandidates suggest = m_syntaxHilighter->completeCandidates(textBlock.mid(seppos, length), textBlock);
 
-        if (suggest.columns.length() < 10) {
+        if (suggest.columns.length() < 10 || (suggest.tables.length() == 0 && suggest.keywords.length() == 0)) {
             foreach(QString one, suggest.columns) {
                 addEntryHelper(m_popup, one, length);
             }
@@ -126,7 +126,7 @@ void SQLTextEdit::keyPressEvent(QKeyEvent *event)
             m_popup->addSeparator();
         }
 
-        if (suggest.tables.length() < 10) {
+        if (suggest.tables.length() < 10 || (suggest.columns.length() == 0 && suggest.keywords.length() == 0)) {
             foreach(QString one, suggest.tables) {
                 addEntryHelper(m_popup, one, length);
             }
@@ -143,7 +143,7 @@ void SQLTextEdit::keyPressEvent(QKeyEvent *event)
             m_popup->addSeparator();
         }
 
-        if (suggest.keywords.length() < 10) {
+        if (suggest.keywords.length() < 10 || (suggest.tables.length() == 0 && suggest.columns.length() == 0)) {
             foreach(QString one, suggest.keywords) {
                 addEntryHelper(m_popup, one, length);
             }
