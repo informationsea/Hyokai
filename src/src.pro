@@ -123,7 +123,6 @@ FORMS    += mainwindow.ui \
     attachdatabasedialog.ui \
     jointabledialog.ui \
     preferencewindow.ui \
-    summarydialog.ui \
     databaseconnectiondialog.ui \
     sheettextinputdialog.ui \
     sqlplotchart.ui \
