@@ -247,7 +247,7 @@
    </widget>
    <widget class="QMenu" name="menuTable">
     <property name="title">
-     <string>Table</string>
+     <string>&amp;Table</string>
     </property>
     <widget class="QMenu" name="menuShowHiddenColumn">
      <property name="title">
@@ -277,7 +277,7 @@
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout_Table_View"/>
     <addaction name="actionAbout_Qt"/>
@@ -288,7 +288,7 @@
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
-     <string>Window</string>
+     <string>&amp;Window</string>
     </property>
     <addaction name="actionDummy"/>
    </widget>
@@ -313,6 +313,10 @@
     <addaction name="actionShow_Table_List_View"/>
     <addaction name="actionShow_Column_List_View"/>
     <addaction name="actionSplit_Window"/>
+    <addaction name="separator"/>
+    <addaction name="actionZoom"/>
+    <addaction name="actionReset_font_size"/>
+    <addaction name="actionUnzoom"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -544,7 +548,7 @@
   </action>
   <action name="actionAbout_Table_View">
    <property name="text">
-    <string>About Hyokai</string>
+    <string>&amp;About Hyokai</string>
    </property>
    <property name="statusTip">
     <string>About Hyokai</string>
@@ -552,7 +556,7 @@
   </action>
   <action name="actionGo_github">
    <property name="text">
-    <string>Go to github</string>
+    <string>Go to &amp;github</string>
    </property>
    <property name="statusTip">
     <string>Go to github project page</string>
@@ -584,7 +588,7 @@
   </action>
   <action name="actionAbout_Qt">
    <property name="text">
-    <string>About Qt</string>
+    <string>About &amp;Qt</string>
    </property>
    <property name="statusTip">
     <string>About Qt</string>
@@ -834,6 +838,30 @@
    </property>
    <property name="text">
     <string>Split Window</string>
+   </property>
+  </action>
+  <action name="actionZoom">
+   <property name="text">
+    <string>Zoom</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl++</string>
+   </property>
+  </action>
+  <action name="actionReset_font_size">
+   <property name="text">
+    <string>Reset font size</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+0</string>
+   </property>
+  </action>
+  <action name="actionUnzoom">
+   <property name="text">
+    <string>Unzoom</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
    </property>
   </action>
  </widget>

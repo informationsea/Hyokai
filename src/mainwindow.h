@@ -71,6 +71,9 @@ private:
     int m_splitColumn;
     bool m_tabChanging;
     QMap<QString, TableViewState> m_tableState;
+    QFont m_defaultTableFont;
+    int m_fontSize;
+    int m_defaultVerticalSectionSize;
 
     void initialize();
 
@@ -79,6 +82,7 @@ private:
     void setupTableModel();
 
     void popupHeaderContextMenu(QPoint globalPos, int logicalIndex, QTableView *tableView);
+    QFont updateTableFont();
 
     QWidgetList m_windowList;
 
@@ -161,6 +165,9 @@ private slots:
     void on_splitter_splitterMoved(int pos, int index);
     void on_actionSplit_Window_triggered(bool checked);
     void on_columnListView_customContextMenuRequested(const QPoint &pos);
+    void on_actionZoom_triggered();
+    void on_actionUnzoom_triggered();
+    void on_actionReset_font_size_triggered();
 };
 
 #endif // MAINWINDOW_H

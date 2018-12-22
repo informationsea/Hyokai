@@ -81,6 +81,10 @@ MainWindow::MainWindow(QWidget *parent, QString path) :
 
     initialize();
 
+    m_defaultTableFont = ui->tableView->font();
+    m_fontSize = m_defaultTableFont.pointSize();
+    m_defaultVerticalSectionSize = ui->tableView->verticalHeader()->defaultSectionSize();
+
     if (m_database.driverName() == "QSQLITE") {
         QList<QVariant> attachdb = tableview_settings->value(ATTACHED_DATABASES).toList();
         foreach(QVariant l, attachdb) {
@@ -1486,17 +1490,25 @@ void MainWindow::on_actionGo_to_Hyokai_info_triggered()
     QDesktopServices::openUrl(QUrl("http://hyokai.info"));
 }
 
-void MainWindow::on_actionUse_fixed_width_font_triggered(bool checked)
+void MainWindow::on_actionUse_fixed_width_font_triggered(bool)
+{
+    updateTableFont();
+}
+
+QFont MainWindow::updateTableFont()
 {
     QFont font;
-    if (checked) {
+    if (ui->actionUse_fixed_width_font->isChecked()) {
         font.setFamily("Monaco");
         font.setStyleHint(QFont::Monospace);
     } else {
-        font = QApplication::font();
+        font = m_defaultTableFont;
     }
+    font.setPointSize(m_fontSize);
+
     ui->tableView->setFont(font);
     ui->tableView_2->setFont(font);
+    return font;
 }
 
 void MainWindow::on_actionShow_Toolbar_triggered(bool checked)
@@ -1772,4 +1784,56 @@ void MainWindow::on_columnListView_customContextMenuRequested(const QPoint &pos)
         return;
     }
     popupHeaderContextMenu(global, row, row < m_splitColumn ? ui->tableView_2 : ui->tableView);
+}
+
+const int RESIZE_FACTOR = 2;
+
+void MainWindow::on_actionZoom_triggered()
+{
+    m_fontSize = m_fontSize * 2;
+    for (int i = 0; i < m_tableModel->columnCount(); i++) {
+        ui->tableView->setColumnWidth(i, RESIZE_FACTOR * ui->tableView->columnWidth(i));
+        ui->tableView_2->setColumnWidth(i, RESIZE_FACTOR * ui->tableView_2->columnWidth(i));
+    }
+    for (int i = 0; i < m_tableModel->rowCount(); i++) {
+        ui->tableView->setRowHeight(i, ui->tableView->rowHeight(i) * RESIZE_FACTOR);
+        ui->tableView_2->setRowHeight(i, ui->tableView_2->rowHeight(i) * RESIZE_FACTOR);
+    }
+    ui->tableView->verticalHeader()->setDefaultSectionSize(ui->tableView->verticalHeader()->defaultSectionSize() * RESIZE_FACTOR);
+    ui->tableView_2->verticalHeader()->setDefaultSectionSize(ui->tableView_2->verticalHeader()->defaultSectionSize() * RESIZE_FACTOR);
+    updateTableFont();
+}
+
+void MainWindow::on_actionUnzoom_triggered()
+{
+    m_fontSize = m_fontSize / 2;
+    for (int i = 0; i < m_tableModel->columnCount(); i++) {
+        ui->tableView->setColumnWidth(i, ui->tableView->columnWidth(i) / RESIZE_FACTOR);
+        ui->tableView_2->setColumnWidth(i, ui->tableView_2->columnWidth(i) / RESIZE_FACTOR);
+    }
+    for (int i = 0; i < m_tableModel->rowCount(); i++) {
+        ui->tableView->setRowHeight(i, ui->tableView->rowHeight(i) / RESIZE_FACTOR);
+        ui->tableView_2->setRowHeight(i, ui->tableView_2->rowHeight(i) / RESIZE_FACTOR);
+    }
+    ui->tableView->verticalHeader()->setDefaultSectionSize(ui->tableView->verticalHeader()->defaultSectionSize() / RESIZE_FACTOR);
+    ui->tableView_2->verticalHeader()->setDefaultSectionSize(ui->tableView_2->verticalHeader()->defaultSectionSize() / RESIZE_FACTOR);
+    updateTableFont();
+}
+
+void MainWindow::on_actionReset_font_size_triggered()
+{
+    double factor = m_defaultTableFont.pointSize() / static_cast<double>(m_fontSize);
+    for (int i = 0; i < m_tableModel->columnCount(); i++) {
+        ui->tableView->setColumnWidth(i, static_cast<int>(ui->tableView->columnWidth(i) * factor));
+        ui->tableView_2->setColumnWidth(i, static_cast<int>(ui->tableView_2->columnWidth(i) * factor));
+    }
+    for (int i = 0; i < m_tableModel->rowCount(); i++) {
+        ui->tableView->setRowHeight(i, static_cast<int>(ui->tableView->rowHeight(i) * factor));
+        ui->tableView_2->setRowHeight(i, static_cast<int>(ui->tableView_2->rowHeight(i) * factor));
+    }
+
+    m_fontSize = m_defaultTableFont.pointSize();
+    ui->tableView->verticalHeader()->setDefaultSectionSize(m_defaultVerticalSectionSize);
+    ui->tableView_2->verticalHeader()->setDefaultSectionSize(m_defaultVerticalSectionSize);
+    updateTableFont();
 }

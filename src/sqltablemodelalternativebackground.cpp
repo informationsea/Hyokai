@@ -22,9 +22,6 @@ QVariant SqlTableModelAlternativeBackground::data(const QModelIndex & index, int
         QVariant d = QSqlTableModel::data(index, Qt::DisplayRole);
         return d;
     }
-    case Qt::FontRole: {
-        //return QFont("monaco");
-    }
     }
 
     return QSqlTableModel::data(index, role);
