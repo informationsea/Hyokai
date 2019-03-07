@@ -553,7 +553,7 @@ void MainWindow::colmunResized(int column, int oldWidth, int newWidth)
 {
     if (newWidth == 0) return;
     QHeaderView *origin = static_cast<QHeaderView *>(sender());
-    qDebug() << (origin == ui->tableView->horizontalHeader()) << column << oldWidth << newWidth;
+    //qDebug() << (origin == ui->tableView->horizontalHeader()) << column << oldWidth << newWidth;
     QHeaderView *pairHeader = nullptr;
     if (origin == ui->tableView->horizontalHeader()) {
         pairHeader = ui->tableView_2->horizontalHeader();
