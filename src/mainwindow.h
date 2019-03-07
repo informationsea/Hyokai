@@ -107,6 +107,7 @@ private slots:
     void showColumnSummary();
     void showColumn();
     void hideColumn();
+    void colmunResized(int column, int oldWidth, int newWidth);
     void copyColumnName();
     void createIndexForColumn();
     void insertSqlFilter();

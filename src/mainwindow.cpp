@@ -152,6 +152,8 @@ void MainWindow::initialize()
     connect(ui->tableListView, SIGNAL(currentTextChanged(QString)), SLOT(tableChanged(QString)));
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
     connect(ui->tableView_2->horizontalHeader(), SIGNAL(sortIndicatorChanged(int,Qt::SortOrder)), SLOT(sortIndicatorChanged(int,Qt::SortOrder)));
+    connect(ui->tableView->horizontalHeader(), SIGNAL(sectionResized(int, int, int)), SLOT(colmunResized(int, int, int)));
+    connect(ui->tableView_2->horizontalHeader(), SIGNAL(sectionResized(int, int, int)), SLOT(colmunResized(int, int, int)));
     connect(ui->tableView->verticalScrollBar(), SIGNAL(valueChanged(int)), SLOT(onTableViewScrollMoved(int)));
     connect(ui->tableView_2->verticalScrollBar(), SIGNAL(valueChanged(int)), SLOT(onTableViewScrollMoved(int)));
     connect(ui->menuWindow, SIGNAL(aboutToShow()), SLOT(onWindowMenuShow()));
@@ -545,6 +547,20 @@ void MainWindow::hideColumn()
     int logicalIndex = sigsender->data().toInt();
     ui->tableView->hideColumn(logicalIndex);
     ui->tableView_2->hideColumn(logicalIndex);
+}
+
+void MainWindow::colmunResized(int column, int oldWidth, int newWidth)
+{
+    if (newWidth == 0) return;
+    QHeaderView *origin = static_cast<QHeaderView *>(sender());
+    qDebug() << (origin == ui->tableView->horizontalHeader()) << column << oldWidth << newWidth;
+    QHeaderView *pairHeader = nullptr;
+    if (origin == ui->tableView->horizontalHeader()) {
+        pairHeader = ui->tableView_2->horizontalHeader();
+    } else {
+        pairHeader = ui->tableView->horizontalHeader();
+    }
+    pairHeader->resizeSection(column, newWidth);
 }
 
 void MainWindow::copyColumnName()
