@@ -188,9 +188,9 @@ void SqlService::copyFromTableView(const QTableView *tableView, bool copyHeader)
 QTemporaryFile *SqlService::writeTableToBinary(QSqlQuery query, WriteType type, QObject *parent)
 {
     if (!query.isActive())
-        return NULL;
+        return nullptr;
     if (!query.isSelect())
-        return NULL;
+        return nullptr;
 
     QTemporaryFile *tempfile = new QTemporaryFile(parent);
 

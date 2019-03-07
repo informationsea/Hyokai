@@ -45,7 +45,7 @@ QString AddFilterDialog::whereSql() const
 void AddFilterDialog::on_columnComboBox_currentIndexChanged(int index)
 {
     QSqlField field = m_queryModel->record().field(index);
-    qDebug() << "field" << field.name() << field.type();
+    //qDebug() << "field" << field.name() << field.type();
     switch (field.type()) {
     case QVariant::Int:
     case QVariant::LongLong:

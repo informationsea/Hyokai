@@ -45,6 +45,7 @@ QVariant SchemaTableModel::headerData ( int section, Qt::Orientation orientation
         default:
             break;
         }
+        break;
     default:
         break;
     }

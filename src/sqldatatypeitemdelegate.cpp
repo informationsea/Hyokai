@@ -23,12 +23,12 @@ QWidget *SqlDataTypeItemDelegate::createEditor(QWidget *parent, const QStyleOpti
 
 void SqlDataTypeItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    QComboBox *comboBox = (QComboBox *)editor;
+    QComboBox *comboBox = static_cast<QComboBox *>(editor);
     comboBox->lineEdit()->setText(index.data(Qt::EditRole).toString());
 }
 
 void SqlDataTypeItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    QComboBox *comboBox = (QComboBox *)editor;
+    QComboBox *comboBox = static_cast<QComboBox *>(editor);
     model->setData(index, comboBox->lineEdit()->text());
 }

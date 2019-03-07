@@ -5,6 +5,7 @@
 #include <QSqlDatabase>
 #include <QSqlQueryModel>
 #include <QSqlQuery>
+#include <QTableView>
 
 #include "sphistogramplotter.h"
 #include "sqlitemcounttablemodel.h"
@@ -18,9 +19,12 @@ class SummaryDialog2 : public QDialog
 {
     Q_OBJECT
 
+
 public:
     explicit SummaryDialog2(QSqlDatabase *database, QString fromValue, QString columnValue, QString where, QWidget *parent = nullptr);
     ~SummaryDialog2();
+
+    QTableView* tableView();
 
 private slots:
     void on_binWidthSpinBox_valueChanged(double arg1);

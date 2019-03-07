@@ -501,8 +501,9 @@ void MainWindow::showColumnSummary()
     int logical_index = sigsender->data().toInt();
     QString column_name = m_tableModel->headerData(logical_index, Qt::Horizontal).toString();
 
-	SummaryDialog2 *sumamry2 = new SummaryDialog2(&m_database, m_tableModel->tableName(), column_name, ui->sqlLine->toPlainText(), this);
-	sumamry2->show();
+    SummaryDialog2 *summary2 = new SummaryDialog2(&m_database, m_tableModel->tableName(), column_name, ui->sqlLine->toPlainText(), this);
+    m_dialogs.push_back(summary2);
+    summary2->show();
 }
 
 void MainWindow::showColumn()
@@ -1070,23 +1071,39 @@ void MainWindow::on_actionCopy_with_header_triggered()
 
 void MainWindow::onCopyTriggered(bool withHeader)
 {
-    QTableView *tableView;
+    QTableView *tableView = nullptr;
     QWidget *widget = qApp->activeWindow();
+    qDebug() << "active window" << widget << " check focus 1" << ui->tableView->hasFocus() << " 2: " << ui->tableView_2->hasFocus();
 
-    tableView = ui->tableView;
+    if (ui->tableView->hasFocus()) {
+        tableView = ui->tableView;
+    }
+
     if (ui->tableView_2->hasFocus()) {
         tableView = ui->tableView_2;
     }
+
     foreach(QDialog *dialog, m_dialogs) {
-        if (widget == dialog) {
-            CustomSqlDialog *customDialog = dynamic_cast<CustomSqlDialog *>(dialog);
-            if (customDialog)
+        CustomSqlDialog *customDialog = dynamic_cast<CustomSqlDialog *>(dialog);
+        if (customDialog) {
+            if (customDialog->tableView()->hasFocus()) {
                 tableView = customDialog->tableView();
-            break;
+                break;
+            }
+        }
+
+        SummaryDialog2 *summaryDialog = dynamic_cast<SummaryDialog2 *>(dialog);
+        if (summaryDialog) {
+            if (summaryDialog->tableView()->hasFocus()) {
+                tableView = summaryDialog->tableView();
+                break;
+            }
         }
     }
 
-    SqlService::copyFromTableView(tableView, withHeader);
+    if (tableView) {
+        SqlService::copyFromTableView(tableView, withHeader);
+    }
 }
 
 void MainWindow::on_actionAttach_Database_triggered()
@@ -1852,9 +1869,10 @@ void MainWindow::showFilterDialog()
 
     int logicalIndex = action->data().toInt();
     if (logicalIndex < 0) return;
-    qDebug() << "show" << logicalIndex;
+    //qDebug() << "show" << logicalIndex;
 
     AddFilterDialog *dialog = new AddFilterDialog(m_tableModel, logicalIndex, "", this);
+    connect(dialog, SIGNAL(accepted()), this, SLOT(addFilterAccepted()));
     dialog->exec();
 }
 
@@ -1883,5 +1901,5 @@ void MainWindow::addFilterAccepted()
     }
     filterFinished();
 
-    delete dialog;
+    //delete dialog;
 }

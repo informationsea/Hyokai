@@ -206,7 +206,7 @@ bool SchemaDialog::useFts4() const
 bool SchemaDialog::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == ui->tableView && event->type() == QEvent::MouseButtonPress) {
-        QMouseEvent *mouseEvent = (QMouseEvent *)event;
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
         QPoint pos = mouseEvent->pos();
         pos -= QPoint(ui->tableView->verticalHeader()->width(), ui->tableView->horizontalHeader()->height());
         QModelIndex index = ui->tableView->indexAt(pos);

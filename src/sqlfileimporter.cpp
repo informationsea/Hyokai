@@ -82,7 +82,7 @@ QList<SchemaField> SqlFileImporter::suggestSchemaFromCSV(QString path, bool isCS
         int j = 0;
         do {
             const char *column = reader->readnext(&readlen, &islineend);
-            if (column == NULL)
+            if (column == nullptr)
                 goto finishLineHeader;
             fields.append(SchemaField(SqlService::suggestFieldName(QString(QByteArray(column, readlen)), fields)));
             fields[j].setLogicalIndex(j);
@@ -96,7 +96,7 @@ QList<SchemaField> SqlFileImporter::suggestSchemaFromCSV(QString path, bool isCS
         int j = 0;
         do {
             const char *column = reader->readnext(&readlen, &islineend);
-            if (column == NULL)
+            if (column == nullptr)
                 goto finishSuggestFile;
 
             if (fields.size() <= j) {
@@ -111,17 +111,17 @@ QList<SchemaField> SqlFileImporter::suggestSchemaFromCSV(QString path, bool isCS
                     break;
                 fieldTypes[j] = SchemaField::FIELD_REAL;
                 // no break
-            case SchemaField::FIELD_REAL:
+            [[clang::fallthrough]]; case SchemaField::FIELD_REAL:
                 if (isrealstr(column, readlen))
                     break;
                 fieldTypes[j] = SchemaField::FIELD_TEXT;
                 // no break
-            case SchemaField::FIELD_TEXT:
+            [[clang::fallthrough]]; case SchemaField::FIELD_TEXT:
             default:
                 break;
             }
 
-            if ((size_t)fields[j].maximumLength() < readlen)
+            if (static_cast<size_t>(fields[j].maximumLength()) < readlen)
                 fields[j].setMaximumLength(readlen);
 
             j++;

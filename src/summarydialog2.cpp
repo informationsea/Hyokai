@@ -135,6 +135,11 @@ SummaryDialog2::~SummaryDialog2()
     delete ui;
 }
 
+QTableView *SummaryDialog2::tableView()
+{
+    return ui->summaryTableView;
+}
+
 void SummaryDialog2::on_binWidthSpinBox_valueChanged(double arg1)
 {
 	m_histogramPlotter.setInterval(arg1);

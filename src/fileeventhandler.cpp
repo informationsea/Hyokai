@@ -23,7 +23,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
                 openevent->file().endsWith(".db")) {
             ::tableviewCleanupWindows();
 
-            MainWindow *w = new MainWindow(NULL, openevent->file());
+            MainWindow *w = new MainWindow(nullptr, openevent->file());
             w->show();
 
             // close in memory database
@@ -51,7 +51,7 @@ bool FileEventHandler::eventFilter(QObject *obj, QEvent *event)
             }
 
             ::tableviewCleanupWindows();
-            w = new MainWindow(NULL, ":memory:");
+            w = new MainWindow(nullptr, ":memory:");
             w->show();
             ::windowList.append(w);
 

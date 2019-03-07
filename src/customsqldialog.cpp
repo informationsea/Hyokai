@@ -113,7 +113,7 @@ bool CustomSqlDialog::eventFilter(QObject *obj, QEvent *ev)
 }
 void CustomSqlDialog::showCell()
 {
-    QAction *action = (QAction *)sender();
+    QAction *action = static_cast<QAction*>(sender());
     QModelIndex index = action->data().toModelIndex();
     QString header = m_querymodel.headerData(index.column(), Qt::Horizontal).toString();
     SheetMessageBox::information(this, tr("%1, #%2").arg(header, QString::number(index.row()+1)), m_querymodel.data(index).toString());
@@ -121,7 +121,7 @@ void CustomSqlDialog::showCell()
 
 void CustomSqlDialog::onShowSummary()
 {
-    QAction *action = (QAction *)sender();
+    QAction *action = static_cast<QAction*>(sender());
     int logicalIndex = action->data().toInt();
 
     QSqlRecord record = m_query.record();
@@ -131,7 +131,7 @@ void CustomSqlDialog::onShowSummary()
 
 void CustomSqlDialog::onSortAscending()
 {
-    QAction *action = (QAction *)sender();
+    QAction *action = static_cast<QAction*>(sender());
     int logicalIndex = action->data().toInt();
 
     QSqlRecord record = m_query.record();
@@ -150,7 +150,7 @@ void CustomSqlDialog::onSortAscending()
 
 void CustomSqlDialog::onSortDescending()
 {
-    QAction *action = (QAction *)sender();
+    QAction *action = static_cast<QAction*>(sender());
     int logicalIndex = action->data().toInt();
 
     QSqlRecord record = m_query.record();
@@ -231,14 +231,14 @@ void CustomSqlDialog::on_assistButton_clicked()
 
 void CustomSqlDialog::setSqlTemplate()
 {
-    QAction *sender = (QAction *)QObject::sender();
+    QAction *sender = static_cast<QAction*>(QObject::sender());
     ui->sql->setPlainText(sender->data().toString());
 }
 
 
 void CustomSqlDialog::insertSql()
 {
-    QAction *sender = (QAction *)QObject::sender();
+    QAction *sender = static_cast<QAction*>(QObject::sender());
     ui->sql->insertPlainText(sender->data().toString());
 }
 
@@ -305,7 +305,7 @@ void CustomSqlDialog::on_historyButton_clicked()
 
 void CustomSqlDialog::onHistorySelected()
 {
-    QAction *senderAction = (QAction *)sender();
+    QAction *senderAction = static_cast<QAction*>(sender());
     if (senderAction->data().toString().compare(CLEAR_TEXT) == 0) {
         m_history.clear();
         tableview_settings->setValue(CUSTOM_SQL_HISTORY, m_history);
