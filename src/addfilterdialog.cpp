@@ -38,7 +38,7 @@ QString AddFilterDialog::whereSql() const
     case QVariant::Double:
         return ui->columnComboBox->currentText() + " " + ui->operatorComboBox->currentText() + " " + ui->lineEdit->text() + "";
     default:
-        return ui->columnComboBox->currentText() + " " + ui->operatorComboBox->currentText() + " \"" + ui->lineEdit->text() + "\"";
+        return ui->columnComboBox->currentText() + " " + ui->operatorComboBox->currentText() + " '" + ui->lineEdit->text() + "'";
     }
 }
 
