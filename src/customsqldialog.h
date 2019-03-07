@@ -27,7 +27,7 @@ class CustomSqlDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit CustomSqlDialog(QSqlDatabase *database, QWidget *parent = 0);
+    explicit CustomSqlDialog(QSqlDatabase *database, QWidget *parent = nullptr);
     ~CustomSqlDialog();
 
     QTableView *tableView();

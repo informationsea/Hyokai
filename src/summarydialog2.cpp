@@ -1,5 +1,6 @@
 #include "summarydialog2.h"
 #include "ui_summarydialog2.h"
+#include "sqlservice.h"
 
 #include <QSqlRecord>
 #include <QFileDialog>
@@ -42,6 +43,7 @@ SummaryDialog2::SummaryDialog2(QSqlDatabase *database, QString fromValue, QStrin
 	// Summary
 	ui->summaryTableView->setModel(&m_model);
 	ui->summaryTableView->sortByColumn(1, Qt::SortOrder::DescendingOrder);
+    ui->summaryTableView->installEventFilter(this);
 
 	// Distribution
 	QSqlQuery distributionQuery;
@@ -172,4 +174,17 @@ void SummaryDialog2::on_exportImageCummurativeButton_clicked()
     m_linePlotter.plot(painter, QRect(QPoint(0, 0), img.size()));
 
     img.save(file);
+}
+
+bool SummaryDialog2::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::KeyRelease) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->key() == Qt::Key_C && keyEvent->modifiers() == Qt::ControlModifier) {
+            //qDebug() << "event filter" << obj << keyEvent;
+            SqlService::copyFromTableView(ui->summaryTableView, false);
+            return true;
+        }
+    }
+    return QObject::eventFilter(obj, event);
 }

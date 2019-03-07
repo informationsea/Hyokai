@@ -22,7 +22,7 @@ class SummaryDialog2 : public QDialog
 
 public:
     explicit SummaryDialog2(QSqlDatabase *database, QString fromValue, QString columnValue, QString where, QWidget *parent = nullptr);
-    ~SummaryDialog2();
+    ~SummaryDialog2() override;
 
     QTableView* tableView();
 
@@ -32,6 +32,9 @@ private slots:
     void on_exportImageButton_clicked();
 
     void on_exportImageCummurativeButton_clicked();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     Ui::SummaryDialog2 *ui;

@@ -108,8 +108,15 @@ bool CustomSqlDialog::eventFilter(QObject *obj, QEvent *ev)
             popup.exec();
         }
         return true;
+    } else if (obj == ui->tableView && ev->type() == QEvent::KeyRelease) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+        if (keyEvent->key() == Qt::Key_C && keyEvent->modifiers() == Qt::ControlModifier) {
+            //qDebug() << "event filter" << obj << keyEvent;
+            SqlService::copyFromTableView(ui->tableView, false);
+            return true;
+        }
     }
-    return false;
+    return QObject::eventFilter(obj, ev);
 }
 void CustomSqlDialog::showCell()
 {

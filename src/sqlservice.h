@@ -57,7 +57,7 @@ public:
     static QString createRcodeToImport(const QSqlDatabase &database, const QString &query, const QString &variableName);
     static QString createRcodeToImportWithTable(const QSqlDatabase &database, const QString &tableName, const QString &whereStatement);
     static void copyFromTableView(const QTableView *tableView, bool copyHeader);
-    static QTemporaryFile *writeTableToBinary(QSqlQuery query, WriteType type, QObject *parent = 0);
+    static QTemporaryFile *writeTableToBinary(QSqlQuery query, WriteType type, QObject *parent = nullptr);
 };
 
 #endif // SQLSERVICE_H
